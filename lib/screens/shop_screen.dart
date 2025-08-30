@@ -1,0 +1,148 @@
+import 'package:flutter/material.dart';
+
+class ShopScreen extends StatelessWidget {
+  const ShopScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF4A3D4D),
+        centerTitle: true,
+        elevation: 0,
+        title: const Text(
+          'Natural and Artisan Foods',
+          style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
+        ),
+      ),
+      body: const _HomeHeaderAndContent(),
+    );
+  }
+}
+
+class _HomeHeaderAndContent extends StatefulWidget {
+  const _HomeHeaderAndContent();
+
+  @override
+  State<_HomeHeaderAndContent> createState() => _HomeHeaderAndContentState();
+}
+
+class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
+  int _selectedChip = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    const Color brandGreen = Color(0xFF7B8B57);
+    final TextTheme textTheme = Theme.of(context).textTheme;
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+                             Expanded(
+                 child: Align(
+                   alignment: Alignment.centerLeft, // pushes it to the left
+                   child: Image.asset(
+                     'assets/images/homescreen logo.png',
+                     height: 100,
+                     fit: BoxFit.contain,
+                   ),
+                 ),
+               ),
+              Row(
+                children: const <Widget>[
+                  Icon(Icons.shopping_cart_outlined, color: Colors.black87),
+                  SizedBox(width: 16),
+                  Icon(Icons.notifications_none, color: Colors.black87),
+                  SizedBox(width: 16),
+                  Icon(Icons.person_outline, color: Colors.black87),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _SearchBar(hint:'Search Products'),
+          const SizedBox(height: 16),
+          _ChipsRow(
+            selectedIndex: _selectedChip,
+            onSelected: (int i) => setState(() => _selectedChip = i),
+            selectedColor: brandGreen,
+          ),
+          const SizedBox(height: 16),
+          // Placeholder for the rest of the home content
+          Text('Home content goes here', style: textTheme.bodyMedium),
+        ],
+      ),
+    );
+  }
+}
+
+class _SearchBar extends StatelessWidget {
+  final String hint;
+  const _SearchBar({required this.hint});
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      decoration: InputDecoration(
+        hintText: hint,
+        filled: true,
+        fillColor: Colors.white,
+        prefixIcon: const Icon(Icons.search),
+        contentPadding: const EdgeInsets.symmetric(vertical: 14),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: Colors.black.withOpacity(0.15)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: Colors.black.withOpacity(0.15)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Color(0xFF7B8B57)),
+        ),
+      ),
+    );
+  }
+}
+
+class _ChipsRow extends StatelessWidget {
+  final int selectedIndex;
+  final ValueChanged<int> onSelected;
+  final Color selectedColor;
+
+  const _ChipsRow({required this.selectedIndex, required this.onSelected, required this.selectedColor});
+
+  @override
+  Widget build(BuildContext context) {
+    final List<String> labels = <String>['All Recipes', 'Trending', 'Quick & Easy', 'Seasonal'];
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: List<Widget>.generate(labels.length, (int index) {
+          final bool isSelected = index == selectedIndex;
+          return Padding(
+            padding: EdgeInsets.only(right: index == labels.length - 1 ? 0 : 12),
+            child: ChoiceChip(
+              label: Text(labels[index]),
+              selected: isSelected,
+              onSelected: (_) => onSelected(index),
+              selectedColor: selectedColor,
+              backgroundColor: const Color(0xFFF0F1F2),
+              labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.black87, fontWeight: FontWeight.w600),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+              side: BorderSide(color: Colors.black.withOpacity(0.05)),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+}
+
+
