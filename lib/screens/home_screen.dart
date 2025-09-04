@@ -58,7 +58,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
                   SizedBox(width: 16),
                   Icon(Icons.notifications_none, color: Colors.black87),
                   SizedBox(width: 16),
-                  Icon(Icons.person_outline, color: Colors.black87),
+                 // Icon(Icons.person_outline, color: Colors.black87),
                 ],
               ),
             ],

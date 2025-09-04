@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "730098433384",
+    "project_id": "sutter-buttes-recipes",
+    "storage_bucket": "sutter-buttes-recipes.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:730098433384:android:6d69c70255416c5447eadd",
+        "android_client_info": {
+          "package_name": "com.sutterbuttes.recipes"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDY_zIlCsf-dcjrM3OeyCsp5bJrbmuWTlk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
+

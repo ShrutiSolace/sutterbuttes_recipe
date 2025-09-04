@@ -3,15 +3,31 @@ import 'screens/login_screen.dart';
 import 'screens/bottom_navigation.dart';
 import 'screens/signup_screen.dart';
 import 'screens/splash_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  print('Starting Firebase initialization...');
+
+  try {
+    await Firebase.initializeApp();
+    print(' Firebase initialized successfully!');
+    print(' Firebase app name: ${Firebase.app().name}');
+    print(' Firebase options: ${Firebase.app().options}');
+  } catch (e) {
+    print('Firebase initialization failed: $e');
+  }
+
+  runApp(MyApp());
 }
+
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
