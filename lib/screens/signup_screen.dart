@@ -1,5 +1,9 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'state/auth_provider.dart';
+
+
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -9,6 +13,7 @@ class SignupScreen extends StatefulWidget {
 }
 
 class _SignupScreenState extends State<SignupScreen> {
+  final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -25,13 +30,13 @@ class _SignupScreenState extends State<SignupScreen> {
       backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
               _buildBrandHeader(),
-              const SizedBox(height: 16),
+              const SizedBox(height: 8),
               Text(
                 'Join Sutter Buttes',
                 style: Theme.of(context)
@@ -39,7 +44,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     .headlineSmall
                     ?.copyWith(fontWeight: FontWeight.w700, color: Colors.black87),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 4),
               Text(
                 'Create your account to get started',
                 style: Theme.of(context)
@@ -48,7 +53,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     ?.copyWith(color: Colors.black87),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 520),
@@ -60,7 +65,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       side: BorderSide(color: Colors.black.withOpacity(0.08)),
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
@@ -73,7 +78,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                   ?.copyWith(fontWeight: FontWeight.w700),
                             ),
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 12),
                           Row(
                             children: <Widget>[
                               Expanded(
@@ -81,7 +86,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: <Widget>[
                                     Text('First Name', style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Colors.black87)),
-                                    const SizedBox(height: 8),
+                                    const SizedBox(height: 4),
                                     TextField(
                                       controller: _firstNameController,
                                       decoration: _inputDecoration(hint: 'First name'),
@@ -95,7 +100,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: <Widget>[
                                     Text('Last Name', style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Colors.black87)),
-                                    const SizedBox(height: 8),
+                                    const SizedBox(height: 4),
                                     TextField(
                                       controller: _lastNameController,
                                       decoration: _inputDecoration(hint: 'Last name'),
@@ -105,17 +110,26 @@ class _SignupScreenState extends State<SignupScreen> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 16),
+
+                          const SizedBox(height: 12),
+                          Text('Username', style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Colors.black87)),
+                          const SizedBox(height: 4),
+                          TextField(
+                            controller: _usernameController,
+                            decoration: _inputDecoration(hint: 'Enter your username'),
+                          ),
+
+                          const SizedBox(height: 12),
                           Text('Email Address', style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Colors.black87)),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 4),
                           TextField(
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
                             decoration: _inputDecoration(hint: 'Enter your email'),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 12),
                           Text('Password', style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Colors.black87)),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 4),
                           TextField(
                             controller: _passwordController,
                             obscureText: _obscurePassword,
@@ -127,9 +141,9 @@ class _SignupScreenState extends State<SignupScreen> {
                               ),
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 12),
                           Text('Confirm Password', style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Colors.black87)),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 4),
                           TextField(
                             controller: _confirmPasswordController,
                             obscureText: _obscureConfirmPassword,
@@ -141,35 +155,89 @@ class _SignupScreenState extends State<SignupScreen> {
                               ),
                             ),
                           ),
-                          const SizedBox(height: 16),
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              onPressed: () {},
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: _brandGreen,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 14),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                              ),
-                              child: const Text('Create Account'),
-                            ),
+
+                          const SizedBox(height: 12),
+
+                          Consumer<AuthProvider>(
+                            builder: (context, authProvider, child) {
+                              return SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton(
+                                  onPressed: authProvider.isLoading ? null : () async {
+                                    if (_firstNameController.text.isEmpty ||
+                                        _lastNameController.text.isEmpty ||
+                                        _usernameController.text.isEmpty ||
+                                        _emailController.text.isEmpty ||
+                                        _passwordController.text.isEmpty ||
+                                        _confirmPasswordController.text.isEmpty) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Please fill all fields')),
+                                      );
+                                      return;
+                                    }
+
+                                    if (_passwordController.text != _confirmPasswordController.text) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Passwords do not match')),
+                                      );
+                                      return;
+                                    }
+
+                                    // Call sign up API
+                                    final success = await authProvider.signUp(
+                                      username: _usernameController.text,
+                                      email: _emailController.text,
+                                      password: _passwordController.text,
+                                      firstName: _firstNameController.text,
+                                      lastName: _lastNameController.text,
+                                    );
+
+                                    if (success) {
+                                      // Navigate to home screen
+                                      Navigator.of(context).pushReplacementNamed('/login');
+                                    } else {
+                                      // Show error message
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text(authProvider.errorMessage ?? 'Sign up failed')),
+                                      );
+                                    }
+                                  },
+
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: _brandGreen,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                  ),
+                                  child: authProvider.isLoading
+                                      ? const  CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2.0,
+                                  ) : const Text('Create Account'),
+                                ),
+                              );
+                            },
                           ),
-                          const SizedBox(height: 16),
+
+
+
+                          const SizedBox(height: 12),
+
                           _OrDivider(color: Colors.black.withOpacity(0.2)),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 12),
+
                           _SocialButton(
                             label: 'Continue with Google',
                             icon: const _GoogleIcon(),
                             onPressed: () {},
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 8),
                           _SocialButton(
                             label: 'Continue with Facebook',
                             icon: const Icon(Icons.facebook, color: Color(0xFF1877F2)),
                             onPressed: () {},
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 12),
                           Center(
                             child: RichText(
                               text: TextSpan(
@@ -203,7 +271,7 @@ class _SignupScreenState extends State<SignupScreen> {
   InputDecoration _inputDecoration({required String hint, Widget? suffix}) {
     return InputDecoration(
       hintText: hint,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
         borderSide: BorderSide(color: Colors.black.withOpacity(0.2)),
@@ -274,7 +342,7 @@ class _SocialButton extends StatelessWidget {
         onPressed: onPressed,
         icon: icon,
         label: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
+          padding: const EdgeInsets.symmetric(vertical: 8),
           child: Text(label),
         ),
         style: OutlinedButton.styleFrom(

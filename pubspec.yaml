@@ -36,6 +36,8 @@ dependencies:
   cupertino_icons: ^1.0.8
     # Firebase Core
   firebase_core: ^2.24.2
+  http: ^1.2.1
+  provider: ^6.1.2
 
    # Firebase Services (choose what you need)
   firebase_auth: ^4.15.3
@@ -43,10 +45,14 @@ dependencies:
   firebase_storage: ^11.5.6
   firebase_messaging: ^14.7.10
   firebase_analytics: ^10.7.4
+  flutter_html: ^3.0.0-beta.2
+
+
 
    # Other dependencies you might need
   google_sign_in: ^6.1.6
   firebase_crashlytics: ^3.4.8
+  shared_preferences: ^2.2.2
 
 
 
@@ -61,6 +67,7 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
   flutter_native_splash: ^2.4.3
+
 
 
 # For information on the generic Dart part of this file, see the
@@ -111,3 +118,5 @@ flutter_native_splash:
   android_12:
     image: assets/images/Splash Screen Logo.jpg
     icon_background_color: "#ffffff"
+
+

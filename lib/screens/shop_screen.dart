@@ -12,7 +12,13 @@ class ShopScreen extends StatelessWidget {
         elevation: 0,
         title: const Text(
           'Natural and Artisan Foods',
-          style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
+          style: TextStyle(
+            color: Colors.white, 
+            fontSize: 18, 
+            fontWeight: FontWeight.w500,
+            letterSpacing: 0.5,
+            fontFamily: 'Roboto',
+          ),
         ),
       ),
       body: const _HomeHeaderAndContent(),
@@ -39,27 +45,29 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Stack(
             children: <Widget>[
-                             Expanded(
-                 child: Align(
-                   alignment: Alignment.centerLeft, // pushes it to the left
-                   child: Image.asset(
-                     'assets/images/homescreen logo.png',
-                     height: 100,
-                     fit: BoxFit.contain,
-                   ),
-                 ),
-               ),
-              Row(
-                children: const <Widget>[
-                  Icon(Icons.shopping_cart_outlined, color: Colors.black87),
-                  SizedBox(width: 16),
-                  Icon(Icons.notifications_none, color: Colors.black87),
-                  SizedBox(width: 16),
-                  Icon(Icons.person_outline, color: Colors.black87),
-                ],
+              // Centered logo
+              Center(
+                child: Image.asset(
+                  'assets/images/homescreen logo.png',
+                  height: 130,
+                  fit: BoxFit.contain,
+                ),
+              ),
+              // Navigation icons positioned to the right
+              Positioned(
+                top: 0,
+                right: 0,
+                child: Row(
+                  children: const <Widget>[
+                    Icon(Icons.shopping_cart_outlined, color: Colors.black87),
+                    SizedBox(width: 19),
+                    Icon(Icons.notifications_none, color: Colors.black87),
+                    SizedBox(width: 19),
+
+                  ],
+                ),
               ),
             ],
           ),
@@ -86,24 +94,27 @@ class _SearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      decoration: InputDecoration(
-        hintText: hint,
-        filled: true,
-        fillColor: Colors.white,
-        prefixIcon: const Icon(Icons.search),
-        contentPadding: const EdgeInsets.symmetric(vertical: 14),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.black.withOpacity(0.15)),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.black.withOpacity(0.15)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Color(0xFF7B8B57)),
+    return Container(
+      height: 48,
+      child: TextField(
+        decoration: InputDecoration(
+          hintText: hint,
+          filled: true,
+          fillColor: Colors.white,
+          prefixIcon: const Icon(Icons.search, size: 20),
+          contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.black.withOpacity(0.15)),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.black.withOpacity(0.15)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Color(0xFF7B8B57)),
+          ),
         ),
       ),
     );

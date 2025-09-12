@@ -1,7 +1,11 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:sutterbuttes_recipe/screens/state/auth_provider.dart';
+import '../services/notification_service.dart';
 import 'forgot_password_screen.dart';
+import 'package:provider/provider.dart';
+
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -18,6 +22,30 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _emailError;
   String? _passwordError;
 
+
+  void _handleGoogleSignIn(BuildContext context, AuthProvider authProvider) async {
+    final success = await authProvider.signInWithGoogle();
+
+    if (success) {
+      await NotificationService.getToken();
+      Navigator.of(context).pushReplacementNamed('/home');
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(authProvider.errorMessage ?? 'Google sign-in failed'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+
+
+
+
+
+
+
   static const Color _brandGreen = Color(0xFF7B8B57);
   static const Color _textGrey = Color(0xFF5F6368);
 
@@ -28,13 +56,14 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12), // 🔹 Reduced padding
+
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              const SizedBox(height: 6), // 🔹 Smaller spacing
+              const SizedBox(height: 6),
               _buildBrandHeader(),
-              const SizedBox(height: 16), // 🔹 Reduced
+              const SizedBox(height: 16),
               Text(
                 'Welcome Back',
                 style: Theme.of(context)
@@ -126,8 +155,8 @@ class _LoginScreenState extends State<LoginScreen> {
                            if (value == null || value.isEmpty) {
                              return 'Password is required';
                            }
-                           if (value.length < 6) {
-                             return 'Password must be at least 6 characters';
+                           if (value.length < 8) {
+                             return 'Password must be at least 8 characters';
                            }
                            return null;
                          },
@@ -165,44 +194,91 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
 
-                                             // Sign in button
-                       SizedBox(
-                         width: double.infinity,
-                         child: ElevatedButton(
-                           onPressed: () {
-                             if (_formKey.currentState!.validate()) {
-                               // Form is valid, proceed with login
-                               Navigator.of(context).pushReplacementNamed('/home');
-                             }
+                         Consumer<AuthProvider>(
+                           builder: (context, authProvider, child) {
+                             return SizedBox(
+                               width: double.infinity,
+                               child: ElevatedButton(
+                                 onPressed: authProvider.isLoading ? null : () async {
+                                   if (_formKey.currentState!.validate()) {
+                                     final success = await authProvider.login(
+                                       username: _emailController.text.trim(),
+                                       password: _passwordController.text,
+                                     );
+                                     if (success) {
+                                       await NotificationService.getToken();
+                                       Navigator.of(context).pushReplacementNamed('/home');
+                                     } else {
+                                       ScaffoldMessenger.of(context).showSnackBar(
+                                         SnackBar(
+                                           content: Text(authProvider.errorMessage ?? 'Login failed'),
+                                           backgroundColor: Colors.red,
+                                         ),
+                                       );
+                                     }
+                                   }
+                                 },
+                                 style: ElevatedButton.styleFrom(
+                                   backgroundColor: _brandGreen,
+                                   foregroundColor: Colors.white,
+                                   padding: const EdgeInsets.symmetric(vertical: 12),
+                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                 ),
+                                 child: authProvider.isLoading
+                                     ? const CircularProgressIndicator(
+                                   color: Colors.white,
+                                   strokeWidth: 2.0,
+                                 )
+                                     : const Text('Sign In'),
+                               ),
+                             );
                            },
-                           style: ElevatedButton.styleFrom(
-                             backgroundColor: _brandGreen,
-                             foregroundColor: Colors.white,
-                             padding: const EdgeInsets.symmetric(vertical: 12), // 🔹 Slimmer
-                             shape: RoundedRectangleBorder(
-                                 borderRadius: BorderRadius.circular(8)),
-                           ),
-                           child: const Text('Sign In'),
                          ),
-                       ),
+
+
+
+
+
+
+
 
                       const SizedBox(height: 12),
                       _OrDivider(color: Colors.black.withOpacity(0.2)),
                       const SizedBox(height: 12),
 
-                      // Google
-                      _SocialButton(
-                        label: 'Continue with Google',
-                        icon: const _GoogleIcon(),
-                        onPressed: () {},
-                      ),
+                      // Google sign in
+                         Consumer<AuthProvider>(
+                           builder: (context, authProvider, child) {
+                             return _SocialButton(
+                               label: 'Continue with Google',
+                               icon: const _GoogleIcon(),
+                               onPressed: authProvider.isLoading ? null : () {
+                                 _handleGoogleSignIn(context, authProvider);
+                               },
+                             );
+                           },
+                         ),
+
+
+
+
+
+
+
                       const SizedBox(height: 8),
 
                       // Facebook
                       _SocialButton(
                         label: 'Continue with Facebook',
                         icon: const Icon(Icons.facebook, color: Color(0xFF1877F2)),
-                        onPressed: () {},
+                        onPressed: () async {
+
+                          await NotificationService.getToken();
+
+
+
+
+                        },
                       ),
                       const SizedBox(height: 12),
 
@@ -316,7 +392,7 @@ class _OrDivider extends StatelessWidget {
 class _SocialButton extends StatelessWidget {
   final String label;
   final Widget icon;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
   const _SocialButton(
       {required this.label, required this.icon, required this.onPressed});

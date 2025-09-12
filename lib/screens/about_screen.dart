@@ -645,11 +645,14 @@ class AboutScreen extends StatelessWidget {
                 child: SizedBox(
                   height: 50, // same fixed height
                   child: ElevatedButton(
+
                     onPressed: () {
-                      Navigator.push(
+                     /* Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => const RecipesScreen()),
-                      );
+                      );*/
+
+
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF7B8B57),

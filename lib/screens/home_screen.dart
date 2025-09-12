@@ -1,7 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:sutterbuttes_recipe/screens/recipedetailscreen.dart';
+import 'package:sutterbuttes_recipe/screens/recipes_screen.dart';
+import 'package:sutterbuttes_recipe/screens/state/recipe_category_provider.dart';
+import 'package:sutterbuttes_recipe/screens/state/recipe_list_provider.dart';
+import 'package:flutter_html/flutter_html.dart';
+
+import '../modal/recipe_model.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
+
 
   @override
   Widget build(BuildContext context) {
@@ -12,7 +21,13 @@ class HomeScreen extends StatelessWidget {
         elevation: 0,
         title: const Text(
           'Natural and Artisan Foods',
-          style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
+          style: TextStyle(
+            color: Colors.white, 
+            fontSize: 18, 
+            fontWeight: FontWeight.w500,
+            letterSpacing: 0.5,
+            fontFamily: 'Roboto',
+          ),
         ),
       ),
       body: const _HomeHeaderAndContent(),
@@ -29,9 +44,26 @@ class _HomeHeaderAndContent extends StatefulWidget {
 
 class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
   int _selectedChip = 0;
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final recipeProvider = context.read<RecipeProvider>();
+      final categoryProvider = context.read<RecipeCategoryProvider>();
+
+      // ✅ 1. Fetch recipes first
+      await recipeProvider.fetchRecipes();
+
+      // ✅ 2. Only then fetch categories
+      await categoryProvider.fetchCategories();
+    });
+  }
+
 
   @override
   Widget build(BuildContext context) {
+
+
     const Color brandGreen = Color(0xFF7B8B57);
     final TextTheme textTheme = Theme.of(context).textTheme;
 
@@ -40,32 +72,43 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Stack(
             children: <Widget>[
-              Align(
-                alignment: Alignment.centerLeft, // pushes it to the left
+              // Centered logo
+              Center(
                 child: Image.asset(
                   'assets/images/homescreen logo.png',
-                  height: 100,
+                  height: 130,
                   fit: BoxFit.contain,
                 ),
               ),
-              Row(
-                children: const <Widget>[
-                  Icon(Icons.shopping_cart_outlined, color: Colors.black87),
-                  SizedBox(width: 16),
-                  Icon(Icons.notifications_none, color: Colors.black87),
-                  SizedBox(width: 16),
-                 // Icon(Icons.person_outline, color: Colors.black87),
-                ],
+              // Navigation icons positioned to the right
+
+              Positioned(
+                top: 0,
+                right: 0,
+                child: Row(
+                  children: const <Widget>[
+                    Icon(Icons.shopping_cart_outlined, color: Colors.black87),
+
+                    SizedBox(width: 19),
+
+                    Icon(Icons.notifications_none, color: Colors.black87),
+
+                    SizedBox(width: 19),
+                   // Icon(Icons.person_outline, color: Colors.black87),
+                  ],
+                ),
               ),
             ],
           ),
+
           const SizedBox(height: 12),
+
           _SearchBar(hint:'Search recipes, ingredients,or products'),
+
           const SizedBox(height: 16),
+
           _ChipsRow(
             selectedIndex: _selectedChip,
             onSelected: (int i) => setState(() => _selectedChip = i),
@@ -73,7 +116,16 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
           ),
                      const SizedBox(height: 16),
            // Featured Recipes Section
-           _FeaturedRecipesSection(),
+          FeaturedRecipesSection(),
+
+           const SizedBox(height: 24),
+
+           // Recipe Categories Section
+           _RecipeCategoriesSection(),
+
+           const SizedBox(height: 24),
+           // Trending This Week Section
+           _TrendingThisWeekSection(),
         ],
       ),
     );
@@ -86,24 +138,27 @@ class _SearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      decoration: InputDecoration(
-        hintText: hint,
-        filled: true,
-        fillColor: Colors.white,
-        prefixIcon: const Icon(Icons.search),
-        contentPadding: const EdgeInsets.symmetric(vertical: 14),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.black.withOpacity(0.15)),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.black.withOpacity(0.15)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Color(0xFF7B8B57)),
+    return Container(
+      height: 48,
+      child: TextField(
+        decoration: InputDecoration(
+          hintText: hint,
+          filled: true,
+          fillColor: Colors.white,
+          prefixIcon: const Icon(Icons.search, size: 20),
+          contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.black.withOpacity(0.15)),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.black.withOpacity(0.15)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Color(0xFF7B8B57)),
+          ),
         ),
       ),
     );
@@ -119,6 +174,7 @@ class _ChipsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     final List<String> labels = <String>['All Recipes', 'Trending', 'Quick & Easy', 'Seasonal'];
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -145,11 +201,343 @@ class _ChipsRow extends StatelessWidget {
   }
 }
 
-class _FeaturedRecipesSection extends StatelessWidget {
-  const _FeaturedRecipesSection();
+
+class FeaturedRecipesSection extends StatelessWidget {
+  const FeaturedRecipesSection({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    return Consumer<RecipeProvider>(
+      builder: (context, provider, _) {
+        if (provider.isLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (provider.errorMessage != null) {
+          return Center(child: Text(provider.errorMessage!));
+        }
+
+        if (provider.recipes.isEmpty) {
+          return const Center(child: Text("No recipes available"));
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // --- Section Title ---
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Featured Recipes',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF4A3D4D),
+                  ),
+                ),
+                Text(
+                  'See All',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF7B8B57),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // --- Grid of Recipes ---
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(), // join parent scroll
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,      // 🔹 2 per row
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 0.75, // adjust height vs width
+              ),
+              padding: const EdgeInsets.all(8),
+              itemCount: provider.recipes.length,
+              itemBuilder: (context, index) {
+                final recipe = provider.recipes[index];
+                return FeaturedRecipeGridCard(recipe: recipe);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class FeaturedRecipeGridCard extends StatelessWidget {
+  final RecipeItem recipe;
+
+  const FeaturedRecipeGridCard({Key? key, required this.recipe}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => RecipeDetailScreen(recipe: recipe),
+          ),
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // === Recipe Image ===
+            Expanded(
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: (recipe.imageUrl != null && recipe.imageUrl.isNotEmpty)
+                          ? Image.network(recipe.imageUrl, fit: BoxFit.cover)
+                          : Image.asset("assets/images/homescreen logo.png", fit: BoxFit.cover),
+                    ),
+                    // Heart Icon
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.9),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.favorite_border,
+                            size: 18, color: Color(0xFF4A3D4D)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // === Title ===
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                recipe.title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF4A3D4D),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+class _RecipeCategoriesSection extends StatelessWidget {
+  const _RecipeCategoriesSection();
+
+  @override
+  Widget build(BuildContext context) {
+
+    return Consumer<RecipeCategoryProvider>(
+      builder: (context, provider, _) {
+        if (provider.isLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (provider.errorMessage.isNotEmpty) {
+          return Center(child: Text(provider.errorMessage));
+        }
+        final items = provider.categories;
+        if (items.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Recipe Categories',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFF4A3D4D),
+              ),
+            ),
+            const SizedBox(height: 16),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 1.1,
+              ),
+              itemCount: items.length,
+              itemBuilder: (context, index) {
+                final c = items[index];
+                return _CategoryCard(
+                  name: c.name,
+                  recipeCount: c.count,
+                  imageUrl: c.image,
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
+
+  }
+}
+
+class _CategoryCard extends StatelessWidget {
+  final String name;
+  final int recipeCount;
+  final String imageUrl;
+
+  const _CategoryCard({
+    required this.name,
+    required this.recipeCount,
+    required this.imageUrl,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        // Navigate to category recipes
+        // Navigator.push(context, MaterialPageRoute(builder: (context) => CategoryRecipesScreen(category: name)));
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Stack(
+            children: [
+              // Background Image
+              Container(
+                width: double.infinity,
+                height: double.infinity,
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: NetworkImage(imageUrl),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withOpacity(0.6),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              
+              // Category Info
+              Positioned(
+                bottom: 12,
+                left: 12,
+                right: 12,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '$recipeCount recipes',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.9),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TrendingThisWeekSection extends StatelessWidget {
+  const _TrendingThisWeekSection();
+
+  @override
+  Widget build(BuildContext context) {
+    // Sample data - replace with API data
+    final List<Map<String, dynamic>> trendingRecipes = [
+      {
+        'title': 'Homemade Pasta Primavera',
+        'description': 'Fresh pasta with seasonal vegetables and our artisanal olive oil blend.',
+        'rating': 4.9,
+        'imageUrl': 'https://example.com/pasta-primavera.jpg', // Replace with API image
+      },
+      {
+        'title': 'Blueberry Pancakes Syrup',
+        'description': 'Fluffy pancakes loaded with blueberries and drizzled with maple syrup.',
+        'rating': 4.7,
+        'imageUrl': 'https://example.com/blueberry-pancakes.jpg', // Replace with API image
+      },
+      {
+        'title': 'Grilled Salmon Teriyaki',
+        'description': 'Perfectly grilled salmon with homemade teriyaki glaze and sesame seeds.',
+        'rating': 4.8,
+        'imageUrl': 'https://example.com/salmon-teriyaki.jpg', // Replace with API image
+      },
+      {
+        'title': 'Chocolate Lava Cake',
+        'description': 'Decadent chocolate cake with a molten center, served with vanilla ice cream.',
+        'rating': 4.9,
+        'imageUrl': 'https://example.com/lava-cake.jpg', // Replace with API image
+      },
+    ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -158,7 +546,7 @@ class _FeaturedRecipesSection extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Featured Recipes',
+              'Trending This Week',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -167,7 +555,7 @@ class _FeaturedRecipesSection extends StatelessWidget {
             ),
             GestureDetector(
               onTap: () {
-                // Navigate to all recipes
+                // Navigate to all trending recipes
               },
               child: Text(
                 'See All',
@@ -182,19 +570,47 @@ class _FeaturedRecipesSection extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         
-        // Featured Recipe Card
-        _FeaturedRecipeCard(),
+        // Horizontal Scrollable Recipe Cards
+        SizedBox(
+          height: 280,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: trendingRecipes.length,
+            itemBuilder: (context, index) {
+              final recipe = trendingRecipes[index];
+
+              return _TrendingRecipeCard(
+                title: recipe['title'],
+                description: recipe['description'],
+                rating: recipe['rating'],
+                imageUrl: recipe['imageUrl'],
+              );
+            },
+          ),
+        ),
       ],
     );
   }
 }
 
-class _FeaturedRecipeCard extends StatelessWidget {
-  const _FeaturedRecipeCard();
+class _TrendingRecipeCard extends StatelessWidget {
+  final String title;
+  final String description;
+  final double rating;
+  final String imageUrl;
+
+  const _TrendingRecipeCard({
+    required this.title,
+    required this.description,
+    required this.rating,
+    required this.imageUrl,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: 280,
+      margin: const EdgeInsets.only(right: 16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -211,55 +627,14 @@ class _FeaturedRecipeCard extends StatelessWidget {
         children: [
           // Recipe Image
           Container(
-            height: 200,
+            height: 100,
             width: double.infinity,
             decoration: BoxDecoration(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
               image: DecorationImage(
-                image: NetworkImage('https://example.com/salmon-recipe.jpg'), // API image URL
+                image: NetworkImage(imageUrl),
                 fit: BoxFit.cover,
               ),
-            ),
-            child: Stack(
-              children: [
-                // Category Tag
-                Positioned(
-                  top: 12,
-                  left: 12,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF7B8B57),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      'Main Course', // API data
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-                // Favorite Icon
-                Positioned(
-                  top: 12,
-                  right: 12,
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.9),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.favorite_border,
-                      size: 20,
-                      color: Color(0xFF4A3D4D),
-                    ),
-                  ),
-                ),
-              ],
             ),
           ),
           
@@ -271,75 +646,45 @@ class _FeaturedRecipeCard extends StatelessWidget {
               children: [
                 // Recipe Title
                 Text(
-                  'Herb-Crusted Salmon with Olive Oil', // API data
+                  title,
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: const Color(0xFF4A3D4D),
                   ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 8),
                 
                 // Recipe Description
                 Text(
-                  'Fresh Atlantic salmon with our signature herb blend and premium olive oil, creating a restaurant-quality dish at home.', // API data
+                  description,
                   style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[700],
+                    fontSize: 12,
+                    color: Colors.grey[600],
                     height: 1.4,
                   ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 
-                // Rating and Shop Button Row
+                // Rating
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Rating
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.star,
-                          color: Colors.amber,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '4.8', // API data
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: const Color(0xFF4A3D4D),
-                          ),
-                        ),
-                      ],
+                    const Icon(
+                      Icons.star,
+                      color: Colors.amber,
+                      size: 16,
                     ),
-                    
-                    // Shop Ingredients Button
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        // Navigate to shop ingredients
-                      },
-                      icon: const Icon(
-                        Icons.shopping_cart,
-                        color: Colors.white,
-                        size: 16,
-                      ),
-                      label: const Text(
-                        'Shop Ingredients',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF7B8B57),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    const SizedBox(width: 4),
+                    Text(
+                      rating.toString(),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey[600],
                       ),
                     ),
                   ],
@@ -352,5 +697,3 @@ class _FeaturedRecipeCard extends StatelessWidget {
     );
   }
 }
-
-
