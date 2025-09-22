@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sutterbuttes_recipe/repositories/newsletter_repository.dart';
 import 'package:sutterbuttes_recipe/repositories/recipe_category_repository.dart';
 import 'package:sutterbuttes_recipe/repositories/recipe_list_repository.dart';
 import 'package:sutterbuttes_recipe/screens/state/auth_provider.dart';
+import 'package:sutterbuttes_recipe/screens/state/newsletter_provider.dart';
 import 'package:sutterbuttes_recipe/screens/state/recipe_category_provider.dart';
 import 'package:sutterbuttes_recipe/screens/state/recipe_list_provider.dart';
 import 'package:sutterbuttes_recipe/services/notification_service.dart';
@@ -55,6 +57,7 @@ class MyApp extends StatelessWidget {
           create: (_) => RecipeProvider(RecipeListRepository()),
         ),
 
+
         ChangeNotifierProvider<AuthProvider>(
           create: (_) => AuthProvider(),
         ),
@@ -71,6 +74,9 @@ class MyApp extends StatelessWidget {
           update: (context, repo, previous) => RecipeCategoryProvider(repository: repo),
         ),
 
+        ChangeNotifierProvider(
+          create: (_) => NewsletterProvider(NewsletterRepository()),
+        ),
       ],
       child: MaterialApp(
 

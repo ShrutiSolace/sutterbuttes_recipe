@@ -1,13 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sutterbuttes_recipe/screens/notification_prefernce_setting.dart';
+import 'package:sutterbuttes_recipe/screens/state/auth_provider.dart';
 import 'login_screen.dart';
 import 'edit_profile_screen.dart';
 import 'help_center_screen.dart';
 import 'about_screen.dart';
+import 'newsletter_screen.dart';
 
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
+
+
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -33,8 +41,33 @@ class ProfileScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              const Icon(Icons.person_outline, size: 32, color: Colors.black54),
-              const SizedBox(height: 12),
+              Consumer<AuthProvider>(
+                builder: (context, auth, _) {
+                  final name = auth.me?.name ?? 'Guest';
+                  final avatar = (auth.me?.avatarUrls['96'] as String?) ?? '';
+                  return Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 30,
+                        backgroundColor: Colors.black12,
+                        backgroundImage: avatar.isNotEmpty ? NetworkImage(avatar) : null,
+                        child: avatar.isEmpty
+                            ? const Icon(Icons.person_outline, color: Colors.black54)
+                            : null,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          name,
+                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+              const SizedBox(height: 40),
 
               // Stats row
               Row(
@@ -114,7 +147,12 @@ class ProfileScreen extends StatelessWidget {
                     leading: Icons.mail_outline,
                     title: 'Newsletter',
                     subtitle: 'Subscribe to recipe updates and offers',
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const NewsletterScreen()),
+                      );
+                    },
                   ),
                 ],
               ),

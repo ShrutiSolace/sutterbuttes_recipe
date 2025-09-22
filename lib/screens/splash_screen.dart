@@ -29,7 +29,7 @@ class _SplashScreenState extends State<SplashScreen> {
             children: <Widget>[
               // Welcome line above logo
               Text(
-                '!!!!Welcome!!!!',
+                '',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 24,

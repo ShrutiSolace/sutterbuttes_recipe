@@ -14,6 +14,7 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFF4A3D4D),
@@ -44,6 +45,8 @@ class _HomeHeaderAndContent extends StatefulWidget {
 
 class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
   int _selectedChip = 0;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
   @override
   void initState() {
     super.initState();
@@ -51,10 +54,8 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
       final recipeProvider = context.read<RecipeProvider>();
       final categoryProvider = context.read<RecipeCategoryProvider>();
 
-      // ✅ 1. Fetch recipes first
-      await recipeProvider.fetchRecipes();
 
-      // ✅ 2. Only then fetch categories
+      await recipeProvider.fetchRecipes();
       await categoryProvider.fetchCategories();
     });
   }
@@ -82,6 +83,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
                   fit: BoxFit.contain,
                 ),
               ),
+              
               // Navigation icons positioned to the right
 
               Positioned(
@@ -105,7 +107,14 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
 
           const SizedBox(height: 12),
 
-          _SearchBar(hint:'Search recipes, ingredients,or products'),
+          _SearchBar(hint:'Search recipes, ingredients,or products',
+            controller: _searchController,
+            onChanged: (value) {
+              setState(() {
+                _searchQuery = value.trim();
+              });
+            },
+          ),
 
           const SizedBox(height: 16),
 
@@ -134,7 +143,9 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
 
 class _SearchBar extends StatelessWidget {
   final String hint;
-  const _SearchBar({required this.hint});
+  final TextEditingController? controller;
+  final ValueChanged<String>? onChanged;
+  const _SearchBar({required this.hint, this.controller, this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -311,8 +322,8 @@ class FeaturedRecipeGridCard extends StatelessWidget {
                   children: [
                     Positioned.fill(
                       child: (recipe.imageUrl != null && recipe.imageUrl.isNotEmpty)
-                          ? Image.network(recipe.imageUrl, fit: BoxFit.cover)
-                          : Image.asset("assets/images/homescreen logo.png", fit: BoxFit.cover),
+                          ? Image.network(recipe.imageUrl, fit: BoxFit.contain)
+                          : Image.asset("assets/images/homescreen logo.png", fit: BoxFit.contain),
                     ),
                     // Heart Icon
                     Positioned(
@@ -452,7 +463,7 @@ class _CategoryCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   image: DecorationImage(
                     image: NetworkImage(imageUrl),
-                    fit: BoxFit.cover,
+                    fit: BoxFit.contain,
                   ),
                 ),
                 child: Container(
@@ -633,7 +644,7 @@ class _TrendingRecipeCard extends StatelessWidget {
               borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
               image: DecorationImage(
                 image: NetworkImage(imageUrl),
-                fit: BoxFit.cover,
+                fit: BoxFit.contain,
               ),
             ),
           ),

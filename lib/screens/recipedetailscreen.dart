@@ -69,7 +69,7 @@ class RecipeDetailScreen extends StatelessWidget {
                   // Shop Ingredients Button
                   ElevatedButton.icon(
                     onPressed: () {
-                      // TODO: Implement shopping functionality
+
                     },
                     icon: const Icon(
                       Icons.shopping_cart,

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:sutterbuttes_recipe/modal/profile_model.dart';
 import '../../modal/login_model.dart';
 import '../../repositories/auth_repository.dart';
+import '../../repositories/profile_repository.dart';
 import '../../services/google_signin_service.dart';
 
 class AuthProvider extends ChangeNotifier {
@@ -9,6 +11,11 @@ class AuthProvider extends ChangeNotifier {
   LoginResponse? _userData;
   SignUpResponse? _signUpData;
   String? _token;
+
+  Profile? _me;
+  Profile? get me => _me;
+  final UserRepository _userRepo = UserRepository();
+
 
 
   bool get isLoading => _isLoading;
@@ -28,6 +35,12 @@ class AuthProvider extends ChangeNotifier {
       final response = await AuthService.login(username: username, password: password);
       _userData = response;
       _token = response.token;
+      // Fetch profile data after successful login
+      if (_token != null) {
+        await fetchCurrentUser();
+      }
+
+
       _isLoading = false;
       notifyListeners();
       return true;
@@ -117,7 +130,18 @@ class AuthProvider extends ChangeNotifier {
   }
   }
 
-
+  Future<bool> fetchCurrentUser() async {
+    if (_token == null) return false;
+    try {
+      _me = await _userRepo.getCurrentUser();
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
 
 
 

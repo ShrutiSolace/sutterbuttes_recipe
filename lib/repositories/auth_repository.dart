@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../api_constant.dart';
 import '../modal/login_model.dart';
+import '../services/secure_storage.dart';
 
 class AuthService {
   static const Duration _timeout = Duration(seconds: 30);
@@ -31,11 +32,26 @@ class AuthService {
       print("Response body: ${response.body}");
 
 
-      if (response.statusCode == 200) {
+     /* if (response.statusCode == 200) {
 
         final Map<String, dynamic> responseData = json.decode(response.body);
         return LoginResponse.fromJson(responseData);
-      } else if (response.statusCode == 401) {
+      }*/
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = json.decode(response.body);
+        final loginResponse = LoginResponse.fromJson(responseData);
+
+        // Save the token to secure storage
+        if (loginResponse.token != null) {
+          await SecureStorage.saveToken(loginResponse.token!);
+        }
+
+        return loginResponse;
+      }
+
+
+
+      else if (response.statusCode == 401) {
         // Invalid credentials
         throw ApiError(
           message: 'Invalid username or password',
