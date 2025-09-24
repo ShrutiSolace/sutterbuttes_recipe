@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sutterbuttes_recipe/screens/product_detailscreen.dart';
 import '../repositories/product_repository.dart';
 import '../modal/product_model.dart';
+import '../repositories/favourites_repository.dart';
 
 class ShopScreen extends StatelessWidget {
   const ShopScreen({super.key});
@@ -281,22 +282,11 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
                         fit: BoxFit.contain,
                       ),
                     ),
-                    // Heart Icon
+                    // Heart Icon (toggle favourite)
                     Positioned(
                       top: 8,
                       right: 8,
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.9),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.favorite_border,
-                          size: 18,
-                          color: Color(0xFF4A3D4D),
-                        ),
-                      ),
+                      child: _ProductFavouriteButton(productId: product.id),
                     ),
                   ],
                 ),
@@ -358,6 +348,71 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _ProductFavouriteButton extends StatefulWidget {
+  final int productId;
+  const _ProductFavouriteButton({required this.productId});
+
+  @override
+  State<_ProductFavouriteButton> createState() => _ProductFavouriteButtonState();
+}
+
+class _ProductFavouriteButtonState extends State<_ProductFavouriteButton> {
+  bool _isFavourite = false;
+  bool _isLoading = false;
+
+  Future<void> _toggle() async {
+    if (_isLoading) return;
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      final next = !_isFavourite;
+      setState(() {
+        _isFavourite = next;
+      });
+      final repo = FavouritesRepository();
+      final success = await repo.toggleFavourite(type: 'product', id: widget.productId);
+      if (!success) {
+        setState(() {
+          _isFavourite = !next;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isFavourite = !_isFavourite;
+      });
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Failed to update favourite')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: _toggle,
+      child: Container(
+        padding: const EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.9),
+          shape: BoxShape.circle,
+        ),
+        child: _isLoading
+            ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2))
+            : Icon(_isFavourite ? Icons.favorite : Icons.favorite_border,
+                size: 18, color: _isFavourite ? Colors.red : const Color(0xFF4A3D4D)),
       ),
     );
   }

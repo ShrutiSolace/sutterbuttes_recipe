@@ -62,5 +62,11 @@
 	</array>
 	<key>GIDClientID</key>
     <string>730098433384-4a89grqv3eb35rhs7pfgs23b09p8i2nq.apps.googleusercontent.com</string>
+	<key>NSCameraUsageDescription</key>
+	<string>This app requires camera access to take your profile photo.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app requires photo library access to select your profile photo.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>This app requires permission to save photos to your library.</string>
 </dict>
 </plist>

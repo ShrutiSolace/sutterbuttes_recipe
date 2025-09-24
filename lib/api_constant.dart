@@ -17,16 +17,21 @@ class ApiConstants
 
   ///--Listing recipes--///
  static String recipesListUrl = '$baseUrl/wp/v2/recipes';
-
  static String recipesCategoryListUrl = '$baseUrl/sbo/v1/recipe-categories';
+ static String trendingRecipesUrl = '$baseUrl/sbo/v1/trending-recipes';
 
 
  ///Product List ///
  static String productListUrl = '$baseUrl/wc/v3/products';
  static String productdetailUrl = '$baseUrl/wc/v3/products/'; // Append product ID for details
 
+///Favourites ///
+static String favouritesUrl = '$baseUrl/sbo/v1/favorites';
+
 ///profile //
-  static String ProfileUrl = '$baseUrl/sbo/v1/get-profile';
+  static String profileUrl = '$baseUrl/sbo/v1/get-profile';
+  static String updateProfileUrl = '$baseUrl/sbo/v1/update-profile';
+  static String changePasswordUrl = '$baseUrl/sbo/v1/change-password';
 
 
 

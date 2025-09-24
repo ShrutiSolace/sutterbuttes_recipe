@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sutterbuttes_recipe/repositories/favourites_repository.dart';
 import 'package:sutterbuttes_recipe/screens/recipedetailscreen.dart';
 import 'package:sutterbuttes_recipe/screens/recipes_screen.dart';
 import 'package:sutterbuttes_recipe/screens/state/recipe_category_provider.dart';
@@ -7,6 +8,8 @@ import 'package:sutterbuttes_recipe/screens/state/recipe_list_provider.dart';
 import 'package:flutter_html/flutter_html.dart';
 
 import '../modal/recipe_model.dart';
+import '../repositories/recipe_list_repository.dart';
+import '../modal/trending_recipes_model.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -32,6 +35,82 @@ class HomeScreen extends StatelessWidget {
         ),
       ),
       body: const _HomeHeaderAndContent(),
+    );
+  }
+}
+
+class _FavouriteButton extends StatefulWidget {
+  final String type;
+  final int id;
+  const _FavouriteButton({required this.type, required this.id});
+
+  @override
+  State<_FavouriteButton> createState() => _FavouriteButtonState();
+}
+
+class _FavouriteButtonState extends State<_FavouriteButton> {
+  bool _isFavourite = false;
+  bool _isLoading = false;
+
+  Future<void> _toggle() async {
+    if (_isLoading) return;
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      // optimistic update
+      final next = !_isFavourite;
+      setState(() {
+        _isFavourite = next;
+      });
+      final repo = FavouritesRepository();
+      final success = await repo.toggleFavourite(type: widget.type, id: widget.id);
+      if (!success) {
+        // revert if server rejects
+        setState(() {
+          _isFavourite = !next;
+        });
+      }
+    } catch (e) {
+      // revert on error
+      setState(() {
+        _isFavourite = !_isFavourite;
+      });
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.showSnackBar(
+        SnackBar(content: Text('Failed to update favourite')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: _toggle,
+      child: Container(
+        padding: const EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.9),
+          shape: BoxShape.circle,
+        ),
+        child: _isLoading
+            ? const SizedBox(
+                height: 18,
+                width: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : Icon(
+                _isFavourite ? Icons.favorite : Icons.favorite_border,
+                size: 18,
+                color: _isFavourite ? Colors.red : const Color(0xFF4A3D4D),
+              ),
+      ),
     );
   }
 }
@@ -325,19 +404,10 @@ class FeaturedRecipeGridCard extends StatelessWidget {
                           ? Image.network(recipe.imageUrl, fit: BoxFit.contain)
                           : Image.asset("assets/images/homescreen logo.png", fit: BoxFit.contain),
                     ),
-                    // Heart Icon
                     Positioned(
                       top: 8,
                       right: 8,
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.9),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.favorite_border,
-                            size: 18, color: Color(0xFF4A3D4D)),
-                      ),
+                      child: _FavouriteButton(type: 'recipe', id: recipe.id),
                     ),
                   ],
                 ),
@@ -521,34 +591,6 @@ class _TrendingThisWeekSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Sample data - replace with API data
-    final List<Map<String, dynamic>> trendingRecipes = [
-      {
-        'title': 'Homemade Pasta Primavera',
-        'description': 'Fresh pasta with seasonal vegetables and our artisanal olive oil blend.',
-        'rating': 4.9,
-        'imageUrl': 'https://example.com/pasta-primavera.jpg', // Replace with API image
-      },
-      {
-        'title': 'Blueberry Pancakes Syrup',
-        'description': 'Fluffy pancakes loaded with blueberries and drizzled with maple syrup.',
-        'rating': 4.7,
-        'imageUrl': 'https://example.com/blueberry-pancakes.jpg', // Replace with API image
-      },
-      {
-        'title': 'Grilled Salmon Teriyaki',
-        'description': 'Perfectly grilled salmon with homemade teriyaki glaze and sesame seeds.',
-        'rating': 4.8,
-        'imageUrl': 'https://example.com/salmon-teriyaki.jpg', // Replace with API image
-      },
-      {
-        'title': 'Chocolate Lava Cake',
-        'description': 'Decadent chocolate cake with a molten center, served with vanilla ice cream.',
-        'rating': 4.9,
-        'imageUrl': 'https://example.com/lava-cake.jpg', // Replace with API image
-      },
-    ];
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -580,24 +622,38 @@ class _TrendingThisWeekSection extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
-        
-        // Horizontal Scrollable Recipe Cards
-        SizedBox(
+        FutureBuilder<TrendingRecipesModel>(
+          future: RecipeListRepository().getTrendingRecipes(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (snapshot.hasError) {
+              return Center(child: Text('Failed to load trending recipes'));
+            }
+            final items = snapshot.data?.recipes ?? <Recipes>[];
+            if (items.isEmpty) {
+              return const SizedBox.shrink();
+            }
+            return SizedBox(
           height: 280,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            itemCount: trendingRecipes.length,
+                itemCount: items.length,
             itemBuilder: (context, index) {
-              final recipe = trendingRecipes[index];
-
+                  final r = items[index];
               return _TrendingRecipeCard(
-                title: recipe['title'],
-                description: recipe['description'],
-                rating: recipe['rating'],
-                imageUrl: recipe['imageUrl'],
+                    title: r.title ?? '',
+                    description: r.excerpt ?? '',
+                    rating: (r.rating != null && r.rating!.isNotEmpty)
+                        ? double.tryParse(r.rating!) ?? 0.0
+                        : 0.0,
+                    imageUrl: r.image ?? '',
               );
             },
           ),
+            );
+          },
         ),
       ],
     );
@@ -644,7 +700,7 @@ class _TrendingRecipeCard extends StatelessWidget {
               borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
               image: DecorationImage(
                 image: NetworkImage(imageUrl),
-                fit: BoxFit.contain,
+                fit: BoxFit.cover,
               ),
             ),
           ),

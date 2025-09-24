@@ -12,6 +12,7 @@ import FirebaseMessaging
     FirebaseApp.configure()
     UNUserNotificationCenter.current().delegate = self
     application.registerForRemoteNotifications()
+    GeneratedPluginRegistrant.register(with: self)
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 }
