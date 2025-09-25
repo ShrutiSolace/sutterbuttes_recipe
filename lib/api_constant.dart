@@ -28,6 +28,13 @@ class ApiConstants
 ///Favourites ///
 static String favouritesUrl = '$baseUrl/sbo/v1/favorites';
 
+///Cart ///
+static String cartAddUrl = '$baseUrl/sbo/v1/cart/add';
+static String cartUrl = '$baseUrl/sbo/v1/cart';
+static String cartUpdateUrl = '$baseUrl/sbo/v1/cart/update';
+static String cartRemoveUrl = '$baseUrl/sbo/v1/cart/remove';
+static String checkoutUrl = '$baseUrl/sbo/v1/checkout';
+
 ///profile //
   static String profileUrl = '$baseUrl/sbo/v1/get-profile';
   static String updateProfileUrl = '$baseUrl/sbo/v1/update-profile';
@@ -39,6 +46,14 @@ static String favouritesUrl = '$baseUrl/sbo/v1/favorites';
   static String newsletterUrl = '$baseUrl/sbo/v1/newsletter';
   static String subscriberUrl = '$baseUrl/sbo/v1/newsletter/subscribe';
   static String unsubscribeUrl = '$baseUrl/sbo/v1/newsletter/unsubscribe';
+
+///Orders ///
+static String ordersUrl = '$baseUrl/wc/v3/orders';
+
+///Notifications ///
+static String notificationsUrl = '$baseUrl/sbo/v1/notifications';
+static String notificationsUpdateUrl = '$baseUrl/sbo/v1/notifications/update';
+static String notificationsResetUrl = '$baseUrl/sbo/v1/notifications/reset';
 
   
 

@@ -7,6 +7,7 @@ import 'edit_profile_screen.dart';
 import 'help_center_screen.dart';
 import 'about_screen.dart';
 import 'newsletter_screen.dart';
+import 'orders_screen.dart';
 
 
 class ProfileScreen extends StatelessWidget {
@@ -125,7 +126,12 @@ class ProfileScreen extends StatelessWidget {
                     leading: Icons.shopping_bag_outlined,
                     title: 'My Orders',
                     subtitle: 'View your order history',
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const OrdersScreen()),
+                      );
+                    },
                   ),
                   _Divider(),
                   _SettingsTile(

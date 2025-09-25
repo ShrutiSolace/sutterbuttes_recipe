@@ -1,13 +1,24 @@
 import 'package:flutter/material.dart';
 import '../modal/product_model.dart';
 import 'package:flutter_html/flutter_html.dart';
+import '../repositories/cart_repository.dart';
+import 'package:provider/provider.dart';
+import 'state/cart_provider.dart';
 
 
 
-class ProductDetailScreen extends StatelessWidget {
+class ProductDetailScreen extends StatefulWidget {
   final Product product;
 
   const ProductDetailScreen({super.key, required this.product});
+
+  @override
+  State<ProductDetailScreen> createState() => _ProductDetailScreenState();
+}
+
+class _ProductDetailScreenState extends State<ProductDetailScreen> {
+  int _quantity = 1;
+  bool _isAdding = false;
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +29,7 @@ class ProductDetailScreen extends StatelessWidget {
         backgroundColor: const Color(0xFF4A3D4D),
         elevation: 0,
         title: Text(
-          product.name,
+          widget.product.name,
           style: const TextStyle(color: Colors.white, fontSize: 18),
         ),
       ),
@@ -33,9 +44,9 @@ class ProductDetailScreen extends StatelessWidget {
               aspectRatio: 1,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: product.images.isNotEmpty
+                child: widget.product.images.isNotEmpty
                     ? Image.network(
-                  product.images.first.src,
+                  widget.product.images.first.src,
                   fit: BoxFit.cover,
                 )
                     : Image.asset(
@@ -65,9 +76,9 @@ class ProductDetailScreen extends StatelessWidget {
                       Expanded(
                         child: Align(
                           alignment: Alignment.centerLeft,
-                          child: (product.priceHtml.isNotEmpty)
+                          child: (widget.product.priceHtml.isNotEmpty)
                               ? Html(
-                                  data: """<div>${product.priceHtml}</div>""",
+                                  data: """<div>${widget.product.priceHtml}</div>""",
                                   style: {
                                     "div": Style(
                                       fontSize: FontSize(20),
@@ -87,7 +98,7 @@ class ProductDetailScreen extends StatelessWidget {
                                   },
                                 )
                               : Text(
-                                  "\$${product.price}",
+                                  "\$${widget.product.price}",
                                   style: const TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
@@ -98,37 +109,50 @@ class ProductDetailScreen extends StatelessWidget {
                       ),
                       Row(
                         children: [
-                          // adding
-                          // Disabled minus button (UI only)
-                          Container(
-                            width: 36,
-                            height: 36,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: const Color(0xFFE0E0E0)),
-                              color: Colors.white,
+                          GestureDetector(
+                            onTap: () {
+                              if (_quantity > 1) {
+                                setState(() {
+                                  _quantity--;
+                                });
+                              }
+                            },
+                            child: Container(
+                              width: 36,
+                              height: 36,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: const Color(0xFFE0E0E0)),
+                                color: Colors.white,
+                              ),
+                              child: const Icon(Icons.remove, size: 18, color: Colors.black54),
                             ),
-                            child: const Icon(Icons.remove, size: 18, color: Colors.black54),
                           ),
-                          const Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 12),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
                             child: Text(
-                              "1",
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                              "$_quantity",
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                             ),
                           ),
-                          // Disabled plus button (UI only)
-                          Container(
-                            width: 36,
-                            height: 36,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: const Color(0xFFE0E0E0)),
-                              color: Colors.white,
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _quantity++;
+                              });
+                            },
+                            child: Container(
+                              width: 36,
+                              height: 36,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: const Color(0xFFE0E0E0)),
+                                color: Colors.white,
+                              ),
+                              child: const Icon(Icons.add, size: 18, color: Colors.black54),
                             ),
-                            child: const Icon(Icons.add, size: 18, color: Colors.black54),
                           ),
                         ],
                       ),
@@ -138,7 +162,25 @@ class ProductDetailScreen extends StatelessWidget {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      onPressed: null, // UI only (non-functional)
+                      onPressed: _isAdding || widget.product.stockStatus != 'instock'
+                          ? null
+                          : () async {
+                              FocusScope.of(context).unfocus();
+                              setState(() { _isAdding = true; });
+                              try {
+                                final repo = CartRepository();
+                                final result = await repo.addToCart(productId: widget.product.id, quantity: _quantity);
+                                final msg = result.message ?? 'Added to cart';
+                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+                                try {
+                                  await context.read<CartProvider>().loadCart();
+                                } catch (_) {}
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add to cart: $e')));
+                              } finally {
+                                if (mounted) setState(() { _isAdding = false; });
+                              }
+                            },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: brandGreen,
                         disabledBackgroundColor: brandGreen,
@@ -147,11 +189,10 @@ class ProductDetailScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      icon: const Icon(Icons.shopping_cart, color: Colors.white),
-                      label: const Text(
-                        "Add to Cart",
-                        style: TextStyle(fontSize: 16, color: Colors.white),
-                      ),
+                      icon: _isAdding
+                          ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                          : const Icon(Icons.shopping_cart, color: Colors.white),
+                      label: const Text("Add to Cart", style: TextStyle(fontSize: 16, color: Colors.white)),
                     ),
                   ),
                 ],
@@ -160,7 +201,7 @@ class ProductDetailScreen extends StatelessWidget {
 
             // Product Name
             Text(
-              product.name,
+              widget.product.name,
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -172,9 +213,9 @@ class ProductDetailScreen extends StatelessWidget {
 
             // Price
             // Price
-            if (product.priceHtml.isNotEmpty)
+            if (widget.product.priceHtml.isNotEmpty)
               Html(
-                data: """<div>${product.priceHtml}</div>""", // wrapped inside a div
+                data: """<div>${widget.product.priceHtml}</div>""", // wrapped inside a div
                 style: {
                   "div": Style(
                     fontSize: FontSize(18),
@@ -195,7 +236,7 @@ class ProductDetailScreen extends StatelessWidget {
               )
             else
               Text(
-                "\$${product.price}",
+                "\$${widget.product.price}",
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -210,23 +251,23 @@ class ProductDetailScreen extends StatelessWidget {
             Row(
               children: [
                 Icon(
-                  product.stockStatus == 'instock'
+                  widget.product.stockStatus == 'instock'
                       ? Icons.check_circle
                       : Icons.cancel,
-                  color: product.stockStatus == 'instock'
+                  color: widget.product.stockStatus == 'instock'
                       ? Colors.green
                       : Colors.red,
                   size: 18,
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  product.stockStatus == 'instock'
+                  widget.product.stockStatus == 'instock'
                       ? "In Stock"
                       : "Out of Stock",
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: product.stockStatus == 'instock'
+                    color: widget.product.stockStatus == 'instock'
                         ? Colors.green[700]
                         : Colors.red[700],
                   ),
@@ -237,9 +278,9 @@ class ProductDetailScreen extends StatelessWidget {
             const SizedBox(height: 16),
 
             // Short Description
-            if (product.shortDescription.isNotEmpty)
+            if (widget.product.shortDescription.isNotEmpty)
               Html(
-                data: product.shortDescription,
+                data: widget.product.shortDescription,
                 style: {
                   "body": Style(
                     fontSize: FontSize(14),
@@ -251,7 +292,7 @@ class ProductDetailScreen extends StatelessWidget {
             const SizedBox(height: 16),
 
             // Full Description
-            if (product.description.isNotEmpty) ...[
+            if (widget.product.description.isNotEmpty) ...[
               const Text(
                 "Description",
                 style: TextStyle(
@@ -261,7 +302,7 @@ class ProductDetailScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Html(
-                data: product.description,
+                data: widget.product.description,
                 style: {
                   "body": Style(
                     fontSize: FontSize(14),
@@ -277,7 +318,7 @@ class ProductDetailScreen extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: product.stockStatus == 'instock'
+                onPressed: widget.product.stockStatus == 'instock'
                     ? () {
                   // TODO: Add cart functionality
                 }

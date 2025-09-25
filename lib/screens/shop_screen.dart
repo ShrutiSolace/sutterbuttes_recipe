@@ -3,6 +3,9 @@ import 'package:sutterbuttes_recipe/screens/product_detailscreen.dart';
 import '../repositories/product_repository.dart';
 import '../modal/product_model.dart';
 import '../repositories/favourites_repository.dart';
+import 'package:provider/provider.dart';
+import 'state/cart_provider.dart';
+import 'cart_screen.dart';
 
 class ShopScreen extends StatelessWidget {
   const ShopScreen({super.key});
@@ -108,11 +111,43 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
                 top: 0,
                 right: 0,
                 child: Row(
-                  children: const <Widget>[
-                    Icon(Icons.shopping_cart_outlined, color: Colors.black87),
-                    SizedBox(width: 19),
-                    Icon(Icons.notifications_none, color: Colors.black87),
-                    SizedBox(width: 19),
+                  children: <Widget>[
+                    GestureDetector(
+                      onTap: () async {
+                        context.read<CartProvider>().loadCart();
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen()));
+                      },
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          const Icon(Icons.shopping_cart_outlined, color: Colors.black87),
+                          Positioned(
+                            top: -6,
+                            right: -10,
+                            child: Consumer<CartProvider>(
+                              builder: (_, cart, __) {
+                                final count = cart.itemCount;
+                                if (count <= 0) return const SizedBox.shrink();
+                                return Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFFD4B25C),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Text(
+                                    '$count',
+                                    style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.bold),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 19),
+                    const Icon(Icons.notifications_none, color: Colors.black87),
+                    const SizedBox(width: 19),
                   ],
                 ),
               ),
@@ -352,6 +387,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
     );
   }
 }
+
 
 class _ProductFavouriteButton extends StatefulWidget {
   final int productId;

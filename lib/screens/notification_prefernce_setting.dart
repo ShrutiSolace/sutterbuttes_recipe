@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../repositories/notification_repository.dart';
+import '../modal/notification_pref_model.dart';
 
 class NotificationSettingsPage extends StatefulWidget {
   const NotificationSettingsPage({super.key});
@@ -30,6 +32,45 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
   bool _appRecipeRecommendations = true;
   bool _appSocialFeatures = false;
 
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPrefs();
+  }
+
+  Future<void> _loadPrefs() async {
+    setState(() { _loading = true; _error = null; });
+    try {
+      final model = await NotificationRepository().getPreferences();
+      final p = model.preferences;
+      if (p != null) {
+        _emailNewRecipes = p.email?.newRecipes ?? _emailNewRecipes;
+        _emailOrderUpdates = p.email?.orderUpdates ?? _emailOrderUpdates;
+        _emailPromotions = p.email?.promotions ?? _emailPromotions;
+        _emailNewsletter = p.email?.newsletter ?? _emailNewsletter;
+
+        _pushNewRecipes = p.push?.newRecipes ?? _pushNewRecipes;
+        _pushOrderUpdates = p.push?.orderUpdates ?? _pushOrderUpdates;
+        _pushPromotions = p.push?.promotions ?? _pushPromotions;
+        _pushCookingReminders = p.push?.cookingReminders ?? _pushCookingReminders;
+
+        _smsOrderUpdates = p.sms?.orderUpdates ?? _smsOrderUpdates;
+        _smsPromotions = p.sms?.promotions ?? _smsPromotions;
+
+        _appFavoriteUpdates = p.app?.favoriteUpdates ?? _appFavoriteUpdates;
+        _appRecipeRecommendations = p.app?.recipeRecommendations ?? _appRecipeRecommendations;
+        _appSocialFeatures = p.app?.socialFeatures ?? _appSocialFeatures;
+      }
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      if (mounted) setState(() { _loading = false; });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -42,7 +83,11 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
         centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.white), // ✅ makes back arrow white
       ),
-      body: SingleChildScrollView(
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : _error != null
+              ? Center(child: Text('Failed to load: $_error'))
+              : SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -187,8 +232,38 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
               ),
               const SizedBox(height: 24),
               ElevatedButton.icon(
-                onPressed: () {
-                  print('Preferences saved!');
+                onPressed: () async {
+                  try {
+                    final payload = {
+                      'email': {
+                        'new_recipes': _emailNewRecipes,
+                        'order_updates': _emailOrderUpdates,
+                        'promotions': _emailPromotions,
+                        'newsletter': _emailNewsletter,
+                      },
+                      'push': {
+                        'new_recipes': _pushNewRecipes,
+                        'order_updates': _pushOrderUpdates,
+                        'promotions': _pushPromotions,
+                        'cooking_reminders': _pushCookingReminders,
+                      },
+                      'sms': {
+                        'order_updates': _smsOrderUpdates,
+                        'promotions': _smsPromotions,
+                      },
+                      'app': {
+                        'favorite_updates': _appFavoriteUpdates,
+                        'recipe_recommendations': _appRecipeRecommendations,
+                        'social_features': _appSocialFeatures,
+                      }
+                    };
+                    final msg = await NotificationRepository().updatePreferences(payload: payload);
+                    if (!mounted) return; 
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+                  } catch (e) {
+                    if (!mounted) return; 
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+                  }
                 },
                 icon: const Icon(Icons.save),
                 label: const Text('Save Preferences'),
@@ -200,24 +275,16 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
               ),
               const SizedBox(height: 12),
               OutlinedButton(
-                onPressed: () {
-                  // TODO: Implement reset logic here
-                  setState(() {
-                    _emailNewRecipes = true;
-                    _emailOrderUpdates = true;
-                    _emailPromotions = false;
-                    _emailNewsletter = true;
-                    _pushNewRecipes = true;
-                    _pushOrderUpdates = true;
-                    _pushPromotions = false;
-                    _pushCookingReminders = true;
-                    _smsOrderUpdates = false;
-                    _smsPromotions = false;
-                    _appFavoriteUpdates = true;
-                    _appRecipeRecommendations = true;
-                    _appSocialFeatures = false;
-                  });
-                  print('Preferences reset to defaults!');
+                onPressed: () async {
+                  try {
+                    final msg = await NotificationRepository().resetPreferences();
+                    await _loadPrefs();
+                    if (!mounted) return; 
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+                  } catch (e) {
+                    if (!mounted) return; 
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+                  }
                 },
                 child: const Text('Reset to Defaults'),
               ),

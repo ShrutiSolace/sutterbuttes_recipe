@@ -7,6 +7,8 @@ import 'package:sutterbuttes_recipe/screens/state/auth_provider.dart';
 import 'package:sutterbuttes_recipe/screens/state/newsletter_provider.dart';
 import 'package:sutterbuttes_recipe/screens/state/recipe_category_provider.dart';
 import 'package:sutterbuttes_recipe/screens/state/recipe_list_provider.dart';
+import 'package:sutterbuttes_recipe/screens/state/cart_provider.dart';
+import 'repositories/cart_repository.dart';
 import 'package:sutterbuttes_recipe/services/notification_service.dart';
 import 'screens/login_screen.dart';
 import 'screens/bottom_navigation.dart';
@@ -76,6 +78,10 @@ class MyApp extends StatelessWidget {
 
         ChangeNotifierProvider(
           create: (_) => NewsletterProvider(NewsletterRepository()),
+        ),
+
+        ChangeNotifierProvider(
+          create: (_) => CartProvider(CartRepository()),
         ),
       ],
       child: MaterialApp(

@@ -6,6 +6,9 @@ import 'package:sutterbuttes_recipe/screens/recipes_screen.dart';
 import 'package:sutterbuttes_recipe/screens/state/recipe_category_provider.dart';
 import 'package:sutterbuttes_recipe/screens/state/recipe_list_provider.dart';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:provider/provider.dart';
+import 'state/cart_provider.dart';
+import 'cart_screen.dart';
 
 import '../modal/recipe_model.dart';
 import '../repositories/recipe_list_repository.dart';
@@ -169,14 +172,43 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
                 top: 0,
                 right: 0,
                 child: Row(
-                  children: const <Widget>[
-                    Icon(Icons.shopping_cart_outlined, color: Colors.black87),
+                  children: <Widget>[
+                    GestureDetector(
+                      onTap: () async {
+                        context.read<CartProvider>().loadCart();
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen()));
+                      },
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          const Icon(Icons.shopping_cart_outlined, color: Colors.black87),
+                          Positioned(
+                            top: -6,
+                            right: -10,
+                            child: Consumer<CartProvider>(
+                              builder: (_, cart, __) {
+                                final count = cart.itemCount;
+                                if (count <= 0) return const SizedBox.shrink();
+                                return Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFFD4B25C),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Text('$count', style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.bold)),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
 
-                    SizedBox(width: 19),
+                    const SizedBox(width: 19),
 
-                    Icon(Icons.notifications_none, color: Colors.black87),
+                    const Icon(Icons.notifications_none, color: Colors.black87),
 
-                    SizedBox(width: 19),
+                    const SizedBox(width: 19),
                    // Icon(Icons.person_outline, color: Colors.black87),
                   ],
                 ),
