@@ -16,6 +16,8 @@ import 'screens/signup_screen.dart';
 import 'screens/splash_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
+
 
    @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -28,6 +30,8 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   print('Starting Firebase initialization...');
+
+  await FlutterBranchSdk.init();
 
   try {
     await Firebase.initializeApp();
