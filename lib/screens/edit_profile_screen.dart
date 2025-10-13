@@ -7,6 +7,8 @@ import '../modal/update_profile_model.dart';
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
 
+
+
   @override
   State<EditProfileScreen> createState() => _EditProfileScreenState();
 }
@@ -164,7 +166,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
             _buildTextField(label: "Bio", hint: "", maxLines: 2, controller: _bioController),
 
-            const SizedBox(height: 10),
+            /*const SizedBox(height: 10),
             Text("Change Password (Optional)", style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
             const SizedBox(height: 6),
 
@@ -172,6 +174,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             _buildTextField(label: "New Password", hint: "Enter new password", obscure: true, controller: _newPwdController),
             _buildTextField(label: "Confirm Password", hint: "Confirm new password", obscure: true, controller: _confirmPwdController),
 
+            const SizedBox(height: 16),*/
             const SizedBox(height: 16),
             Row(
               children: [
@@ -190,6 +193,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     child: const Text("Cancel"),
                   ),
                 ),
+
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
@@ -269,7 +273,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         SnackBar(content: Text(result.message ?? 'Profile updated successfully')),
       );
 
-      // Change password flow if fields provided
+     /* // Change password flow if fields provided
       final currentPwd = _currentPwdController.text.trim();
       final newPwd = _newPwdController.text.trim();
       final confirmPwd = _confirmPwdController.text.trim();
@@ -310,6 +314,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           );
           return;
         }
+        print("===== confirmPwd ");
         if (newPwd != confirmPwd) {
           print("===== newPwd != confirmPwd ");
 
@@ -328,7 +333,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         messenger.showSnackBar(
           SnackBar(content: Text(message)),
         );
-      }
+      }*/
+
     } catch (e) {
       messenger.showSnackBar(
         SnackBar(content: Text('Failed to update profile: $e')),

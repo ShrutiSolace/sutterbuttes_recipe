@@ -21,6 +21,8 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  String? _emailError;
+  String? _passwordError;
 
   static const Color _brandGreen = Color(0xFF7B8B57);
 
@@ -87,24 +89,45 @@ class _SignupScreenState extends State<SignupScreen> {
                                   children: <Widget>[
                                     Text('First Name', style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Colors.black87)),
                                     const SizedBox(height: 4),
-                                    TextField(
+                                    TextFormField(
                                       controller: _firstNameController,
                                       decoration: _inputDecoration(hint: 'First name'),
+                                      validator: (value) {
+                                        if (value == null || value.trim().isEmpty) {
+                                          return 'First name is required';
+                                        }
+                                        if (!RegExp(r'^[A-Za-z]{2,}$').hasMatch(value.trim())) {
+                                          return 'Please enter a valid first name';
+                                        }
+                                        return null;
+                                      },
                                     ),
                                   ],
                                 ),
                               ),
                               const SizedBox(width: 12),
+
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: <Widget>[
                                     Text('Last Name', style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Colors.black87)),
                                     const SizedBox(height: 4),
-                                    TextField(
+                                    TextFormField(
                                       controller: _lastNameController,
                                       decoration: _inputDecoration(hint: 'Last name'),
+                                      validator: (value) {
+                                        if (value == null || value.trim().isEmpty) {
+                                          return 'Last name is required';
+                                        }
+                                        if (!RegExp(r'^[A-Za-z]{2,}$').hasMatch(value.trim())) {
+                                          return 'Please enter a valid Last name';
+                                        }
+                                        return null;
+                                      },
                                     ),
+
+
                                   ],
                                 ),
                               ),
@@ -114,33 +137,82 @@ class _SignupScreenState extends State<SignupScreen> {
                           const SizedBox(height: 12),
                           Text('Username', style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Colors.black87)),
                           const SizedBox(height: 4),
-                          TextField(
+                          TextFormField(
                             controller: _usernameController,
-                            decoration: _inputDecoration(hint: 'Enter your username'),
+                            decoration: _inputDecoration(hint: 'Username'),
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Username  is required';
+                              }
+                              if (!RegExp(r'^[A-Za-z]{2,}$').hasMatch(value.trim())) {
+                                return 'Please enter a valid username';
+                              }
+                              return null;
+                            },
                           ),
 
                           const SizedBox(height: 12),
+
                           Text('Email Address', style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Colors.black87)),
                           const SizedBox(height: 4),
-                          TextField(
+
+                          TextFormField(
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
                             decoration: _inputDecoration(hint: 'Enter your email'),
+                            onChanged: (value) {
+                              setState(() {
+                                _emailError = null;
+                              });
+                            },
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Email is required';
+                              }
+                              if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                                return 'Please enter a valid email';
+                              }
+                              return null;
+                            },
                           ),
                           const SizedBox(height: 12),
                           Text('Password', style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Colors.black87)),
+
                           const SizedBox(height: 4),
-                          TextField(
+
+                          TextFormField(
                             controller: _passwordController,
                             obscureText: _obscurePassword,
                             decoration: _inputDecoration(
                               hint: 'Create a password',
+
                               suffix: IconButton(
                                 onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                                icon: Icon(_obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined, color: Colors.black45),
+                                icon: Icon(
+                                  _obscurePassword
+                                      ? Icons.visibility_outlined
+                                      : Icons.visibility_off_outlined,
+                                  color: Colors.black45,
+                                ),
                               ),
                             ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Password is required';
+                              }
+                              if (value.length < 8) {
+                                return 'Password must be at least 8 characters';
+                              }
+                              return null;
+                            },
                           ),
+
+
+
+
+
+
+
                           const SizedBox(height: 12),
                           Text('Confirm Password', style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Colors.black87)),
                           const SizedBox(height: 4),

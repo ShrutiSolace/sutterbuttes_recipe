@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sutterbuttes_recipe/screens/notification_prefernce_setting.dart';
 import 'package:sutterbuttes_recipe/screens/state/auth_provider.dart';
+import 'package:sutterbuttes_recipe/screens/change_password.dart';
 import 'login_screen.dart';
 import 'edit_profile_screen.dart';
 import 'help_center_screen.dart';
@@ -10,16 +11,13 @@ import 'newsletter_screen.dart';
 import 'orders_screen.dart';
 
 
+
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
-
-
-
-
-
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFF4A3C47), // purple background
@@ -40,13 +38,23 @@ class ProfileScreen extends StatelessWidget {
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(16, 6, 16, 8),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
+
               Consumer<AuthProvider>(
+
                 builder: (context, auth, _) {
-                  final name = auth.me?.name ?? 'Guest';
-                  final avatar = (auth.me?.avatarUrls['96'] as String?) ?? '';
+
+                  final user = auth.me;
+                  final name = user != null && (user.firstName.isNotEmpty || user.lastName.isNotEmpty)
+                      ? '${user.firstName}'.trim()
+                      : 'Guest';
+                  final email = user?.email ?? '';
+                  final avatar = user?.profileImage ?? '';
+
                   return Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       CircleAvatar(
                         radius: 30,
@@ -56,18 +64,39 @@ class ProfileScreen extends StatelessWidget {
                             ? const Icon(Icons.person_outline, color: Colors.black54)
                             : null,
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 12),
                       Expanded(
-                        child: Text(
-                          name,
-                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-                          overflow: TextOverflow.ellipsis,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              name,
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black, // ensure name is black
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              email,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.black,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   );
                 },
               ),
+
+
               const SizedBox(height: 40),
 
               // Stats row
@@ -122,6 +151,22 @@ class ProfileScreen extends StatelessWidget {
                     },
                   ),
                   _Divider(),
+                  _SettingsTile(
+                    leading: Icons.password_outlined,
+                    title: 'Change Password',
+                    subtitle: 'Update your password',
+                    onTap: () {
+                     Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const ChangePasswordScreen()),
+                      );
+
+
+                    },
+                  ),
+
+                  _Divider(),
+
                   _SettingsTile(
                     leading: Icons.shopping_bag_outlined,
                     title: 'My Orders',
@@ -204,15 +249,27 @@ class ProfileScreen extends StatelessWidget {
                 width: double.infinity,
                 child: OutlinedButton.icon(
                   onPressed: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => const LoginScreen()),
+                    // Show success message
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Logout successful'),
+                        backgroundColor: Colors.green,
+                        duration: Duration(seconds: 2),
+                      ),
                     );
+
+                    // Delay slightly so the SnackBar is visible before navigating
+                    Future.delayed(const Duration(milliseconds: 600), () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => const LoginScreen()),
+                      );
+                    });
                   },
                   icon: const Icon(Icons.logout, color: Colors.red),
                   label: const Padding(
                     padding: EdgeInsets.symmetric(vertical: 12),
-                    child: Text('Sign Out'),
+                    child: Text('Logout'),
                   ),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.red,
@@ -223,6 +280,7 @@ class ProfileScreen extends StatelessWidget {
                   ),
                 ),
               ),
+
               const SizedBox(height: 8),
             ],
           ),

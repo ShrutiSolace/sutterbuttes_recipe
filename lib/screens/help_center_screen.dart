@@ -8,6 +8,13 @@ class HelpCenterScreen extends StatefulWidget {
 }
 
 class _HelpCenterScreenState extends State<HelpCenterScreen> {
+
+
+  String _searchQuery = '';
+  bool _isSearching = false;
+  List<Map<String, dynamic>> _filteredResults = [];
+
+
   final TextEditingController _searchController = TextEditingController();
   final Map<String, bool> _expandedItems = {};
 
@@ -134,6 +141,25 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
   @override
   void initState() {
     super.initState();
+
+
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text.trim().toLowerCase();
+        _isSearching = _searchQuery.isNotEmpty;
+        _filterFAQs();
+      });
+    });
+
+
+
+
+
+
+
+
+
+
     // Initialize expanded state for all questions
     for (int i = 0; i < _accountQuestions.length; i++) {
       _expandedItems['account_$i'] = _accountQuestions[i]['expanded'];
@@ -151,6 +177,35 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
       _expandedItems['contact_$i'] = _contactQuestions[i]['expanded'];
     }
   }
+
+
+
+  void _filterFAQs() {
+    final allQuestions = [
+      ..._accountQuestions,
+      ..._recipeQuestions,
+      ..._shoppingQuestions,
+      ..._productsQuestions,
+      ..._contactQuestions,
+    ];
+    setState(() {
+      if (_searchQuery.isEmpty) {
+        _filteredResults = [];
+      } else {
+        _filteredResults = allQuestions.where((q) {
+          final question = q['question'].toString().toLowerCase();
+          final answer = q['answer'].toString().toLowerCase();
+          return question.contains(_searchQuery) || answer.contains(_searchQuery);
+        }).toList();
+      }
+    });
+  }
+
+
+
+
+
+
 
   @override
   void dispose() {
@@ -198,71 +253,82 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
               ),
               child: TextField(
                 controller: _searchController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: 'Search for answers...',
-                  hintStyle: TextStyle(color: Colors.grey),
-                  prefixIcon: Icon(Icons.search, color: Colors.grey),
+                  hintStyle: const TextStyle(color: Colors.grey),
+                  prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                  suffixIcon: _isSearching
+                      ? IconButton(
+                    icon: const Icon(Icons.clear, color: Colors.grey),
+                    onPressed: () {
+                      _searchController.clear();
+                    },
+                  )
+                      : null,
                   border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                  contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
                 ),
               ),
             ),
 
-            // Account & Profile Section
-            _buildFAQSection(
-              'Account & Profile',
-              Icons.person,
-              _accountQuestions,
-              'account',
-            ),
-
-            const SizedBox(height: 30),
-
-            // Recipes & Cooking Section
-            _buildFAQSection(
-              'Recipes & Cooking',
-              Icons.restaurant,
-              _recipeQuestions,
-              'recipe',
-            ),
-
-            const SizedBox(height: 30),
-
-            // Shopping & Orders Section
-            _buildFAQSection(
-              'Shopping & Orders',
-              Icons.shopping_cart,
-              _shoppingQuestions,
-              'shopping',
-            ),
-
-            const SizedBox(height: 30),
-
-            // Products & Quality Section
-            _buildFAQSection(
-              'Products & Quality',
-              Icons.inventory,
-              _productsQuestions,
-              'products',
-            ),
-
-            const SizedBox(height: 30),
-
-            // Contact & Support Section
-            _buildFAQSection(
-              'Contact & Support',
-              Icons.email,
-              _contactQuestions,
-              'contact',
-            ),
-
-            const SizedBox(height: 30),
-
-            // Still Need Help Section
-            _buildStillNeedHelpSection(),
+            if (_isSearching)
+              _filteredResults.isEmpty
+                  ? const Text(
+                'No results found.',
+                style: TextStyle(color: Colors.grey),
+              )
+                  : Column(
+                children: _filteredResults.map((question) {
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey[300]!),
+                    ),
+                    child: ExpansionTile(
+                      title: Text(
+                        question['question'],
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      children: [
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                          child: Text(
+                            question['answer'],
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[700],
+                              height: 1.5,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              )
+            else ...[
+              _buildFAQSection('Account & Profile', Icons.person, _accountQuestions, 'account'),
+              const SizedBox(height: 30),
+              _buildFAQSection('Recipes & Cooking', Icons.restaurant, _recipeQuestions, 'recipe'),
+              const SizedBox(height: 30),
+              _buildFAQSection('Shopping & Orders', Icons.shopping_cart, _shoppingQuestions, 'shopping'),
+              const SizedBox(height: 30),
+              _buildFAQSection('Products & Quality', Icons.inventory, _productsQuestions, 'products'),
+              const SizedBox(height: 30),
+              _buildFAQSection('Contact & Support', Icons.email, _contactQuestions, 'contact'),
+            ],
           ],
         ),
       ),
+
     );
   }
 
@@ -338,94 +404,6 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
      );
    }
 
-   Widget _buildStillNeedHelpSection() {
-     return Container(
-       padding: const EdgeInsets.all(20),
-       decoration: BoxDecoration(
-         color: Colors.white,
-         borderRadius: BorderRadius.circular(12),
-         border: Border.all(color: Colors.grey[300]!),
-         boxShadow: [
-           BoxShadow(
-             color: Colors.black.withOpacity(0.05),
-             blurRadius: 5,
-             offset: const Offset(0, 2),
-           ),
-         ],
-       ),
-       child: Column(
-         crossAxisAlignment: CrossAxisAlignment.start,
-         children: [
-           // Header with icon and title
-           Row(
-             children: [
-               Container(
-                 padding: const EdgeInsets.all(8),
-                 decoration: BoxDecoration(
-                   color: const Color(0xFF4A3D4D),
-                   shape: BoxShape.circle,
-                 ),
-                 child: const Icon(
-                   Icons.help_outline,
-                   color: Colors.white,
-                   size: 20,
-                 ),
-               ),
-               const SizedBox(width: 12),
-               const Text(
-                 'Still Need Help?',
-                 style: TextStyle(
-                   fontSize: 20,
-                   fontWeight: FontWeight.bold,
-                   color: Color(0xFF4A3D4D),
-                 ),
-               ),
-             ],
-           ),
-           const SizedBox(height: 12),
-           
-           // Description text
-           Text(
-             'Can\'t find what you\'re looking for? Our customer service team is here to help!',
-             style: TextStyle(
-               fontSize: 14,
-               color: Colors.grey[700],
-               height: 1.4,
-             ),
-           ),
-           const SizedBox(height: 20),
-           
-           // Contact options
-           Row(
-             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-             children: [
-               _buildContactOption(
-                 Icons.email_outlined,
-                 'Email Support',
-                 () {
-                   // Handle email support
-                 },
-               ),
-               _buildContactOption(
-                 Icons.phone_outlined,
-                 'Phone Support',
-                 () {
-                   // Handle phone support
-                 },
-               ),
-               _buildContactOption(
-                 Icons.chat_bubble_outline,
-                 'Live Chat',
-                 () {
-                   // Handle live chat
-                 },
-               ),
-             ],
-           ),
-         ],
-       ),
-     );
-   }
 
    Widget _buildContactOption(IconData icon, String label, VoidCallback onTap) {
      return GestureDetector(

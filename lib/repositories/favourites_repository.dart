@@ -17,7 +17,11 @@ class FavouritesRepository {
         'Content-Type': 'application/json',
       },
     );
-
+     print("Url: $uri");
+     print("Favourites Response: ${response.statusCode} :: ${response.body}");
+     print("Token: $token");
+     print("status code: ${response.statusCode}");
+      print("Response body: ${response.body}");
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = json.decode(response.body);
       return FavouritesModel.fromJson(data);
@@ -44,8 +48,14 @@ class FavouritesRepository {
         'id': id,
       }),
     );
+    print("url: $uri");
+    print("Response body: ${response.body}");
+    print("Request body: ${response.request}");
+    print("status code: ${response.statusCode}");
+      print("Token: $token");
 
-    if (response.statusCode == 200) {
+
+      if (response.statusCode == 200) {
       final Map<String, dynamic> data = json.decode(response.body);
       return (data['success'] == true);
     } else if (response.statusCode == 401) {

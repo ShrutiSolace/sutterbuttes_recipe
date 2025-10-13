@@ -40,6 +40,13 @@ class _LoginScreenState extends State<LoginScreen> {
   static const Color _brandGreen = Color(0xFF7B8B57);
   static const Color _textGrey = Color(0xFF5F6368);
 
+  void _clearFormFields() {
+    _emailController.clear();
+    _passwordController.clear();
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
     value:
@@ -56,7 +63,7 @@ class _LoginScreenState extends State<LoginScreen> {
               _buildBrandHeader(),
               const SizedBox(height: 16),
               Text(
-                'Welcome Back',
+                'Welcome',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700, color: Colors.black87),
               ),
               const SizedBox(height: 4),
@@ -157,6 +164,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           alignment: Alignment.centerRight,
                           child: TextButton(
                             onPressed: () {
+                              _clearFormFields();
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(builder: (context) => const ForgotPasswordScreen()),
@@ -175,24 +183,46 @@ class _LoginScreenState extends State<LoginScreen> {
                                 onPressed: authProvider.isLoading
                                     ? null
                                     : () async {
-                                        if (_formKey.currentState!.validate()) {
-                                          final success = await authProvider.login(
-                                            username: _emailController.text.trim(),
-                                            password: _passwordController.text,
-                                          );
-                                          if (success) {
-                                            await NotificationService.getToken();
-                                            Navigator.of(context).pushReplacementNamed('/home');
-                                          } else {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(
-                                                content: Text(authProvider.errorMessage ?? 'Login failed'),
-                                                backgroundColor: Colors.red,
-                                              ),
-                                            );
-                                          }
-                                        }
-                                      },
+                                  if (_formKey.currentState!.validate()) {
+                                    final success = await authProvider.login(
+                                      username: _emailController.text.trim(),
+                                      password: _passwordController.text,
+                                    );
+                                    if (success) {
+                                      await NotificationService.getToken();
+
+                                      // Show success toast/snackbar
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: const Text('Login successful!'),
+                                          backgroundColor: const Color(0xFF7B8B57),
+                                          behavior: SnackBarBehavior.floating, // shows at bottom floating
+                                          margin: const EdgeInsets.all(0), // adds some spacing from edges
+                                          duration: const Duration(seconds: 2),
+                                        ),
+                                      );
+
+                                      // Navigate after a short delay to let user see the message
+                                      await Future.delayed(const Duration(milliseconds: 100));
+                                      Navigator.of(context).pushReplacementNamed('/home');
+                                    }
+                                    else {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text('Invalid credentials.Please try again',
+                                          ),
+                                          backgroundColor: Colors.red,
+                                          duration: const Duration(seconds: 3),
+                                          behavior: SnackBarBehavior.floating,
+                                           margin : const EdgeInsets.all(0),
+
+
+                                        ),
+                                      );
+                                    }
+                                  }
+                                },
+
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: _brandGreen,
                                   foregroundColor: Colors.white,

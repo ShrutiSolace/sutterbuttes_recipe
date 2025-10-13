@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:sutterbuttes_recipe/repositories/forget_password_repository.dart';
+import '../repositories/profile_repository.dart';
+import '../modal/forget_password_model.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -12,7 +15,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final TextEditingController _emailController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
+  bool _isLoading = false;
+
   static const Color _brandGreen = Color(0xFF7B8B57);
+
+
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -109,25 +119,59 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       const SizedBox(height: 20),
 
                                              // Send reset link button
-                       SizedBox(
-                         width: double.infinity,
-                         child: ElevatedButton(
-                           onPressed: () {
-                             if (_formKey.currentState!.validate()) {
-                               // Handle send reset link
-                               _showResetLinkSentDialog(context);
-                             }
-                           },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: _brandGreen,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8)),
-                          ),
-                          child: const Text('Send Reset Link'),
-                        ),
-                      ),
+                         // Send reset link button
+                         SizedBox(
+                           width: double.infinity,
+                           child: ElevatedButton(
+                             onPressed: _isLoading ? null : () async {
+                               if (_formKey.currentState!.validate()) {
+                                 setState(() => _isLoading = true);
+
+                                 try {
+                                   final repository = ForgetPasswordRepository();
+                                   final result = await repository.forgotPassword(
+                                     email: _emailController.text.trim(),
+                                   );
+
+                                   if (result.success) {
+                                     _showResetLinkSentDialog(context);
+                                   } else {
+                                     ScaffoldMessenger.of(context).showSnackBar(
+                                       SnackBar(
+                                         content: Text(result.message),
+                                         backgroundColor: Colors.red,
+                                       ),
+                                     );
+                                   }
+                                 } catch (e) {
+                                   ScaffoldMessenger.of(context).showSnackBar(
+                                     SnackBar(
+                                       content: Text(e.toString()),
+                                       backgroundColor: Colors.red,
+                                     ),
+                                   );
+                                 } finally {
+                                   if (mounted) {
+                                     setState(() => _isLoading = false);
+                                   }
+                                 }
+                               }
+                             },
+                             style: ElevatedButton.styleFrom(
+                               backgroundColor: _brandGreen,
+                               foregroundColor: Colors.white,
+                               padding: const EdgeInsets.symmetric(vertical: 12),
+                               shape: RoundedRectangleBorder(
+                                   borderRadius: BorderRadius.circular(8)),
+                             ),
+                             child: _isLoading
+                                 ? const CircularProgressIndicator(
+                               color: Colors.white,
+                               strokeWidth: 2.0,
+                             )
+                                 : const Text('Send Reset Link'),
+                           ),
+                         ),
 
                       const SizedBox(height: 16),
 
@@ -202,6 +246,18 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       ),
     );
   }
+
+
+
+
+
+
+
+
+
+
+
+
 
   void _showResetLinkSentDialog(BuildContext context) {
     showDialog(

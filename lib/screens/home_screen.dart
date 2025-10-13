@@ -17,7 +17,6 @@ import '../modal/trending_recipes_model.dart';
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
-
   @override
   Widget build(BuildContext context) {
 
@@ -297,7 +296,7 @@ class _ChipsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
-    final List<String> labels = <String>['All Recipes', 'Trending', 'Quick & Easy', 'Seasonal'];
+    final List<String> labels = <String>['All Recipes', 'Trending', 'Seasonal'];
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
@@ -350,6 +349,8 @@ class FeaturedRecipesSection extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+
+
                 const Text(
                   'Featured Recipes',
                   style: TextStyle(
@@ -358,6 +359,7 @@ class FeaturedRecipesSection extends StatelessWidget {
                     color: Color(0xFF4A3D4D),
                   ),
                 ),
+
                 Text(
                   'See All',
                   style: TextStyle(
@@ -370,7 +372,7 @@ class FeaturedRecipesSection extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // --- Grid of Recipes ---
+            // --- Grid of Recipes ---//
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(), // join parent scroll
@@ -732,7 +734,7 @@ class _TrendingRecipeCard extends StatelessWidget {
               borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
               image: DecorationImage(
                 image: NetworkImage(imageUrl),
-                fit: BoxFit.cover,
+                fit: BoxFit.contain,
               ),
             ),
           ),

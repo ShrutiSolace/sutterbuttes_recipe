@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sutterbuttes_recipe/screens/home_screen.dart';
 import 'package:sutterbuttes_recipe/screens/recipes_screen.dart';
 import 'package:sutterbuttes_recipe/screens/shop_screen.dart';
 
@@ -647,10 +648,10 @@ class AboutScreen extends StatelessWidget {
                   child: ElevatedButton(
 
                     onPressed: () {
-                     /* Navigator.push(
+                      Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const RecipesScreen()),
-                      );*/
+                        MaterialPageRoute(builder: (context) => const HomeScreen()),
+                      );
 
 
                     },

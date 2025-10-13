@@ -154,6 +154,4 @@ class AuthProvider extends ChangeNotifier {
 
 
 
-
-
 }

@@ -4,6 +4,8 @@ import '../api_constant.dart';
 import '../modal/notification_pref_model.dart';
 import '../services/secure_storage.dart';
 
+
+
 class NotificationRepository {
   Future<NotificationPrefModel> getPreferences() async {
     final String? token = await SecureStorage.getLoginToken();

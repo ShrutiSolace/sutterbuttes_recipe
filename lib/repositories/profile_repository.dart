@@ -5,6 +5,8 @@ import '../modal/profile_model.dart';
 import '../modal/update_profile_model.dart';
 import '../services/secure_storage.dart';
 
+
+
 class UserRepository {
   Future<Profile> getCurrentUser() async {
     String? token = await SecureStorage.getLoginToken();
@@ -61,6 +63,8 @@ class UserRepository {
     }
   }
 
+
+
   Future<UpdateProfileModel> updateUserProfile({
     required UserData userData,
   }) async {
@@ -93,11 +97,19 @@ class UserRepository {
     }
   }
 
-  Future<String> changePassword({
-    required String currentPassword,
-    required String newPassword,
-    required String confirmPassword,
+
+
+
+
+
+
+  Future<String> changePassword({required String currentPassword, required String newPassword, required String confirmPassword,
   }) async {
+    print("Initiating password change...");
+    print("Current Password: $currentPassword");
+    print("New Password: $newPassword");
+    print("Confirm Password: $confirmPassword");
+
     String? token = await SecureStorage.getLoginToken();
     print("Changing password with token: $token");
 
@@ -118,7 +130,7 @@ class UserRepository {
       body: body,
     );
 
-    print("Change password at: $uri");
+    print("URL: $uri");
     print("Request Body: $body");
     print("Response Status: ${response.statusCode}");
     print("Response Body: ${response.body}");

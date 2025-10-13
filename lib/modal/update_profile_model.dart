@@ -73,7 +73,7 @@ class UserData {
     map['state'] = state;
     map['zipcode'] = zipcode;
     map['bio'] = bio;
-    map['profile_image'] = profileImage;
+    map['profile_image'] = profileImage ?? '';
     return map;
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sutterbuttes_recipe/screens/profile_screen.dart';
 import 'package:sutterbuttes_recipe/screens/state/newsletter_provider.dart';
 
 class NewsletterConfirmationScreen extends StatelessWidget {
@@ -175,7 +176,12 @@ class NewsletterConfirmationScreen extends StatelessWidget {
           width: double.infinity,
           child: ElevatedButton(
             onPressed: () {
-              Navigator.of(context).popUntil((route) => route.isFirst);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProfileScreen(),
+                ),
+              );
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: _brandGreen,
