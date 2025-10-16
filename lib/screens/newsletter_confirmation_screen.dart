@@ -10,7 +10,10 @@ class NewsletterConfirmationScreen extends StatelessWidget {
   static const Color _darkGrey = Color(0xFF4A3D4D);
   static const Color _textGrey = Color(0xFF5F6368);
 
+
   @override
+
+
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],

@@ -17,7 +17,7 @@ class AuthService {
         username: username,
         password: password,
       );
-
+    print("Login Request: ${loginRequest.toJson()}");
       final response = await http.post(Uri.parse(ApiConstants.loginUrl),
         headers: {
           'Content-Type': 'application/json',
@@ -38,11 +38,13 @@ class AuthService {
         return LoginResponse.fromJson(responseData);
       }*/
       if (response.statusCode == 200) {
+        print("Login successful");
         final Map<String, dynamic> responseData = json.decode(response.body);
         final loginResponse = LoginResponse.fromJson(responseData);
 
         // Save the token to secure storage
         if (loginResponse.token != null) {
+
           await SecureStorage.saveToken(loginResponse.token!);
         }
 
@@ -52,25 +54,28 @@ class AuthService {
 
 
       else if (response.statusCode == 401) {
+
         // Invalid credentials
         throw ApiError(
           message: 'Invalid username or password',
           statusCode: response.statusCode,
         );
       } else if (response.statusCode == 400) {
+
         // Bad request
         throw ApiError(
           message: 'Invalid request. Please check your credentials.',
           statusCode: response.statusCode,
         );
       } else if (response.statusCode == 403) {
-        // Forbidden
+
+
         throw ApiError(
           message: 'Access denied. Please contact support.',
           statusCode: response.statusCode,
         );
       } else {
-        // Other errors
+
         final Map<String, dynamic> errorData = json.decode(response.body);
         throw ApiError(
           message: errorData['message'] ?? 'Login failed. Please try again.',
@@ -79,10 +84,13 @@ class AuthService {
       }
 
     } on http.ClientException {
+      print("=====ClientException in login");
       throw ApiError(message: 'Network error. Please check your connection.');
     } on FormatException {
+      print("=========");
       throw ApiError(message: 'Invalid response format from server.');
     } catch (e) {
+      print("=====Exception in login: $e");
       throw ApiError(message: 'An unexpected error occurred: ${e.toString()}');
     }
   }

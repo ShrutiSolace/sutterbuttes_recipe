@@ -64,9 +64,11 @@ class UserRepository {
   }
 
 
+/*
 
   Future<UpdateProfileModel> updateUserProfile({
     required UserData userData,
+    required String? profileImagePath,
   }) async {
     String? token = await SecureStorage.getLoginToken();
     print("Updating user profile with token: $token");
@@ -84,6 +86,52 @@ class UserRepository {
 
     print("Updating user profile at: $uri");
     print("Request Body: ${json.encode(userData.toJson())}");
+    print("Response Status: ${response.statusCode}");
+    print("Response Body: ${response.body}");
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = json.decode(response.body);
+      return UpdateProfileModel.fromJson(data);
+    } else if (response.statusCode == 401) {
+      throw Exception('Unauthorized (401). Token may be expired/invalid.');
+    } else {
+      throw Exception('Failed to update profile: ${response.statusCode}');
+    }
+  }
+
+*/
+  Future<UpdateProfileModel> updateUserProfile({
+    required UserData userData,
+    required String? profileImagePath,
+  }) async {
+    String? token = await SecureStorage.getLoginToken();
+    print("Updating user profile with token: $token");
+
+    final uri = Uri.parse(ApiConstants.updateProfileUrl);
+
+    // Create a multipart request
+    final request = http.MultipartRequest('POST', uri)
+      ..headers['Authorization'] = 'Bearer $token'
+      ..headers['Accept'] = 'application/json';
+
+    // Add JSON fields as form fields
+    request.fields.addAll(userData.toJson().map((key, value) => MapEntry(key, value.toString())));
+
+    // Add profile image if available
+    if (profileImagePath != null && profileImagePath.isNotEmpty) {
+      request.files.add(await http.MultipartFile.fromPath(
+        'profile_image', // Make sure this matches the backend field name
+        profileImagePath,
+      ));
+    }
+
+    print("Request fields: ${request.fields}");
+    print("Request files: ${request.files.map((f) => f.filename).toList()}");
+
+    // Send the request
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+
     print("Response Status: ${response.statusCode}");
     print("Response Body: ${response.body}");
 

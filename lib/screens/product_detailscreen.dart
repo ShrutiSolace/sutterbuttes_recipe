@@ -28,11 +28,20 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF4A3D4D),
         elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white), // ✅ White back arrow
         title: Text(
           widget.product.name,
-          style: const TextStyle(color: Colors.white, fontSize: 18),
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+          ),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis, // ✅ truncate long names
         ),
+        centerTitle: true, // optional: centers the title nicely
       ),
+
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -171,7 +180,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 final repo = CartRepository();
                                 final result = await repo.addToCart(productId: widget.product.id, quantity: _quantity);
                                 final msg = result.message ?? 'Added to cart';
-                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)
+                                )
+
+                                );
                                 try {
                                   await context.read<CartProvider>().loadCart();
                                 } catch (_) {}
@@ -183,7 +195,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: brandGreen,
-                        disabledBackgroundColor: brandGreen,
+                        disabledBackgroundColor:  Colors.grey,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -198,6 +210,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 ],
               ),
             ),
+            const SizedBox(height: 16),
 
             // Product Name
             Text(
@@ -315,7 +328,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             const SizedBox(height: 24),
 
             // Add to Cart Button
-            SizedBox(
+          /*  SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: widget.product.stockStatus == 'instock'
@@ -330,11 +343,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       borderRadius: BorderRadius.circular(8)),
                 ),
                 child: const Text(
-                  "Add to Cart",
+                  "Add to Cart 111",
                   style: TextStyle(fontSize: 16, color: Colors.white),
                 ),
               ),
-            ),
+            ),*/
           ],
         ),
       ),

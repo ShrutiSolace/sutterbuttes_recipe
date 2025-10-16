@@ -77,21 +77,27 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF4A3D4D)),
                 ),
                 const SizedBox(height: 10),
-                SizedBox(
-                  height: 240,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: recipeItems.length,
-                    itemBuilder: (context, index) {
-                      final r = recipeItems[index];
-                      return _FavoriteCard(
-                        title: r.title ?? '',
-                        imageUrl: r.image ?? '',
-                      );
-                    },
+                GridView.builder(
+
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: recipeItems.length,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2, // 2 items per row
+                    crossAxisSpacing: 15,
+                    mainAxisSpacing: 15,
+                    childAspectRatio: 0.75, // Adjust height/width ratio
                   ),
+                  padding: const EdgeInsets.all(8),
+                  itemBuilder: (context, index) {
+                    final r = recipeItems[index];
+                    return _FavoriteCard(
+                      title: r.title ?? '',
+                      imageUrl: r.image ?? '',
+                    );
+                  },
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
               ],
 
               if (productItems.isNotEmpty) ...[
@@ -100,21 +106,27 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF4A3D4D)),
                 ),
                 const SizedBox(height: 10),
-                SizedBox(
-                  height: 240,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: productItems.length,
-                    itemBuilder: (context, index) {
-                      final p = productItems[index];
-                      return _FavoriteCard(
-                        title: p.title ?? '',
-                        imageUrl: p.image ?? '',
-                        subtitle: p.price != null ? '\$${p.price}' : null,
-                      );
-                    },
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: productItems.length,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2, // 2 items per row
+                    crossAxisSpacing: 15,
+                    mainAxisSpacing: 15,
+                    childAspectRatio: 0.75, // Adjust the height/width ratio
                   ),
+                  padding: const EdgeInsets.all(8),
+                  itemBuilder: (context, index) {
+                    final p = productItems[index];
+                    return _FavoriteCard(
+                      title: p.title ?? '',
+                      imageUrl: p.image ?? '',
+                      subtitle: p.price != null ? '\$${p.price}' : null,
+                    );
+                  },
                 ),
+
               ],
             ],
           ),
@@ -133,65 +145,51 @@ class _FavoriteCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 220,
-      margin: const EdgeInsets.only(right: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+    return Card(  // Use Card instead of Container
+      elevation: 3,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-            child: AspectRatio(
-              aspectRatio: 16 / 9,
+          Expanded(  // Use Expanded instead of AspectRatio
+            child: ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
               child: imageUrl.isNotEmpty
                   ? Image.network(imageUrl, fit: BoxFit.cover)
                   : Container(color: const Color(0xFFF0F1F2)),
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF4A3D4D),
-                  ),
-                ),
-                if (subtitle != null) ...[
-                  const SizedBox(height: 6),
-                  Text(
-                    subtitle!,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.black54,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ],
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              title,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
+          if (subtitle != null) ...[
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8.0, left: 8.0, right: 8.0),
+              child: Text(
+                subtitle!,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.black54,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
 }
-
-

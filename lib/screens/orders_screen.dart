@@ -12,8 +12,17 @@ class OrdersScreen extends StatelessWidget {
         backgroundColor: const Color(0xFF4A3D4D),
         centerTitle: true,
         elevation: 0,
-        title: const Text('My Orders', style: TextStyle(color: Colors.white)),
+        iconTheme: const IconThemeData(color: Colors.white), // ✅ White back arrow
+        title: const Text(
+          'My Orders',
+          style: TextStyle(
+            color: Colors.white, // ✅ White title text
+            fontSize: 18,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
       ),
+
       body: FutureBuilder<List<OrderModel>>(
         future: OrderRepository().getOrders(),
         builder: (context, snapshot) {

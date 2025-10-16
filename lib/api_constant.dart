@@ -22,6 +22,7 @@ class ApiConstants
  static String recipesListUrl = '$baseUrl/wp/v2/recipes';
  static String recipesCategoryListUrl = '$baseUrl/sbo/v1/recipe-categories';
  static String trendingRecipesUrl = '$baseUrl/sbo/v1/trending-recipes';
+ static String recipesByCategoryUrl = '$baseUrl/sbo/v1/recipes-by-category'; // Append category ID for specific category
 
 
  ///Product List ///

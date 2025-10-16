@@ -6,6 +6,7 @@ import '../modal/trending_recipes_model.dart';
 
 class RecipeListRepository {
   Future<List<RecipeItem>> getRecipes({int page = 1, int perPage = 10}) async {
+
     print("Fetching recipes: page=$page, perPage=$perPage");
     print("getRecipes called with page: $page, perPage: $perPage");
 

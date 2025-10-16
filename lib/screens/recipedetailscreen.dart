@@ -12,9 +12,21 @@ class RecipeDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(recipe.title),
-        backgroundColor: const Color(0xFF7B8B57),
+        backgroundColor: const Color(0xFF4A3D4D),
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white), // ✅ white back arrow
+        title: Text(
+          recipe.title,
+          style: const TextStyle(
+            color: Colors.white, // ✅ white title text
+            fontSize: 18,
+            fontWeight: FontWeight.w500,
+          ),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
       ),
+
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

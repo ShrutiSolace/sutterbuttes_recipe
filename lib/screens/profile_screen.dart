@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:sutterbuttes_recipe/screens/notification_prefernce_setting.dart';
 import 'package:sutterbuttes_recipe/screens/state/auth_provider.dart';
 import 'package:sutterbuttes_recipe/screens/change_password.dart';
+import '../modal/favourites_model.dart';
+import '../repositories/favourites_repository.dart';
 import 'login_screen.dart';
 import 'edit_profile_screen.dart';
 import 'help_center_screen.dart';
@@ -101,35 +103,55 @@ class ProfileScreen extends StatelessWidget {
 
               // Stats row
               Row(
-                children: const <Widget>[
+                children: [
+                  const SizedBox(width: 8),
+
+                  // ✅ Dynamic Favorites count
                   Expanded(
-                    child: _StatCard(
-                      icon: Icons.restaurant_menu_outlined,
-                      title: 'Recipes',
-                      value: '8',
-                      iconColor: Colors.green,
+                    child: FutureBuilder<FavouritesModel>(
+                      future: FavouritesRepository().getFavourites(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const Center(child: CircularProgressIndicator());
+                        }
+                        if (snapshot.hasError || snapshot.data == null) {
+                          return _StatCard(
+                            icon: Icons.favorite_border,
+                            title: 'Favorites',
+                            value: '0',
+                            iconColor: Colors.red,
+                          );
+                        }
+
+                        final favourites = snapshot.data!;
+                        final recipeCount = favourites.favorites?.recipes?.length ?? 0;
+                        final productCount = favourites.favorites?.products?.length ?? 0;
+                        final totalFavorites = recipeCount + productCount;
+
+                        return _StatCard(
+                          icon: Icons.favorite_border,
+                          title: 'Favorites',
+                          value: totalFavorites.toString(),
+                          iconColor: Colors.red,
+                        );
+                      },
                     ),
                   ),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: _StatCard(
-                      icon: Icons.favorite_border,
-                      title: 'Favorites',
-                      value: '8',
-                      iconColor: Colors.red, // ❤️ Favorites red
-                    ),
-                  ),
-                  SizedBox(width: 8),
+
+                  const SizedBox(width: 8),
+
+                  // Static Orders card (or you can make it dynamic too)
                   Expanded(
                     child: _StatCard(
                       icon: Icons.receipt_long_outlined,
                       title: 'Orders',
                       value: '8',
-                      iconColor: Colors.amber, // 💛 Orders yellow
+                      iconColor: Colors.amber,
                     ),
                   ),
                 ],
               ),
+
 
               const SizedBox(height: 16),
 
@@ -248,7 +270,31 @@ class ProfileScreen extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
-                  onPressed: () {
+                  /*onPressed: () {
+                    // Show success message
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Logout successful'),
+                        backgroundColor: Colors.green,
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+
+                    // Delay slightly so the SnackBar is visible before navigating
+                    Future.delayed(const Duration(milliseconds: 600), () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => const LoginScreen()),
+                      );
+                    });
+                  },*/
+                  onPressed: () async {
+                    // Get AuthProvider instance
+                    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+                    // Call logout method to clear token from secure storage
+                    await authProvider.logout();
+
                     // Show success message
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
@@ -313,7 +359,8 @@ class _StatCard extends StatelessWidget {
       ),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center, // Center everything vertically
+        crossAxisAlignment: CrossAxisAlignment.center, //
         children: <Widget>[
           Row(
             children: <Widget>[

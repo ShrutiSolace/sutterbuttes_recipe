@@ -6,9 +6,6 @@ import '../modal/update_profile_model.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
-
-
-
   @override
   State<EditProfileScreen> createState() => _EditProfileScreenState();
 }
@@ -146,7 +143,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
             _buildTextField(label: "First Name", hint: "", controller: _firstNameController),
             _buildTextField(label: "Last Name", hint: "", controller: _lastNameController),
-            _buildTextField(label: "Email Address", hint: "", icon: Icons.email_outlined, controller: _emailController),
+            _buildTextField(label: "Email Address", hint: "", icon: Icons.email_outlined, controller: _emailController, enabled : false),
             _buildTextField(label: "Phone Number", hint: "", icon: Icons.phone_outlined, controller: _phoneController),
 
             const SizedBox(height: 10),
@@ -226,10 +223,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     bool obscure = false,
     int maxLines = 1,
     TextEditingController? controller,
+    bool enabled = true,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: TextField(
+        enabled: enabled,
         obscureText: obscure,
         maxLines: maxLines,
         controller: controller,
@@ -266,7 +265,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       );
 
       final repo = UserRepository();
-      final result = await repo.updateUserProfile(userData: userData);
+      final result = await repo.updateUserProfile(userData: userData, profileImagePath: _pickedImageFile?.path,);
 
       // Show profile update success first
       messenger.showSnackBar(

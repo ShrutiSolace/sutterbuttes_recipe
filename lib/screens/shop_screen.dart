@@ -131,7 +131,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
                                 return Container(
                                   padding: const EdgeInsets.all(4),
                                   decoration: const BoxDecoration(
-                                    color: Color(0xFFD4B25C),
+                                    color: Color(0xFF7B8B57),
                                     shape: BoxShape.circle,
                                   ),
                                   child: Text(
@@ -400,6 +400,23 @@ class _ProductFavouriteButton extends StatefulWidget {
 class _ProductFavouriteButtonState extends State<_ProductFavouriteButton> {
   bool _isFavourite = false;
   bool _isLoading = false;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   Future<void> _toggle() async {
     if (_isLoading) return;

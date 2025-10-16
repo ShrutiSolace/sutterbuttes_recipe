@@ -16,8 +16,18 @@ class CartScreen extends StatelessWidget {
         backgroundColor: const Color(0xFF4A3D4D),
         centerTitle: true,
         elevation: 0,
-        title: const Text('Shopping Cart', style: TextStyle(color: Colors.white)),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+        title: const Text(
+          'Shopping Cart',
+          style: TextStyle(color: Colors.white),
+        ),
       ),
+
       body: cartProvider.isLoading
           ? const Center(child: CircularProgressIndicator())
           : (cart == null || (cart.items?.isEmpty ?? true))

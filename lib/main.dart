@@ -63,20 +63,27 @@ class MyApp extends StatelessWidget {
           create: (_) => RecipeProvider(RecipeListRepository()),
         ),
 
-
         ChangeNotifierProvider<AuthProvider>(
-          create: (_) => AuthProvider(),
+          create: (_) {
+            final authProvider = AuthProvider();
+            // Restore auth state when app starts
+            authProvider.restoreAuthState();
+            return authProvider;
+          },
         ),
+        /*ChangeNotifierProvider(
+          create: (_) => AuthProvider(),
+        ),*/
 
         ProxyProvider<AuthProvider, RecipeCategoryRepository>(
           update: (context, auth, previous) {
             final token = auth.token ?? '';
-            return RecipeCategoryRepository(token);
+            return RecipeCategoryRepository();
           },
         ),
 
         ChangeNotifierProxyProvider<RecipeCategoryRepository, RecipeCategoryProvider>(
-          create: (_) => RecipeCategoryProvider(repository: RecipeCategoryRepository('')),
+          create: (_) => RecipeCategoryProvider(repository: RecipeCategoryRepository()),
           update: (context, repo, previous) => RecipeCategoryProvider(repository: repo),
         ),
 

@@ -27,18 +27,19 @@ class RecipeItem {
         : '';
 
     return RecipeItem(
-      id: json['id'] ?? 0,
-      slug: json['slug'] ?? '',
+      id: int.tryParse(json['id']?.toString() ?? '0') ?? 0,
+      slug: json['slug']?.toString() ?? '',
       title: _stripHtml(rawTitle),
-      link: json['link'] ?? '',
-      date: json['date'] ?? '',
+      link: json['link']?.toString() ?? '',
+      date: json['date']?.toString() ?? '',
       contentHtml: (json['content']?['rendered'] ?? '').toString(),
-      featuredMediaId: json['featured_media'] ?? 0,
+      featuredMediaId: int.tryParse(json['featured_media']?.toString() ?? '0') ?? 0,
       imageUrl: image,
     );
   }
 
   Map<String, dynamic> toJson() {
+    print("======Serializing RecipeItem to JSON: id=$id, slug=$slug , title=$title, link=$link, date=$date, featured_media=$featuredMediaId, imageUrl=$imageUrl");
     return {
       'id': id,
       'slug': slug,

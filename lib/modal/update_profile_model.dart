@@ -49,7 +49,15 @@ class UserData {
     state = json['state'];
     zipcode = json['zipcode'];
     bio = json['bio'];
-    profileImage = json['profile_image'] as String?;
+    //profileImage = json['profile_image'] as String?;
+    if (json['profile_image'] is String) {
+      profileImage = json['profile_image'];
+    } else if (json['profile_image'] is List && json['profile_image'].isNotEmpty) {
+      profileImage = json['profile_image'][0];
+    } else {
+      profileImage = null;
+    }
+
   }
   String? firstName;
   String? lastName;

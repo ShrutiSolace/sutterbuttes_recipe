@@ -4,6 +4,7 @@ import '../../modal/login_model.dart';
 import '../../repositories/auth_repository.dart';
 import '../../repositories/profile_repository.dart';
 import '../../services/google_signin_service.dart';
+import '../../services/secure_storage.dart';
 
 class AuthProvider extends ChangeNotifier {
   bool _isLoading = false;
@@ -57,10 +58,19 @@ class AuthProvider extends ChangeNotifier {
   }
 
   // Logout method
-  void logout() {
+ /* void logout() {
     _userData = null;
     _token = null;
     _errorMessage = null;
+    notifyListeners();
+  }*/
+  Future<void> logout() async {
+    _userData = null;
+    _token = null;
+    _errorMessage = null;
+    _me = null;
+    // Clear token from secure storage
+    await SecureStorage.deleteToken();
     notifyListeners();
   }
 
@@ -143,7 +153,40 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  // Add this method to AuthProvider class
+  Future<void> restoreAuthState() async {
+    _isLoading = true;
+    notifyListeners();
 
+    try {
+      // Get saved token from secure storage
+      final savedToken = await SecureStorage.getLoginToken();
+
+      if (savedToken != null && savedToken.isNotEmpty) {
+        _token = savedToken;
+        // Try to fetch user profile to validate token
+        final profileFetched = await fetchCurrentUser();
+
+        if (profileFetched) {
+          print("Auth state restored successfully");
+        } else {
+          // Token is invalid, clear it
+          _token = null;
+          await SecureStorage.deleteToken();
+          print("Invalid token, cleared auth state");
+        }
+      } else {
+        print("No saved token found");
+      }
+    } catch (e) {
+      print("Error restoring auth state: $e");
+      _token = null;
+      await SecureStorage.deleteToken();
+    }
+
+    _isLoading = false;
+    notifyListeners();
+  }
 
 
 

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:sutterbuttes_recipe/screens/state/auth_provider.dart';
 
 
 class SplashScreen extends StatefulWidget {
@@ -10,11 +12,33 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   @override
-  void initState() {
+/*  void initState() {
     super.initState();
     Future<void>.delayed(const Duration(seconds: 2), () {
       if (!mounted) return;
       Navigator.of(context).pushReplacementNamed('/login');
+    });
+  }*/
+  @override
+  void initState() {
+    super.initState();
+    Future<void>.delayed(const Duration(seconds: 2), () async {
+      if (!mounted) return;
+
+      // Get AuthProvider instance
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+      // Wait for auth state to be restored
+      await authProvider.restoreAuthState();
+
+      if (!mounted) return; // Check again after async operation
+
+      // Now check if user is logged in
+      if (authProvider.isLoggedIn) {
+        Navigator.of(context).pushReplacementNamed('/home');
+      } else {
+        Navigator.of(context).pushReplacementNamed('/login');
+      }
     });
   }
 

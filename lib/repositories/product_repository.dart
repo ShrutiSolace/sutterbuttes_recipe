@@ -10,7 +10,7 @@ class ProductRepository {
     print("Fetching products from API...");
 
     try {
-      String? token = await SecureStorage.getLoginToken();
+
       // Build URI with only essential parameters
       Uri uri = Uri.parse(ApiConstants.productListUrl).replace(
         queryParameters: {
@@ -23,12 +23,11 @@ class ProductRepository {
       final response = await http.get(
         uri,
         headers: {
-          'Authorization': 'Bearer $token',
+
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
       );
-      print("Token: $token");
       print("URL: $uri");
       print("Response Status: ${response.statusCode}");
       print("Response Body: ${response.body}");

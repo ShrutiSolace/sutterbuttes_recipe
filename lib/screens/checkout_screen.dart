@@ -13,6 +13,18 @@ class CheckoutScreen extends StatefulWidget {
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
   final _formKey = GlobalKey<FormState>();
+  bool _sameAsBilling = false;
+
+
+
+
+
+
+
+
+
+
+
   // Billing
   final _bFirst = TextEditingController();
   final _bLast = TextEditingController();
@@ -61,8 +73,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF4A3D4D),
         elevation: 0,
-        title: const Text('Checkout', style: TextStyle(color: Colors.white)),
+        iconTheme: const IconThemeData(color: Colors.white), // ✅ White back arrow
+        title: Text(
+         "Checkout",
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 20, // ✅ smaller font size
+            fontWeight: FontWeight.w500,
+          ),
+          overflow: TextOverflow.ellipsis, // ✅ truncate long names
+        ),
+        centerTitle: true, // optional: centers the title nicely
       ),
+
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(
@@ -71,11 +94,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _sectionTitle('Billing Information'),
-              _grid([
+              _verticalGrid([
                 _field('First Name *', _bFirst),
                 _field('Last Name *', _bLast),
                 _field('Email *', _bEmail, keyboardType: TextInputType.emailAddress),
-                _field('Phone *', _bPhone, keyboardType: TextInputType.phone),
+                _field('Phone *', _bPhone, keyboardType: TextInputType.phone, isPhoneField: true),
                 _field('Address *', _bAddress, maxLines: 2),
                 _field('City *', _bCity),
                 _field('State *', _bState),
@@ -83,8 +106,30 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               ]),
 
               const SizedBox(height: 16),
+
+              // Same as billing checkbox
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: CheckboxListTile(
+                  title: const Text(
+                    'Same as Billing Address',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF4A3D4D),
+                    ),
+                  ),
+                  value: _sameAsBilling,
+                  onChanged: _onSameAsBillingChanged,
+                  activeColor: const Color(0xFF7B8B57),
+                  contentPadding: EdgeInsets.zero,
+                  controlAffinity: ListTileControlAffinity.leading,
+                ),
+              ),
+
+              const SizedBox(height: 8),
               _sectionTitle('Shipping Information'),
-              _grid([
+              _verticalGrid([
                 _field('First Name *', _sFirst),
                 _field('Last Name *', _sLast),
                 _field('Address *', _sAddress, maxLines: 2),
@@ -140,16 +185,127 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       ),
     );
   }
+  Widget _verticalGrid(List<Widget> fields) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Column(
+        children: fields.map((w) => Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: w,
+        )).toList(),
+      ),
+    );
+  }
 
-  Widget _field(String label, TextEditingController controller, {TextInputType? keyboardType, int maxLines = 1}) {
+  Widget _field(String label, TextEditingController controller, {TextInputType? keyboardType, int maxLines = 1, bool isPhoneField = false}) {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       maxLines: maxLines,
       decoration: InputDecoration(labelText: label, border: OutlineInputBorder(borderRadius: BorderRadius.circular(8))),
-      validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+      validator: (v) {
+        // Check if field is empty
+        if (v == null || v.trim().isEmpty) {
+          return 'Please enter required fields';
+        }
+
+        // Phone number validation
+        if (isPhoneField) {
+          // Remove all non-digit characters for validation
+          String digitsOnly = v.replaceAll(RegExp(r'[^\d]'), '');
+          if (digitsOnly.length < 10) {
+            return 'Phone number must be at least 10 digits';
+          }
+        }
+
+        // Email validation
+        if (label.contains('Email')) {
+          final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
+          if (!emailRegex.hasMatch(v.trim())) {
+            return 'Please enter a valid email address';
+          }
+        }
+        if (label.contains('Address')) {
+          if (v.trim().length < 10) {
+            return 'Address must be at least 10 characters';
+          }
+          if (v.trim().length > 100) {
+            return 'Address must be less than 100 characters';
+          }
+        }
+
+        // ZIP code validation
+        if (label.contains('ZIP')) {
+          String digitsOnly = v.replaceAll(RegExp(r'[^\d]'), '');
+          if (digitsOnly.length != 5 && digitsOnly.length != 9) {
+            return 'ZIP code must be 5 or 9 digits';
+          }
+        }
+
+        // State validation
+        if (label.contains('State')) {
+          if (v.trim().length < 2) {
+            return 'State must be at least 2 characters';
+          }
+          if (v.trim().length > 50) {
+            return 'State must be less than 50 characters';
+          }
+        }
+
+        // City validation
+        if (label.contains('City')) {
+          if (v.trim().length < 2) {
+            return 'City must be at least 2 characters';
+          }
+          if (v.trim().length > 50) {
+            return 'City must be less than 50 characters';
+          }
+        }
+
+
+        return null; // Valid
+      },
     );
   }
+
+
+
+  // ADD THIS METHOD HERE (between line 164 and 166)
+  void _onSameAsBillingChanged(bool? value) {
+    setState(() {
+      _sameAsBilling = value ?? false;
+      if (_sameAsBilling) {
+        // Copy billing data to shipping
+        _sFirst.text = _bFirst.text;
+        _sLast.text = _bLast.text;
+        _sAddress.text = _bAddress.text;
+        _sCity.text = _bCity.text;
+        _sState.text = _bState.text;
+        _sZip.text = _bZip.text;
+      } else {
+        // Clear shipping fields
+        _sFirst.clear();
+        _sLast.clear();
+        _sAddress.clear();
+        _sCity.clear();
+        _sState.clear();
+        _sZip.clear();
+      }
+    });
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   Future<void> _placeOrder() async {
     FocusScope.of(context).unfocus();
