@@ -15,7 +15,7 @@ import '../modal/recipe_model.dart';
 import '../repositories/recipe_list_repository.dart';
 import '../modal/trending_recipes_model.dart';
 import 'package:html_unescape/html_unescape.dart';
-
+import 'dart:math' as math;
 
 
 
@@ -335,7 +335,9 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
           FeaturedRecipesSection(),
 
            const SizedBox(height: 24),
+             TrendingProduct(),
 
+            const SizedBox(height: 24),
            // Recipe Categories Section
            _RecipeCategoriesSection(),
 
@@ -490,7 +492,8 @@ class FeaturedRecipesSection extends StatelessWidget {
                 childAspectRatio: 0.75,  // adjust height vs width
               ),
               padding: const EdgeInsets.all(2),
-              itemCount: provider.recipes.length,
+             // itemCount: provider.recipes.length,
+              itemCount: math.min(4, provider.recipes.length),
               itemBuilder: (context, index) {
                 final recipe = provider.recipes[index];
                 return FeaturedRecipeGridCard(recipe: recipe);
@@ -590,6 +593,196 @@ class FeaturedRecipeGridCard extends StatelessWidget {
     );
   }
 }
+
+
+
+class TrendingProduct extends StatelessWidget {
+  const TrendingProduct({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<RecipeProvider>(
+      builder: (context, provider, _) {
+        if (provider.isLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (provider.errorMessage != null) {
+          return Center(child: Text(provider.errorMessage!));
+        }
+
+        if (provider.recipes.isEmpty) {
+          return const Center(child: Text("No recipes available"));
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // --- Section Title ---
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Trending Products',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF4A3D4D),
+                  ),
+                ),
+
+
+                GestureDetector(
+                  onTap: () {
+                  /*  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const RecipesScreen(),
+                      ),
+                    );*/
+                  },
+                  child: Text(
+                    'See All',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF7B8B57),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // --- Grid of Recipes ---//
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(), // join parent scroll
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,           // 2 recipes per row
+                crossAxisSpacing: 15,        // Space between columns
+                mainAxisSpacing: 15,         // Space between rows
+                childAspectRatio: 0.75,  // adjust height vs width
+              ),
+              padding: const EdgeInsets.all(2),
+              // itemCount: provider.recipes.length,
+              itemCount: math.min(4, provider.recipes.length),
+              itemBuilder: (context, index) {
+                final recipe = provider.recipes[index];
+                return TrendingProductCard(recipe: recipe);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class TrendingProductCard extends StatelessWidget {
+  final RecipeItem recipe;
+
+  const TrendingProductCard({Key? key, required this.recipe}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => RecipeDetailScreen(recipe: recipe),
+          ),
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // === Recipe Image ===
+            Expanded(
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: (recipe.imageUrl != null && recipe.imageUrl.isNotEmpty)
+                          ? Image.network(
+                        recipe.imageUrl,
+                        fit: BoxFit.cover,
+                        alignment: Alignment.center,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Image.asset(
+                            "assets/images/homescreen logo.png",
+                            fit: BoxFit.cover,
+                            alignment: Alignment.center,
+                          );
+                        },
+                      )
+                          : Image.asset(
+                        "assets/images/homescreen logo.png",
+                        fit: BoxFit.cover,
+                        alignment: Alignment.center,
+                      ),
+                    ),
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: _FavouriteButton(type: 'recipe', id: recipe.id),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // === Title ===
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                recipe.title,
+                maxLines:2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF4A3D4D),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 class _RecipeCategoriesSection extends StatelessWidget {

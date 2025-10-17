@@ -1,6 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
+import 'package:sutterbuttes_recipe/api_constant.dart';
 import '../repositories/cart_repository.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
+import '../repositories/payment_repository.dart';
 import 'state/cart_provider.dart';
 import 'order_success_screen.dart';
 
@@ -14,16 +20,6 @@ class CheckoutScreen extends StatefulWidget {
 class _CheckoutScreenState extends State<CheckoutScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _sameAsBilling = false;
-
-
-
-
-
-
-
-
-
-
 
   // Billing
   final _bFirst = TextEditingController();
@@ -43,6 +39,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final _sZip = TextEditingController();
 
   bool _submitting = false;
+  Map<String, dynamic>? paymentIntentData;
+  String _selectedPaymentMethod = 'cod';
 
   @override
   void dispose() {
@@ -75,7 +73,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white), // ✅ White back arrow
         title: Text(
-         "Checkout",
+          "Checkout",
           style: const TextStyle(
             color: Colors.white,
             fontSize: 20, // ✅ smaller font size
@@ -85,7 +83,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         ),
         centerTitle: true, // optional: centers the title nicely
       ),
-
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(
@@ -141,7 +138,33 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               const SizedBox(height: 16),
               _sectionTitle('Payment Information'),
               const SizedBox(height: 8),
-              const Text('Cash on Delivery will be used for this demo.')
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: const Color(0xFFE0E0E0)),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  children: [
+                    RadioListTile<String>(
+                      value: 'cod',
+                      groupValue: _selectedPaymentMethod,
+                      onChanged: (v) => setState(() => _selectedPaymentMethod = v ?? 'cod'),
+                      title: const Text('Cash on Delivery'),
+                      activeColor: Color(0xFF7B8B57),
+                      dense: true,
+                    ),
+                    const Divider(height: 1),
+                    RadioListTile<String>(
+                      value: 'stripe',
+                      groupValue: _selectedPaymentMethod,
+                      onChanged: (v) => setState(() => _selectedPaymentMethod = v ?? 'stripe'),
+                      title: const Text('Stripe'),
+                      activeColor: Color(0xFF7B8B57),
+                      dense: true,
+                    ),
+                  ],
+                ),
+              )
             ],
           ),
         ),
@@ -161,7 +184,23 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
             const SizedBox(height: 8),
             ElevatedButton(
-              onPressed: _submitting ? null : _placeOrder,
+              onPressed: _submitting
+                  ? null
+                  : () async {
+                      final method = _selectedPaymentMethod;
+                      final resp = await _placeOrder(paymentMethod: method);
+                      if (resp == null) return;
+
+                      if (method == 'cod') {
+                        if (!mounted) return;
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (_) => const OrderSuccessScreen()),
+                        );
+                      } else {
+                        await makePayment(resp);
+                      }
+                    },
               style: ElevatedButton.styleFrom(backgroundColor: brandGreen, padding: const EdgeInsets.symmetric(vertical: 14)),
               child: _submitting
                   ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
@@ -185,14 +224,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       ),
     );
   }
+
   Widget _verticalGrid(List<Widget> fields) {
     return Padding(
       padding: const EdgeInsets.only(top: 8),
       child: Column(
-        children: fields.map((w) => Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: w,
-        )).toList(),
+        children: fields
+            .map((w) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: w,
+                ))
+            .toList(),
       ),
     );
   }
@@ -262,13 +304,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           }
         }
 
-
         return null; // Valid
       },
     );
   }
-
-
 
   // ADD THIS METHOD HERE (between line 164 and 166)
   void _onSameAsBillingChanged(bool? value) {
@@ -294,23 +333,83 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     });
   }
 
+  Future<void> makePayment(Map<String, dynamic> data) async {
+    try {
+      final clientSecret = data['client_secret'];
+      final orderId = data['order_id'];
+      final paymentIntentId = data['payment_intent_id'];
 
+      if (clientSecret == null || clientSecret.isEmpty) {
+        throw Exception("Missing client_secret from backend");
+      }
 
+      print("====== Initialize the payment sheet");
 
+      // ✅ Initialize the Stripe payment sheet
+      await Stripe.instance.initPaymentSheet(
+        paymentSheetParameters: SetupPaymentSheetParameters(
+          paymentIntentClientSecret: clientSecret,
+          merchantDisplayName: 'My Store',
+          style: ThemeMode.system,
+          allowsDelayedPaymentMethods: true,
+        ),
+      );
 
+      print("====== Show the payment sheet");
 
+      // ✅ Show the payment sheet (await user action)
+      try {
+        await Stripe.instance.presentPaymentSheet();
 
+        print("====== Payment sheet closed successfully");
 
+        // ✅ Notify your backend after successful payment
+        print("====== Notify your backend to confirm payment");
 
+        setState(() => _submitting = true);
+        bool value = false;
+        try {
+          value = await PaymentRepository().createStripePaymentIntent(orderId: orderId, paymentIntentId: paymentIntentId);
+        } finally {
+          if (mounted) setState(() => _submitting = false);
+        }
 
+        if (value) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Payment successful ✅')),
+          );
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const OrderSuccessScreen()),
+          );
+        } else {
+          throw Exception('Payment confirmation failed on backend');
+        }
+      } on StripeException catch (e) {
+        print("====== StripeException: ${e.error.localizedMessage}");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Payment cancelled: ${e.error.localizedMessage}')),
+        );
+      } catch (e) {
+        print("====== Unexpected payment error: $e");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Payment failed: $e')),
+        );
+      }
+    } catch (e) {
+      print("====== makePayment() exception: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Payment initialization failed: $e')),
+      );
+    }
+  }
 
-
-
-
-  Future<void> _placeOrder() async {
+  Future<Map<String, dynamic>?> _placeOrder({required String paymentMethod}) async {
     FocusScope.of(context).unfocus();
-    if (!_formKey.currentState!.validate()) return;
-    setState(() { _submitting = true; });
+    if (!_formKey.currentState!.validate()) return null;
+    setState(() {
+      _submitting = true;
+    });
     try {
       final repo = CartRepository();
       final resp = await repo.checkout(
@@ -334,21 +433,24 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           'postcode': _sZip.text.trim(),
           'country': 'US',
         },
-        paymentMethod: 'cod',
+        paymentMethod: paymentMethod,
       );
 
       // Refresh cart count post-order
       await context.read<CartProvider>().loadCart();
 
-      if (!mounted) return;
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const OrderSuccessScreen()));
+      return resp;
+    } on StripeException catch (e) {
+      print("======== StripeException: $e");
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Payment cancelled')));
     } catch (e) {
+      print("======== catch Error: $e");
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Checkout failed: $e')));
     } finally {
-      if (mounted) setState(() { _submitting = false; });
+      if (mounted)
+        setState(() {
+          _submitting = false;
+        });
     }
   }
 }
-
-
-

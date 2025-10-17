@@ -12,7 +12,28 @@
           "package_name": "com.sutterbuttes.recipes"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "730098433384-gno21dpkcdh2k4n02m0h1n8oumln7l33.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sutterbuttes.recipes",
+            "certificate_hash": "7217e4adee5cfa816246d116bb068dddf583d517"
+          }
+        },
+        {
+          "client_id": "730098433384-m7lp9bs050vhecl67aelq01qqg3nsc1s.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sutterbuttes.recipes",
+            "certificate_hash": "af31b66a8ce002d359797d135260b87770a04f2b"
+          }
+        },
+        {
+          "client_id": "730098433384-hcoustmt5lhl90v1gcjdcm45hc44lr3m.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDY_zIlCsf-dcjrM3OeyCsp5bJrbmuWTlk"
@@ -20,11 +41,22 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "730098433384-hcoustmt5lhl90v1gcjdcm45hc44lr3m.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "730098433384-4a89grqv3eb35rhs7pfgs23b09p8i2nq.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.sutterbuttes.recipes"
+              }
+            }
+          ]
         }
       }
     }
   ],
   "configuration_version": "1"
 }
-

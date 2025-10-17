@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:sutterbuttes_recipe/repositories/newsletter_repository.dart';
 import 'package:sutterbuttes_recipe/repositories/recipe_category_repository.dart';
 import 'package:sutterbuttes_recipe/repositories/recipe_list_repository.dart';
+import 'package:sutterbuttes_recipe/screens/state/about_us_provider.dart';
 import 'package:sutterbuttes_recipe/screens/state/auth_provider.dart';
 import 'package:sutterbuttes_recipe/screens/state/newsletter_provider.dart';
 import 'package:sutterbuttes_recipe/screens/state/recipe_category_provider.dart';
@@ -17,7 +18,7 @@ import 'screens/splash_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
-
+import 'package:flutter_stripe/flutter_stripe.dart';
 
    @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -30,6 +31,12 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   print('Starting Firebase initialization...');
+   //for production purpose
+  //Stripe.publishableKey = 'pk_live_LE9xpcAG1zRlgr2igIoA7C14';
+  //for testing purpose
+  Stripe.publishableKey = 'pk_test_IVAM9eZVQcNrjEYVDgeEKNe5';
+
+
 
   await FlutterBranchSdk.init();
 
@@ -94,6 +101,15 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => CartProvider(CartRepository()),
         ),
+
+        ChangeNotifierProvider(
+          create: (_) => AboutContentProvider(),
+        ),
+
+
+
+
+
       ],
       child: MaterialApp(
 

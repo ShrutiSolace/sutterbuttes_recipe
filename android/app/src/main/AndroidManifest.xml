@@ -54,6 +54,13 @@
             </intent-filter>
 
         </activity>
+        <!-- ✅ (Optional but recommended for Stripe) -->
+        <activity android:name="com.stripe.android.view.PaymentAuthWebViewActivity"
+            android:exported="false"
+            android:launchMode="singleTop" />
+
+
+
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

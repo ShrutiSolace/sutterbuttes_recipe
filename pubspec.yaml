@@ -53,6 +53,7 @@ dependencies:
   flutter_secure_storage: ^9.0.0
   flutter_facebook_auth: ^7.1.2
   flutter_branch_sdk: ^8.9.0+1
+  flutter_stripe:
 
 
 

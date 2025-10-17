@@ -21,7 +21,7 @@ class OrderRepository {
 
     print("Url: $uri");
     print("Order Response: ${response.statusCode} :: ${response.body}");
-    print("Token: $token");
+
     print("status code: ${response.statusCode}");
     print("Response body: ${response.body}");
 

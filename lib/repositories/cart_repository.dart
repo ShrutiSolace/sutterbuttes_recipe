@@ -158,6 +158,9 @@ class CartRepository {
       body: payload,
     );
 
+    print("======== uri: $uri ");
+    print("===== payload: $payload ");
+    print("=== Response: ${response.statusCode} ${response.body}");
     if (response.statusCode == 200) {
       return json.decode(response.body) as Map<String, dynamic>;
     } else if (response.statusCode == 401) {
