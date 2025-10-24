@@ -118,7 +118,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       ),
                       Row(
                         children: [
-                          GestureDetector(
+
+                       /*   GestureDetector(
                             onTap: () {
                               if (_quantity > 1) {
                                 setState(() {
@@ -137,7 +138,38 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               ),
                               child: const Icon(Icons.remove, size: 18, color: Colors.black54),
                             ),
+                          ),*/
+                          //  Disabled decrement button when adding to cart
+                          GestureDetector(
+                            onTap: _isAdding
+                                ? null // 🔒 disable tap when adding to cart
+                                : () {
+                              if (_quantity > 1) {
+                                setState(() {
+                                  _quantity--;
+                                });
+                              }
+                            },
+                            child: Opacity(
+                              opacity: _isAdding ? 0.5 : 1, // 🔆 dim while disabled
+                              child: Container(
+                                width: 36,
+                                height: 36,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: const Color(0xFFE0E0E0)),
+                                  color: Colors.white,
+                                ),
+                                child: const Icon(Icons.remove, size: 18, color: Colors.black54),
+                              ),
+                            ),
                           ),
+
+
+
+
+
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 12),
                             child: Text(
@@ -145,7 +177,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                             ),
                           ),
-                          GestureDetector(
+                        /*  GestureDetector(
                             onTap: () {
                               setState(() {
                                 _quantity++;
@@ -162,7 +194,36 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               ),
                               child: const Icon(Icons.add, size: 18, color: Colors.black54),
                             ),
+                          ),*/
+                          //  Disabled increment button when adding to cart
+                          GestureDetector(
+                            onTap: _isAdding
+                                ? null // 🔒 disable tap when adding to cart
+                                : () {
+                              setState(() {
+                                _quantity++;
+                              });
+                            },
+                            child: Opacity(
+                              opacity: _isAdding ? 0.5 : 1,
+                              child: Container(
+                                width: 36,
+                                height: 36,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: const Color(0xFFE0E0E0)),
+                                  color: Colors.white,
+                                ),
+                                child: const Icon(Icons.add, size: 18, color: Colors.black54),
+                              ),
+                            ),
                           ),
+
+
+
+
+
                         ],
                       ),
                     ],

@@ -5,6 +5,7 @@ import 'package:sutterbuttes_recipe/screens/state/auth_provider.dart';
 import 'package:sutterbuttes_recipe/screens/change_password.dart';
 import '../modal/favourites_model.dart';
 import '../repositories/favourites_repository.dart';
+import '../repositories/order_repository.dart';
 import 'login_screen.dart';
 import 'edit_profile_screen.dart';
 import 'help_center_screen.dart';
@@ -112,7 +113,7 @@ class ProfileScreen extends StatelessWidget {
                       future: FavouritesRepository().getFavourites(),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState == ConnectionState.waiting) {
-                          return const Center(child: CircularProgressIndicator());
+
                         }
                         if (snapshot.hasError || snapshot.data == null) {
                           return _StatCard(
@@ -141,12 +142,45 @@ class ProfileScreen extends StatelessWidget {
                   const SizedBox(width: 8),
 
                   // Static Orders card (or you can make it dynamic too)
+                  // Replace the static orders card in lib/screens/profile_screen.dart (around line 143-151)
+
+// Static Orders card (or you can make it dynamic too)
                   Expanded(
-                    child: _StatCard(
-                      icon: Icons.receipt_long_outlined,
-                      title: 'Orders',
-                      value: '8',
-                      iconColor: Colors.amber,
+                    child: FutureBuilder<int>(
+                      future: OrderRepository().getOrderCount(),
+                      builder: (context, snapshot) {
+                        print("=== FutureBuilder state: ${snapshot.connectionState}");
+                        print("=== FutureBuilder hasData: ${snapshot.hasData}");
+                        print("====FutureBuilder data: ${snapshot.data}");
+                        print(" ====FutureBuilder error: ${snapshot.error}");
+
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+
+                          return _StatCard(
+                            icon: Icons.receipt_long_outlined,
+                            title: 'Orders',
+                            value: '0',
+                            iconColor: Colors.amber,
+                          );
+                        }
+                        if (snapshot.hasError) {
+                          return _StatCard(
+                            icon: Icons.receipt_long_outlined,
+                            title: 'Orders',
+                            value: '0',
+                            iconColor: Colors.amber,
+                          );
+                        }
+
+                        final orderCount = snapshot.data ?? 0;
+                        print("====ordercount: $orderCount");
+                        return _StatCard(
+                          icon: Icons.receipt_long_outlined,
+                          title: 'Orders',
+                          value: orderCount.toString(),
+                          iconColor: Colors.amber,
+                        );
+                      },
                     ),
                   ),
                 ],

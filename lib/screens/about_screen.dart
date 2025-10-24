@@ -6,6 +6,8 @@ import '../modal/about_us_model.dart';
 import 'home_screen.dart';
 import 'shop_screen.dart';
 
+
+
 class AboutScreen extends StatefulWidget {
   const AboutScreen({super.key});
 
@@ -88,23 +90,43 @@ class _AboutScreenState extends State<AboutScreen> {
 
           // Convert AboutContentModel to Map for dynamic rendering
           final Map<String, dynamic> contentMap = {
-            'Title': content.title,
-            'Content': content.content,
-            'Excerpt': content.excerpt,
-            'Slug': content.slug,
-            'Status': content.status,
-            'Type': content.type,
+            //'Title': content.title,
+            '': content.content,
+           /* 'Excerpt': content.excerpt,*/
+           /* 'Slug': content.slug,
+            'Status': content.status,*/
+            /*'Type': content.type,
             'Date': content.date,
-            'Modified': content.modified,
-            'Author Name': content.author.name,
-            'Author Email': content.author.email,
-            'Author URL': content.author.url,
+            'Modified': content.modified,*/
+            'Contact Us:':
+            '<b>Name:</b> ${content.author.name ?? 'N/A'}<br>'
+                '<b>Email:</b> ${content.author.email ?? 'N/A'}<br>'
+                '<b>Website:</b> <a href="${content.author.url ?? '#'}">${content.author.url ?? 'N/A'}</a>',
           };
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
+
+                Container(
+                  margin: const EdgeInsets.only(bottom: 24),
+                  child: Image.asset(
+                    'assets/images/Sutter Buttes Logo.png', // replace with your logo path
+                    height: 150,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+
+
+
+
+
+
+
+
+
+
                 // Section-wise dynamic rendering
                 ...contentMap.entries.map((entry) => _buildSectionContainer(entry.key, entry.value)),
 
@@ -146,13 +168,27 @@ class _AboutScreenState extends State<AboutScreen> {
           ),
           const SizedBox(height: 8),
           value != null
-              ? Html(data: value.toString()) // <-- Render HTML content
+              ? Html(data: value.toString(),
+            style: {
+              "img": Style(
+                width: Width(200), // Set image width
+                height: Height(150), // Set image height
+                margin: Margins.symmetric(horizontal: 20, vertical: 10),
+                alignment: Alignment.center, // Center the image
+              ),
+              "body": Style(
+                margin: Margins.zero,
+                padding: HtmlPaddings.zero,
+              ),
+            },
+
+
+          ) // <-- Render HTML content
               : const Text('N/A', style: TextStyle(fontSize: 14, color: Colors.black54)),
         ],
       ),
     );
   }
-
   Widget _buildExperienceSection(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(24),
@@ -161,49 +197,85 @@ class _AboutScreenState extends State<AboutScreen> {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.grey[200]!),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 2)),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
         ],
       ),
       child: Column(
         children: [
           const Text(
             'Experience the Difference',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF4A3D4D)),
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF4A3D4D),
+            ),
           ),
           const SizedBox(height: 12),
           const Text(
             'Taste the tradition, quality, and passion in every drop of Sutter Buttes olive oil.',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 16, color: Colors.grey, height: 1.4),
+            style: TextStyle(fontSize: 16, color: Colors.black54, height: 1.4),
           ),
           const SizedBox(height: 24),
           Row(
             children: [
               Expanded(
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const ShopScreen()));
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF7B8B57),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                child: SizedBox(
+                  height: 48, // consistent button height
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const ShopScreen()),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF7B8B57),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text(
+                      'Shop Our Products',
+                      style: TextStyle(
+                        fontSize: 15, // same font size for consistency
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
-                  child: const Text('Shop Our Products', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
                 ),
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const HomeScreen()));
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF7B8B57),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                child: SizedBox(
+                  height: 48, // consistent button height
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const HomeScreen()),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF7B8B57),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text(
+                      'Explore Recipes',
+                      style: TextStyle(
+                        fontSize: 14, // same font size
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
-                  child: const Text('Explore Recipes', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                 ),
               ),
             ],
@@ -213,3 +285,4 @@ class _AboutScreenState extends State<AboutScreen> {
     );
   }
 }
+

@@ -45,8 +45,10 @@ class OrdersScreen extends StatelessWidget {
               final itemsCount = o.lineItems?.fold<int>(0, (s, it) => s + (it.quantity ?? 0)) ?? 0;
                final created = _formatDateString(o.dateCreated);
                final lines = o.lineItems ?? <LineItems>[];
+
               return GestureDetector(
                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => OrderDetailScreen(order: o))),
+
                 child: Container(
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -97,6 +99,7 @@ class OrdersScreen extends StatelessWidget {
                     ],
                   ),
                 ),
+
               );
             },
           );
@@ -115,8 +118,17 @@ class OrderDetailScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFF4A3D4D),
+        centerTitle: true,
         elevation: 0,
-        title: const Text('Order Details', style: TextStyle(color: Colors.white)),
+        iconTheme: const IconThemeData(color: Colors.white), // ✅ White back arrow
+        title: const Text(
+          'Order Details',
+          style: TextStyle(
+            color: Colors.white, // ✅ White title text
+            fontSize: 18,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),

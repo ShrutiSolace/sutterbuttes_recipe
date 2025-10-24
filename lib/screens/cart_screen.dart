@@ -118,6 +118,8 @@ class _CartContent extends StatelessWidget {
                                   productId: item.productId ?? 0,
                                   variationId: item.variationId ?? 0,
                                 );
+                            // 🔄 Immediate refresh to make sure totals update visually right away
+                            await context.read<CartProvider>().loadCart(silent: true);
                           },
                         ),
                         Row(

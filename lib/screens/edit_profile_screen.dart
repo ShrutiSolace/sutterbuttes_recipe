@@ -13,6 +13,7 @@ class EditProfileScreen extends StatefulWidget {
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _streetController = TextEditingController();
@@ -59,6 +60,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       setState(() {
         _firstNameController.text = data.firstName ?? '';
         _lastNameController.text = data.lastName ?? '';
+        _usernameController.text = data.username ?? '';
         _emailController.text = data.email ?? '';
         _phoneController.text = data.phone ?? '';
         _streetController.text = data.streetAddress ?? '';
@@ -143,6 +145,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
             _buildTextField(label: "First Name", hint: "", controller: _firstNameController),
             _buildTextField(label: "Last Name", hint: "", controller: _lastNameController),
+            _buildTextField(label: "Username", hint: '',controller: _usernameController),
             _buildTextField(label: "Email Address", hint: "", icon: Icons.email_outlined, controller: _emailController, enabled : false),
             _buildTextField(label: "Phone Number", hint: "", icon: Icons.phone_outlined, controller: _phoneController),
 
@@ -246,7 +249,34 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<void> _onSave() async {
     final messenger = ScaffoldMessenger.of(context);
     FocusScope.of(context).unfocus();
-    
+
+    // ✅ Validation before proceeding
+    final errors = [
+      _firstNameController.text.trim().isEmpty ? 'First Name is required' : null,
+      _lastNameController.text.trim().isEmpty ? 'Last Name is required' : null,
+      _usernameController.text.trim().isEmpty ? 'Username is required' : null,
+      _phoneController.text.trim().isEmpty
+          ? 'Phone number is required'
+          : (!RegExp(r'^[0-9]{10}$').hasMatch(_phoneController.text.trim())
+          ? 'Phone number must be 10 digits'
+          : null),
+      _streetController.text.trim().isEmpty ? 'Street Address is required' : null,
+      _cityController.text.trim().isEmpty ? 'City is required' : null,
+      _stateController.text.trim().isEmpty ? 'State is required' : null,
+      _zipController.text.trim().isEmpty
+          ? 'ZIP Code is required'
+          : (!RegExp(r'^[0-9]{5}$').hasMatch(_zipController.text.trim())
+          ? 'ZIP Code must be 5 digits'
+          : null),
+    ].where((e) => e != null).toList();
+
+    if (errors.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errors.first!)));
+      return; // Stop saving if validation fails
+    }
+
+
+
     setState(() {
       _isSaving = true;
     });
@@ -255,6 +285,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       final userData = UserData(
         firstName: _firstNameController.text.trim(),
         lastName: _lastNameController.text.trim(),
+        username: _usernameController.text.trim(),
         email: _emailController.text.trim(),
         phone: _phoneController.text.trim(),
         streetAddress: _streetController.text.trim(),
@@ -347,6 +378,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
+
+
   Future<void> _showImageSourceDialog() async {
     showModalBottomSheet(
       context: context,
@@ -396,4 +429,38 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       );
     }
   }
+}
+
+String? nameValidator(String? value, String fieldName) {
+  if (value == null || value.trim().isEmpty) return '$fieldName is required';
+  if (value.trim().length < 2) return '$fieldName must be at least 2 characters';
+  return null;
+}
+
+String? usernameValidator(String? value) {
+  if (value == null || value.trim().isEmpty) return 'Username is required';
+  if (value.trim().length < 3) return 'Username must be at least 3 characters';
+  return null;
+}
+
+String? phoneValidator(String? value) {
+  if (value == null || value.trim().isEmpty) return 'Phone number is required';
+  if (!RegExp(r'^[0-9]{10,15}$').hasMatch(value.trim())) return 'Enter a valid phone number';
+  return null;
+}
+
+String? addressValidator(String? value, String fieldName) {
+  if (value == null || value.trim().isEmpty) return '$fieldName is required';
+  return null;
+}
+
+String? zipValidator(String? value) {
+  if (value == null || value.trim().isEmpty) return 'ZIP Code is required';
+  if (!RegExp(r'^\d{4,10}$').hasMatch(value.trim())) return 'Enter a valid ZIP Code';
+  return null;
+}
+
+String? bioValidator(String? value) {
+  if (value != null && value.trim().length > 200) return 'Bio cannot exceed 200 characters';
+  return null;
 }

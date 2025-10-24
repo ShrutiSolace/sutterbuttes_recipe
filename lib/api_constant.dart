@@ -28,7 +28,7 @@ class ApiConstants
  ///Product List ///
  static String productListUrl = '$baseUrl/wc/v3/products';
  static String productdetailUrl = '$baseUrl/wc/v3/products/';
- static String trendingProductsUrl = '';
+ static String trendingProductsUrl =  '$baseUrl/sbo/v1/trending-products';
 
 ///Favourites ///
 static String favouritesUrl = '$baseUrl/sbo/v1/favorites';
@@ -55,6 +55,9 @@ static String checkoutUrl = '$baseUrl/sbo/v1/checkout';
 ///---Orders-- ///
 static String ordersUrl = '$baseUrl/wc/v3/orders';
 
+
+/// '$baseUrl/wc/v3/orders';
+
 ///---Notifications ---///
 static String notificationsUrl = '$baseUrl/sbo/v1/notifications';
 static String notificationsUpdateUrl = '$baseUrl/sbo/v1/notifications/update';
@@ -63,7 +66,8 @@ static String notificationsResetUrl = '$baseUrl/sbo/v1/notifications/reset';
  ///About us ///
   static String aboutUsUrl = '$baseUrl/sbo/v1/page-details?slug=about-us';
 
-
+///search ///
+  static String searchUrl = '$baseUrl/sbo/v1/search';
 
   ///---Payments (Stripe) ---///
   static String stripeCreateIntentUrl = '$baseUrl/sbo/v1/confirm-payment';

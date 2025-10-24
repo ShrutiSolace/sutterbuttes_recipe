@@ -17,6 +17,7 @@ class ShopScreen extends StatelessWidget {
         backgroundColor: const Color(0xFF4A3D4D),
         centerTitle: true,
         elevation: 0,
+        automaticallyImplyLeading: false,
         title: const Text(
           'Natural and Artisan Foods',
           style: TextStyle(

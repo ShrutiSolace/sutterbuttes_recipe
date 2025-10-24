@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sutterbuttes_recipe/repositories/favourites_repository.dart';
+import 'package:sutterbuttes_recipe/screens/product_detailscreen.dart';
 import 'package:sutterbuttes_recipe/screens/recipedetailscreen.dart';
 import 'package:sutterbuttes_recipe/screens/recipes_screen.dart';
 import 'package:sutterbuttes_recipe/screens/state/recipe_category_provider.dart';
@@ -8,6 +9,10 @@ import 'package:sutterbuttes_recipe/screens/state/recipe_list_provider.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:provider/provider.dart';
 import 'package:sutterbuttes_recipe/screens/trending_screen.dart';
+import '../modal/product_model.dart';
+import '../modal/search_model.dart';
+import 'all_trending_products_screen.dart';
+import 'bottom_navigation.dart';
 import 'category_recipe_screen.dart';
 import 'state/cart_provider.dart';
 import 'cart_screen.dart';
@@ -16,6 +21,11 @@ import '../repositories/recipe_list_repository.dart';
 import '../modal/trending_recipes_model.dart';
 import 'package:html_unescape/html_unescape.dart';
 import 'dart:math' as math;
+import 'state/product_provider.dart';
+import '../modal/trending_product_model.dart';
+import 'dart:async';
+import 'state/search_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 
 
@@ -30,11 +40,12 @@ class HomeScreen extends StatelessWidget {
         backgroundColor: const Color(0xFF4A3D4D),
         centerTitle: true,
         elevation: 0,
+        automaticallyImplyLeading: false,
         title: const Text(
           'Natural and Artisan Foods',
           style: TextStyle(
-            color: Colors.white, 
-            fontSize: 18, 
+            color: Colors.white,
+            fontSize: 18,
             fontWeight: FontWeight.w500,
             letterSpacing: 0.5,
             fontFamily: 'Roboto',
@@ -67,6 +78,8 @@ class _FavouriteButtonState extends State<_FavouriteButton> {
   }
 
   Future<void> _checkFavoriteStatus() async {
+    // slight delay to ensure context is ready
+    await Future.delayed(const Duration(milliseconds: 100));
     try {
       final repo = FavouritesRepository();
       final favorites = await repo.getFavourites();
@@ -166,11 +179,12 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
-  List<RecipeItem> _allRecipes = [];
-  List<RecipeItem> _filteredRecipes = [];
+ // List<RecipeItem> _allRecipes = [];
+  //List<RecipeItem> _filteredRecipes = [];
+  Timer? _debounceTimer;
   bool _isSearching = false;
 
-  Future<void> _loadAllRecipesForSearch() async {
+/*  Future<void> _loadAllRecipesForSearch() async {
     try {
       final recipeRepository = RecipeListRepository();
       final recipes = await recipeRepository.getRecipes(page: 1, perPage: 100); // Load more recipes for search
@@ -181,25 +195,32 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
     } catch (e) {
       print('Error loading recipes for search: $e');
     }
-  }
-
+  }*/
   void _onSearchChanged(String query) {
-    print("Search query: $query");
-    print("========================");
-
-    setState(() {
-      _searchQuery = query;
-      _isSearching = query.isNotEmpty;
-
-      if (query.isEmpty) {
-        _filteredRecipes = _allRecipes;
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      if (query.isNotEmpty) {
+        if (!_isSearching) {
+          setState(() => _isSearching = true); // only once when typing starts
+        }
+        context.read<SearchProvider>().searchItems(query);
       } else {
-        _filteredRecipes = _allRecipes.where((recipe) {
-          return recipe.title.toLowerCase().contains(query.toLowerCase());
-        }).toList();
+        if (_isSearching) {
+          setState(() => _isSearching = false); // only once when cleared
+        }
+        context.read<SearchProvider>().clearSearch();
       }
     });
   }
+
+
+  @override
+  void dispose() {
+    _debounceTimer?.cancel();
+    _searchController.dispose();
+    super.dispose();
+  }
+
 
 
   @override
@@ -208,12 +229,16 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final recipeProvider = context.read<RecipeProvider>();
       final categoryProvider = context.read<RecipeCategoryProvider>();
+      final productProvider = context.read<ProductProvider>();
 
 
       await recipeProvider.fetchRecipes();
+      await Future.delayed(const Duration(milliseconds: 300));
       await categoryProvider.fetchCategories();
+      await Future.delayed(const Duration(milliseconds: 300));
+      await productProvider.fetchTrendingProducts();
 
-      _loadAllRecipesForSearch();
+    //  _loadAllRecipesForSearch();
     });
   }
 
@@ -236,7 +261,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
           ),
           const SizedBox(height: 16),
           Expanded(
-            child: _SearchResultsSection(filteredRecipes: _filteredRecipes),
+            child: _SearchResultsSection(),
           ),
         ],
       );
@@ -335,7 +360,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
           FeaturedRecipesSection(),
 
            const SizedBox(height: 24),
-             TrendingProduct(),
+          TrendingProductSection(),
 
             const SizedBox(height: 24),
            // Recipe Categories Section
@@ -361,6 +386,8 @@ class _SearchBar extends StatelessWidget {
     return Container(
       height: 48,
       child: TextField(
+        controller: controller,
+        onChanged: onChanged,
 
         decoration: InputDecoration(
           hintText: hint,
@@ -464,7 +491,10 @@ class FeaturedRecipesSection extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const RecipesScreen(),
+                        builder: (context) => BottomNavigationScreen(
+                          initialIndex: 1, // Recipes tab
+                          customScreen: const RecipesScreen(),
+                        ),
                       ),
                     );
                   },
@@ -595,24 +625,24 @@ class FeaturedRecipeGridCard extends StatelessWidget {
 }
 
 
-
-class TrendingProduct extends StatelessWidget {
-  const TrendingProduct({Key? key}) : super(key: key);
+class TrendingProductSection extends StatelessWidget {
+  const TrendingProductSection({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<RecipeProvider>(
+    return Consumer<ProductProvider>(
       builder: (context, provider, _) {
-        if (provider.isLoading) {
+        if (provider.isTrendingLoading) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        if (provider.errorMessage != null) {
-          return Center(child: Text(provider.errorMessage!));
+        if (provider.trendingErrorMessage != null) {
+          return Center(child: Text(provider.trendingErrorMessage!));
         }
+        final products = provider.trendingProducts?.products ?? [];
 
-        if (provider.recipes.isEmpty) {
-          return const Center(child: Text("No recipes available"));
+        if (products.isEmpty) {
+          return const Center(child: Text("No trending products available"));
         }
 
         return Column(
@@ -631,17 +661,19 @@ class TrendingProduct extends StatelessWidget {
                   ),
                 ),
 
-
                 GestureDetector(
                   onTap: () {
-                  /*  Navigator.push(
+                    Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const RecipesScreen(),
+                        builder: (context) => BottomNavigationScreen(
+                          initialIndex: 2, // Shop tab
+                          customScreen: AllTrendingProductsScreen(),
+                        ),
                       ),
-                    );*/
+                    );
                   },
-                  child: Text(
+                  child: const Text(
                     'See All',
                     style: TextStyle(
                       fontSize: 14,
@@ -650,26 +682,28 @@ class TrendingProduct extends StatelessWidget {
                     ),
                   ),
                 ),
+
+
+
               ],
             ),
             const SizedBox(height: 16),
 
-            // --- Grid of Recipes ---//
+            // --- Grid of Trending Products ---
             GridView.builder(
               shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(), // join parent scroll
+              physics: const NeverScrollableScrollPhysics(),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,           // 2 recipes per row
-                crossAxisSpacing: 15,        // Space between columns
-                mainAxisSpacing: 15,         // Space between rows
-                childAspectRatio: 0.75,  // adjust height vs width
+                crossAxisCount: 2,
+                crossAxisSpacing: 15,
+                mainAxisSpacing: 15,
+                childAspectRatio: 0.75,
               ),
               padding: const EdgeInsets.all(2),
-              // itemCount: provider.recipes.length,
-              itemCount: math.min(4, provider.recipes.length),
+              itemCount: math.min(4, products.length),
               itemBuilder: (context, index) {
-                final recipe = provider.recipes[index];
-                return TrendingProductCard(recipe: recipe);
+                final product = products[index]; // <-- now works!
+                return TrendingProductCard(product: product);
               },
             ),
           ],
@@ -680,21 +714,18 @@ class TrendingProduct extends StatelessWidget {
 }
 
 class TrendingProductCard extends StatelessWidget {
-  final RecipeItem recipe;
+  final TrendingProduct product;
 
-  const TrendingProductCard({Key? key, required this.recipe}) : super(key: key);
+  const TrendingProductCard({Key? key, required this.product}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => RecipeDetailScreen(recipe: recipe),
-          ),
-        );
-      },
+     /* onTap: () {
+        if (product.permalink != null && product.permalink!.isNotEmpty) {
+          launchUrl(Uri.parse(product.permalink!));
+        }
+      },*/
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -710,54 +741,74 @@ class TrendingProductCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // === Recipe Image ===
+            // --- Product Image ---
             Expanded(
               child: ClipRRect(
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                 child: Stack(
                   children: [
+                    // The image fills the stack
                     Positioned.fill(
-                      child: (recipe.imageUrl != null && recipe.imageUrl.isNotEmpty)
+                      child: (product.image != null && product.image!.isNotEmpty)
                           ? Image.network(
-                        recipe.imageUrl,
+                        product.image!,
                         fit: BoxFit.cover,
                         alignment: Alignment.center,
                         errorBuilder: (context, error, stackTrace) {
                           return Image.asset(
-                            "assets/images/homescreen logo.png",
+                            "assets/images/homescreen_logo.png",
                             fit: BoxFit.cover,
                             alignment: Alignment.center,
                           );
                         },
                       )
                           : Image.asset(
-                        "assets/images/homescreen logo.png",
+                        "assets/images/homescreen_logo.png",
                         fit: BoxFit.cover,
                         alignment: Alignment.center,
                       ),
                     ),
+
+                    // Favourite button on top-right
                     Positioned(
                       top: 8,
                       right: 8,
-                      child: _FavouriteButton(type: 'recipe', id: recipe.id),
+                      child: _FavouriteButton(
+                        type: 'product',
+                        id: product.id ?? 0, // handle nullable safely
+                      ),
                     ),
                   ],
                 ),
               ),
             ),
 
-            // === Title ===
+            // --- Product Name & Price ---
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Text(
-                recipe.title,
-                maxLines:2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF4A3D4D),
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    product.name ?? '',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF4A3D4D),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    product.price != null ? "\$${product.price}" : '',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF7B8B57),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -766,12 +817,6 @@ class TrendingProductCard extends StatelessWidget {
     );
   }
 }
-
-
-
-
-
-
 
 
 
@@ -862,9 +907,17 @@ class _CategoryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-    onTap: () {
-       // Navigate to category recipes
-         Navigator.push(context, MaterialPageRoute(builder: (context) => CategoryRecipesScreen(categoryId: id)));
+      onTap: () {
+        // Navigate to category recipes
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => BottomNavigationScreen(
+              initialIndex: 1, // Recipes tab
+              customScreen: CategoryRecipesScreen(categoryId: id),
+            ),
+          ),
+        );
       },
       child: Container(
         decoration: BoxDecoration(
@@ -963,10 +1016,13 @@ class _TrendingThisWeekSection extends StatelessWidget {
             ),
             GestureDetector(
               onTap: () {
-               Navigator.push(
+                Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const AllTrendingRecipesScreen(),
+                    builder: (context) => BottomNavigationScreen(
+                      initialIndex: 1, // Recipes tab
+                      customScreen: const AllTrendingRecipesScreen(),
+                    ),
                   ),
                 );
               },
@@ -983,7 +1039,9 @@ class _TrendingThisWeekSection extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         FutureBuilder<TrendingRecipesModel>(
-          future: RecipeListRepository().getTrendingRecipes(),
+        future: Future.delayed(const Duration(milliseconds: 100))
+        .then((_) => RecipeListRepository().getTrendingRecipes()),
+
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
@@ -1016,6 +1074,7 @@ class _TrendingThisWeekSection extends StatelessWidget {
             );
           },
         ),
+
       ],
     );
   }
@@ -1129,53 +1188,248 @@ class _TrendingRecipeCard extends StatelessWidget {
   }
 }
 class _SearchResultsSection extends StatelessWidget {
-  final List<RecipeItem> filteredRecipes;
-
-  const _SearchResultsSection({required this.filteredRecipes});
+  const _SearchResultsSection();
 
   @override
   Widget build(BuildContext context) {
-    if (filteredRecipes.isEmpty) {
-      return const Center(
-        child: Text(
-          'No recipes found',
-          style: TextStyle(fontSize: 16, color: Colors.grey),
-        ),
-      );
-    }
+    return Consumer<SearchProvider>(
+      builder: (context, searchProvider, _) {
+        if (searchProvider.isLoading) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            'Search Results (${filteredRecipes.length})',
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF4A3D4D),
+        if (searchProvider.errorMessage.isNotEmpty) {
+          return Center(
+            child: Text(
+              'Error: ${searchProvider.errorMessage}',
+              style: const TextStyle(fontSize: 16, color: Colors.red),
+            ),
+          );
+        }
+
+        if (searchProvider.searchResults.isEmpty) {
+          return const Center(
+            child: Text(
+              'No results found',
+              style: TextStyle(fontSize: 16, color: Colors.grey),
+            ),
+          );
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                'Search Results for "${searchProvider.currentQuery}" (${searchProvider.searchResults.length})',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF4A3D4D),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: searchProvider.searchResults.length,
+                itemBuilder: (context, index) {
+                  final item = searchProvider.searchResults[index];
+                  return _SearchResultCard(searchItem: item);
+                },
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _SearchResultCard extends StatelessWidget {
+  final SearchItem searchItem;
+
+  const _SearchResultCard({required this.searchItem});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ListTile(
+        leading: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Container(
+            width: 60,
+            height: 60,
+            child: searchItem.image.isNotEmpty
+                ? Image.network(
+              searchItem.image,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Image.asset(
+                  "assets/images/homescreen logo.png",
+                  fit: BoxFit.cover,
+                );
+              },
+            )
+                : Image.asset(
+              "assets/images/homescreen logo.png",
+              fit: BoxFit.cover,
             ),
           ),
         ),
-        const SizedBox(height: 16),
-        Expanded(
-          child: GridView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 15,
-              mainAxisSpacing: 15,
-              childAspectRatio: 0.75,
-            ),
-            itemCount: filteredRecipes.length,
-            itemBuilder: (context, index) {
-              final recipe = filteredRecipes[index];
-              return FeaturedRecipeGridCard(recipe: recipe);
-            },
+        title: Text(
+          searchItem.title,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF4A3D4D),
           ),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
         ),
-      ],
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              searchItem.type.toUpperCase(),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: searchItem.type == 'recipe'
+                    ? const Color(0xFF7B8B57)
+                    : const Color(0xFF4A3D4D),
+              ),
+            ),
+            if (searchItem is SearchProductItem)
+              Text(
+                '\$${(searchItem as SearchProductItem).price}',
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF7B8B57),
+                ),
+              ),
+            if (searchItem is SearchRecipeItem)
+              Text(
+                (searchItem as SearchRecipeItem).excerpt,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+          ],
+        ),
+        trailing: const Icon(
+          Icons.arrow_forward_ios,
+          size: 16,
+          color: Color(0xFF4A3D4D),
+        ),
+        /*onTap: () {
+          // Handle navigation based on item type
+          if (searchItem.type == 'recipe') {
+            // Navigate to recipe detail
+            print('Navigate to recipe: ${searchItem.id}');
+          } else if (searchItem.type == 'product') {
+            // Navigate to product detail
+            print('Navigate to product: ${searchItem.id}');
+          }
+        },*/
+
+        onTap: () {
+          if (searchItem.type == 'recipe') {
+            final recipeItem = RecipeItem(
+              id: searchItem.id,
+              slug: '',
+              title: searchItem.title,
+              link: searchItem.link,
+              date: '',
+              contentHtml: '<p>${(searchItem as SearchRecipeItem).excerpt.replaceAll(RegExp(r'<[^>]*>'), '').replaceAll('&amp;', '&').replaceAll('&lt;', '<').replaceAll('&gt;', '>').replaceAll('&quot;', '"').replaceAll('&#038;', '&')}</p>', // Use excerpt
+              featuredMediaId: 0,
+              imageUrl: searchItem.image,
+            );
+
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => RecipeDetailScreen(recipe: recipeItem),
+              ),
+            );
+          } else if (searchItem.type == 'product') {
+            final product = Product(
+              id: searchItem.id,
+              name: searchItem.title,
+              slug: '',
+              permalink: searchItem.link,
+              type: 'simple',
+              status: 'publish',
+              featured: false,
+              description: '',
+              shortDescription: '',
+              sku: '',
+              price: (searchItem as SearchProductItem).price,
+              regularPrice: (searchItem as SearchProductItem).price,
+              salePrice: '',
+              onSale: false,
+              purchasable: true,
+              totalSales: 0,
+              virtual: false,
+              downloadable: false,
+              taxStatus: 'taxable',
+              manageStock: false,
+              stockQuantity: null,
+              stockStatus: 'instock',
+              soldIndividually: false,
+              weight: '',
+              dimensions: Dimensions(length: '', width: '', height: ''),
+              shippingRequired: true,
+              shippingTaxable: true,
+              reviewsAllowed: true,
+              averageRating: '0.00',
+              ratingCount: 0,
+              categories: [],
+              images: [
+                ProductImage(
+                  id: 0,
+                  dateCreated: '',
+                  dateCreatedGmt: '',
+                  dateModified: '',
+                  dateModifiedGmt: '',
+                  src: searchItem.image, // Use search result image
+                  name: searchItem.title,
+                  alt: searchItem.title,
+                ),
+              ],
+              tags: [],
+              priceHtml: '',
+            );
+
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ProductDetailScreen(product: product),
+              ),
+            );
+          }
+        },
+      ),
     );
   }
 }

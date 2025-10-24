@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../api_constant.dart';
 import '../modal/product_model.dart';
+import '../modal/trending_product_model.dart';
 import '../services/secure_storage.dart';
 
 
@@ -86,6 +87,46 @@ class ProductRepository {
       throw Exception('Error fetching product: $e');
     }
   }
+
+
+
+
+  Future<TrendingProductModel> getTrendingProducts() async {
+    print("Fetching trending products");
+
+    try {
+      final uri = Uri.parse(ApiConstants.trendingProductsUrl);
+      final response = await http.get(
+        uri,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      );
+
+      print("Request URL: $uri");
+      print("Response Status: ${response.statusCode}");
+      print("Response Body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        return TrendingProductModel.fromJson(data);
+      } else {
+        throw Exception("Failed to fetch trending products: ${response.statusCode}");
+      }
+    } catch (e) {
+      throw Exception("Error fetching trending products: $e");
+    }
+  }
+
+
+
+
+
+
+
+
+
+
 
 
 

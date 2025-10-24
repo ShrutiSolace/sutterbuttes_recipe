@@ -139,13 +139,25 @@ class _SignupScreenState extends State<SignupScreen> {
                               decoration: _inputDecoration(hint: 'Username'),
                               validator: (value) {
                                 if (value == null || value.trim().isEmpty) {
-                                  return 'Username  is required';
+                                  return 'Username is required';
                                 }
-                                if (!RegExp(r'^[A-Za-z]{2,}$').hasMatch(value.trim())) {
-                                  return 'Please enter a valid username';
+
+
+                                if (!RegExp(r'^[A-Za-z0-9._]+$').hasMatch(value.trim())) {
+                                  return 'Only letters, numbers, dots, and underscores are allowed';
                                 }
+
+
+                                if (value.trim().length < 3) {
+                                  return 'Username must be at least 3 characters';
+                                }
+                                if (value.trim().length > 20) {
+                                  return 'Username must be less than 20 characters';
+                                }
+
                                 return null;
                               },
+
                             ),
                             const SizedBox(height: 12),
                             Text('Email Address', style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Colors.black87)),

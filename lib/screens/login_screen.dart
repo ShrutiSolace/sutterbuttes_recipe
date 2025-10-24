@@ -14,11 +14,15 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _emailController = TextEditingController();
+  //final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _usernameOrEmailController = TextEditingController();
+
   final TextEditingController _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _obscurePassword = true;
-  String? _emailError;
+ // String? _emailError;
+
+  String? _usernameOrEmailError;
   String? _passwordError;
 
   void _handleGoogleSignIn(BuildContext context, AuthProvider authProvider) async {
@@ -41,7 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
   static const Color _textGrey = Color(0xFF5F6368);
 
   void _clearFormFields() {
-    _emailController.clear();
+    _usernameOrEmailController.clear();
     _passwordController.clear();
   }
 
@@ -98,23 +102,21 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 14),
 
                         // Email field
-                        Text('Email Address', style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Colors.black87)),
+                        Text('Username or Email Address', style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Colors.black87)),
                         const SizedBox(height: 6),
                         TextFormField(
-                          controller: _emailController,
-                          keyboardType: TextInputType.emailAddress,
+                          controller: _usernameOrEmailController,
+                          keyboardType: TextInputType.text,
                           onChanged: (value) {
                             setState(() {
-                              _emailError = null;
+                              _usernameOrEmailError = null;
                             });
                           },
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Email is required';
+                              return 'Username or email is required';
                             }
-                            if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-                              return 'Please enter a valid email';
-                            }
+                            // Remove email validation - allow both username and email
                             return null;
                           },
                           decoration: _inputDecoration(
@@ -185,7 +187,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     : () async {
                                   if (_formKey.currentState!.validate()) {
                                     final success = await authProvider.login(
-                                      username: _emailController.text.trim(),
+                                      username: _usernameOrEmailController.text.trim(),
                                       password: _passwordController.text,
                                     );
                                     if (success) {

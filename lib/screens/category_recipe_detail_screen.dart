@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:html_unescape/html_unescape.dart';
 
 class CategoryRecipeDetailScreen extends StatelessWidget {
   final String title;
@@ -14,7 +15,12 @@ class CategoryRecipeDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final unescape = HtmlUnescape();
+    final cleanTitle = unescape.convert(title);
+    final cleanSubtitle = unescape.convert(subtitle);
     return Scaffold(
+
+
       appBar: AppBar(
         backgroundColor: const Color(0xFF4A3D4D),
         elevation: 0,
@@ -61,7 +67,8 @@ class CategoryRecipeDetailScreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Text(
-                title,
+                cleanTitle,
+
                 style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -75,7 +82,8 @@ class CategoryRecipeDetailScreen extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: (subtitle.isNotEmpty ? subtitle.split('. ') : [])
+                children: (cleanSubtitle.isNotEmpty ? cleanSubtitle.split('. ') : [])
+
                     .map((line) => Padding(
                   padding: const EdgeInsets.only(bottom: 6.0),
                   child: Row(

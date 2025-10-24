@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:sutterbuttes_recipe/api_constant.dart';
@@ -21,6 +22,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _sameAsBilling = false;
 
+
   // Billing
   final _bFirst = TextEditingController();
   final _bLast = TextEditingController();
@@ -37,13 +39,65 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final _sCity = TextEditingController();
   final _sState = TextEditingController();
   final _sZip = TextEditingController();
+  final _sPhone = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Listen to billing changes
+    _bFirst.addListener(_syncShippingWithBilling);
+    _bLast.addListener(_syncShippingWithBilling);
+    _bAddress.addListener(_syncShippingWithBilling);
+    _bCity.addListener(_syncShippingWithBilling);
+    _bState.addListener(_syncShippingWithBilling);
+    _bZip.addListener(_syncShippingWithBilling);
+    _bPhone.addListener(_syncShippingWithBilling);
+  }
+
+
+
+
+
+
+
+
 
   bool _submitting = false;
   Map<String, dynamic>? paymentIntentData;
-  String _selectedPaymentMethod = 'cod';
+ // String _selectedPaymentMethod = 'cod';
+  String _selectedPaymentMethod = 'stripe';
+
+
+  void _syncShippingWithBilling() {
+    if (_sameAsBilling) {
+      setState(() {
+        _sFirst.text = _bFirst.text;
+        _sLast.text = _bLast.text;
+        _sAddress.text = _bAddress.text;
+        _sCity.text = _bCity.text;
+        _sState.text = _bState.text;
+        _sZip.text = _bZip.text;
+        _sPhone.text = _bPhone.text;
+      });
+    }
+  }
+
+
+
+
 
   @override
   void dispose() {
+    _bFirst.removeListener(_syncShippingWithBilling);
+    _bLast.removeListener(_syncShippingWithBilling);
+    _bAddress.removeListener(_syncShippingWithBilling);
+    _bCity.removeListener(_syncShippingWithBilling);
+    _bState.removeListener(_syncShippingWithBilling);
+    _bZip.removeListener(_syncShippingWithBilling);
+    _bPhone.removeListener(_syncShippingWithBilling);
+
+
     _bFirst.dispose();
     _bLast.dispose();
     _bAddress.dispose();
@@ -58,6 +112,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _sCity.dispose();
     _sState.dispose();
     _sZip.dispose();
+    _sPhone.dispose();
     super.dispose();
   }
 
@@ -95,12 +150,24 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 _field('First Name *', _bFirst),
                 _field('Last Name *', _bLast),
                 _field('Email *', _bEmail, keyboardType: TextInputType.emailAddress),
-                _field('Phone *', _bPhone, keyboardType: TextInputType.phone, isPhoneField: true),
-                _field('Address *', _bAddress, maxLines: 2),
+                _field('Phone *', _bPhone, keyboardType: TextInputType.phone, isPhoneField: true,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(10),
+                  ],
+                ),
+                _field('Address *', _bAddress, maxLines: 2,
+                ),
                 _field('City *', _bCity),
                 _field('State *', _bState),
-                _field('ZIP Code *', _bZip, keyboardType: TextInputType.number),
+                _field('ZIP Code *', _bZip, keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(5),
+                  ],
+                ),
               ]),
+
 
               const SizedBox(height: 16),
 
@@ -129,6 +196,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               _verticalGrid([
                 _field('First Name *', _sFirst),
                 _field('Last Name *', _sLast),
+                _field('Phone *', _sPhone),
                 _field('Address *', _sAddress, maxLines: 2),
                 _field('City *', _sCity),
                 _field('State *', _sState),
@@ -145,14 +213,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ),
                 child: Column(
                   children: [
-                    RadioListTile<String>(
+                  /*  RadioListTile<String>(
                       value: 'cod',
                       groupValue: _selectedPaymentMethod,
                       onChanged: (v) => setState(() => _selectedPaymentMethod = v ?? 'cod'),
                       title: const Text('Cash on Delivery'),
                       activeColor: Color(0xFF7B8B57),
                       dense: true,
-                    ),
+                    ),*/
                     const Divider(height: 1),
                     RadioListTile<String>(
                       value: 'stripe',
@@ -191,15 +259,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       final resp = await _placeOrder(paymentMethod: method);
                       if (resp == null) return;
 
-                      if (method == 'cod') {
-                        if (!mounted) return;
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (_) => const OrderSuccessScreen()),
-                        );
-                      } else {
-                        await makePayment(resp);
-                      }
+                       await makePayment(resp);
                     },
               style: ElevatedButton.styleFrom(backgroundColor: brandGreen, padding: const EdgeInsets.symmetric(vertical: 14)),
               child: _submitting
@@ -239,7 +299,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  Widget _field(String label, TextEditingController controller, {TextInputType? keyboardType, int maxLines = 1, bool isPhoneField = false}) {
+  Widget _field(String label, TextEditingController controller, {TextInputType? keyboardType, int maxLines = 1, bool isPhoneField = false,  List<TextInputFormatter>? inputFormatters,}) {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
@@ -249,6 +309,30 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         // Check if field is empty
         if (v == null || v.trim().isEmpty) {
           return 'Please enter required fields';
+        }
+
+        if (label.contains('First Name')) {
+          if (v.trim().isEmpty) {
+            return 'Please enter your first name';
+          }
+          if (v.trim().length < 2) {
+            return 'First name must be at least 2 characters';
+          }
+          if (v.trim().length > 50) {
+            return 'First name must be less than 50 characters';
+          }
+        }
+
+        if (label.contains('Last Name')) {
+          if (v.trim().isEmpty) {
+            return 'Please enter your last name';
+          }
+          if (v.trim().length < 2) {
+            return 'Last name must be at least 2 characters';
+          }
+          if (v.trim().length > 50) {
+            return 'Last name must be less than 50 characters';
+          }
         }
 
         // Phone number validation
@@ -321,6 +405,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         _sCity.text = _bCity.text;
         _sState.text = _bState.text;
         _sZip.text = _bZip.text;
+        _sPhone.text= _bPhone.text;
       } else {
         // Clear shipping fields
         _sFirst.clear();
@@ -329,6 +414,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         _sCity.clear();
         _sState.clear();
         _sZip.clear();
+        _sPhone.clear();
       }
     });
   }
@@ -432,6 +518,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           'state': _sState.text.trim(),
           'postcode': _sZip.text.trim(),
           'country': 'US',
+          'phone': _sPhone.text.trim(),
         },
         paymentMethod: paymentMethod,
       );

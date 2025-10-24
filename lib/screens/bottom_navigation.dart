@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:sutterbuttes_recipe/screens/category_recipe_screen.dart';
 import 'package:sutterbuttes_recipe/screens/favorites_screen.dart';
+import 'package:sutterbuttes_recipe/screens/recipedetailscreen.dart';
 import 'package:sutterbuttes_recipe/screens/shop_screen.dart';
 import 'home_screen.dart';
 import 'recipes_screen.dart';
 import 'profile_screen.dart';
 import 'favorites_screen.dart';
-
-class BottomNavigationScreen extends StatefulWidget {
+import 'all_trending_products_screen.dart';
+import 'category_recipe_screen.dart';
+import 'trending_screen.dart';
+/*class BottomNavigationScreen extends StatefulWidget {
   const BottomNavigationScreen({super.key});
 
   @override
@@ -16,7 +20,40 @@ class BottomNavigationScreen extends StatefulWidget {
 class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _pages = const <Widget>[
+  final List<Widget> _pages =  <Widget>[
+    HomeScreen(),
+    RecipesScreen(),
+    ShopScreen(),
+    FavoritesScreen(),
+    ProfileScreen(),
+
+
+
+  ];*/
+class BottomNavigationScreen extends StatefulWidget {
+  final int initialIndex;
+  final Widget? customScreen;
+
+  const BottomNavigationScreen({
+    super.key,
+    this.initialIndex = 0,
+    this.customScreen,
+  });
+
+  @override
+  State<BottomNavigationScreen> createState() => _BottomNavigationScreenState();
+}
+
+class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
+  late int _currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+  }
+
+  final List<Widget> _pages = <Widget>[
     HomeScreen(),
     RecipesScreen(),
     ShopScreen(),
@@ -30,15 +67,73 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
     const Color unselectedColor = Color(0xFF5F6368); // grey for inactive items
 
     return Scaffold(
-      body: _pages[_currentIndex],
+      body: widget.customScreen ?? _pages[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: _currentIndex,
+       /* onTap: (int index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },*/
         onTap: (int index) {
           setState(() {
             _currentIndex = index;
           });
+
+          // If we have a custom screen, navigate to the corresponding screen
+          if (widget.customScreen != null) {
+            switch (index) {
+              case 0:
+                Navigator.pushReplacementNamed(context, '/home');
+                break;
+              case 1:
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => BottomNavigationScreen(initialIndex: 1)),
+                );
+                break;
+              case 2:
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => BottomNavigationScreen(initialIndex: 2)),
+                );
+                break;
+              case 3:
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => BottomNavigationScreen(initialIndex: 3)),
+                );
+                break;
+              case 4:
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => BottomNavigationScreen(initialIndex: 4)),
+                );
+                break;
+            }
+          }
         },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         selectedItemColor: selectedColor,
         unselectedItemColor: unselectedColor,
         showUnselectedLabels: true,

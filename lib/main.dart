@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sutterbuttes_recipe/repositories/newsletter_repository.dart';
+import 'package:sutterbuttes_recipe/repositories/product_repository.dart';
 import 'package:sutterbuttes_recipe/repositories/recipe_category_repository.dart';
 import 'package:sutterbuttes_recipe/repositories/recipe_list_repository.dart';
 import 'package:sutterbuttes_recipe/screens/state/about_us_provider.dart';
 import 'package:sutterbuttes_recipe/screens/state/auth_provider.dart';
 import 'package:sutterbuttes_recipe/screens/state/newsletter_provider.dart';
+import 'package:sutterbuttes_recipe/screens/state/product_provider.dart';
 import 'package:sutterbuttes_recipe/screens/state/recipe_category_provider.dart';
 import 'package:sutterbuttes_recipe/screens/state/recipe_list_provider.dart';
 import 'package:sutterbuttes_recipe/screens/state/cart_provider.dart';
+import 'package:sutterbuttes_recipe/screens/state/search_provider.dart';
 import 'repositories/cart_repository.dart';
 import 'package:sutterbuttes_recipe/services/notification_service.dart';
 import 'screens/login_screen.dart';
@@ -106,7 +109,11 @@ class MyApp extends StatelessWidget {
           create: (_) => AboutContentProvider(),
         ),
 
+        ChangeNotifierProvider(
+          create: (_) => ProductProvider(ProductRepository()),
+        ),
 
+        ChangeNotifierProvider(create: (_) => SearchProvider()),
 
 
 

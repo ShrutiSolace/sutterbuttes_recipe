@@ -29,6 +29,7 @@ class UserData {
   UserData({
     this.firstName,
     this.lastName,
+    this.username,
     this.email,
     this.phone,
     this.streetAddress,
@@ -42,6 +43,7 @@ class UserData {
   UserData.fromJson(dynamic json) {
     firstName = json['first_name'];
     lastName = json['last_name'];
+    username = json['username'];
     email = json['email'];
     phone = json['phone'];
     streetAddress = json['street_address'];
@@ -62,6 +64,7 @@ class UserData {
   String? firstName;
   String? lastName;
   String? email;
+  String? username;
   String? phone;
   String? streetAddress;
   String? city;

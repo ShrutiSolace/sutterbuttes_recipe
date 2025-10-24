@@ -1,26 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:sutterbuttes_recipe/screens/home_screen.dart';
-import '../repositories/recipe_list_repository.dart';
-import '../modal/recipe_model.dart';
+import 'package:sutterbuttes_recipe/screens/profile_screen.dart';
+import 'package:sutterbuttes_recipe/screens/recipes_screen.dart';
+import 'package:sutterbuttes_recipe/screens/trending_product_detail_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../repositories/product_repository.dart';
+import '../modal/trending_product_model.dart';
 import '../repositories/favourites_repository.dart';
-import 'recipedetailscreen.dart';
+import 'dart:math' as math;
 
-class RecipesScreen extends StatefulWidget {
+import 'favorites_screen.dart';
 
-  const RecipesScreen({super.key});
+class AllTrendingProductsScreen extends StatefulWidget {
+  const AllTrendingProductsScreen({super.key});
 
   @override
-  State<RecipesScreen> createState() => _RecipesScreenState();
+  State<AllTrendingProductsScreen> createState() => _AllTrendingProductsScreenState();
 }
 
-class _RecipesScreenState extends State<RecipesScreen> {
-  final RecipeListRepository _recipeRepository = RecipeListRepository();
+class _AllTrendingProductsScreenState extends State<AllTrendingProductsScreen> {
+  final ProductRepository _productRepository = ProductRepository();
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
 
-  List<RecipeItem> _allRecipes = [];
-  List<RecipeItem> _filteredRecipes = [];
+  List<TrendingProduct> _allProducts = [];
+  List<TrendingProduct> _filteredProducts = [];
   bool _isLoading = false;
   bool _isLoadingMore = false;
   String? _error;
@@ -32,7 +36,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
   @override
   void initState() {
     super.initState();
-    _loadRecipes();
+    _loadProducts();
     _scrollController.addListener(_onScroll);
   }
 
@@ -46,11 +50,11 @@ class _RecipesScreenState extends State<RecipesScreen> {
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
-      _loadMoreRecipes();
+      _loadMoreProducts();
     }
   }
 
-  Future<void> _loadRecipes() async {
+  Future<void> _loadProducts() async {
     setState(() {
       _isLoading = true;
       _error = null;
@@ -59,12 +63,12 @@ class _RecipesScreenState extends State<RecipesScreen> {
     });
 
     try {
-      final recipes = await _recipeRepository.getRecipes(page: 1, perPage: _perPage);
+      final result = await _productRepository.getTrendingProducts();
       setState(() {
-        _allRecipes = recipes;
-        _filteredRecipes = recipes;
+        _allProducts = result.products ?? [];
+        _filteredProducts = result.products ?? [];
         _isLoading = false;
-        _hasMoreData = recipes.length == _perPage;
+        _hasMoreData = (_allProducts.length >= _perPage);
       });
     } catch (e) {
       setState(() {
@@ -74,7 +78,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
     }
   }
 
-  Future<void> _loadMoreRecipes() async {
+  Future<void> _loadMoreProducts() async {
     if (_isLoadingMore || !_hasMoreData) return;
 
     setState(() {
@@ -82,17 +86,11 @@ class _RecipesScreenState extends State<RecipesScreen> {
     });
 
     try {
-      final nextPage = _currentPage + 1;
-      final newRecipes = await _recipeRepository.getRecipes(page: nextPage, perPage: _perPage);
-
+      // For now, we'll simulate loading more by showing all products
+      // You'll need to implement pagination in your API later
       setState(() {
-        _allRecipes.addAll(newRecipes);
-        _filteredRecipes = _allRecipes.where((recipe) {
-          return recipe.title.toLowerCase().contains(_searchQuery.toLowerCase());
-        }).toList();
-        _currentPage = nextPage;
         _isLoadingMore = false;
-        _hasMoreData = newRecipes.length == _perPage;
+        _hasMoreData = false; // No more data for now
       });
     } catch (e) {
       setState(() {
@@ -104,8 +102,8 @@ class _RecipesScreenState extends State<RecipesScreen> {
   void _onSearchChanged(String query) {
     setState(() {
       _searchQuery = query;
-      _filteredRecipes = _allRecipes.where((recipe) {
-        return recipe.title.toLowerCase().contains(query.toLowerCase());
+      _filteredProducts = _allProducts.where((product) {
+        return (product.name ?? '').toLowerCase().contains(query.toLowerCase());
       }).toList();
     });
   }
@@ -113,24 +111,18 @@ class _RecipesScreenState extends State<RecipesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar:AppBar(
+      appBar: AppBar(
         backgroundColor: const Color(0xFF4A3D4D),
         centerTitle: true,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
-            // Check if we can pop, if not navigate to home
-            if (Navigator.of(context).canPop()) {
-              Navigator.of(context).pop();
-            } else {
-              Navigator.of(context).pushReplacementNamed('/home');
-            }
+            Navigator.of(context).pop();
           },
         ),
-
         title: const Text(
-          'All Recipes',
+          'Trending Products',
           style: TextStyle(
             color: Colors.white,
             fontSize: 18,
@@ -140,7 +132,6 @@ class _RecipesScreenState extends State<RecipesScreen> {
           ),
         ),
       ),
-
       body: Column(
         children: [
           // Search Bar
@@ -150,7 +141,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
               controller: _searchController,
               onChanged: _onSearchChanged,
               decoration: InputDecoration(
-                hintText: 'Search recipes...',
+                hintText: 'Search products...',
                 filled: true,
                 fillColor: Colors.white,
                 prefixIcon: const Icon(Icons.search, size: 20),
@@ -171,14 +162,14 @@ class _RecipesScreenState extends State<RecipesScreen> {
             ),
           ),
 
-          // Recipe Count
-          if (_filteredRecipes.isNotEmpty)
+          // Product Count
+          if (_filteredProducts.isNotEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Row(
                 children: [
                   Text(
-                    '${_filteredRecipes.length} recipes found',
+                    '${_filteredProducts.length} products found',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey[600],
@@ -191,16 +182,18 @@ class _RecipesScreenState extends State<RecipesScreen> {
 
           const SizedBox(height: 8),
 
-          // Recipe List
+          // Product List
           Expanded(
-            child: _buildRecipeList(),
+            child: _buildProductList(),
           ),
         ],
       ),
+
+
     );
   }
 
-  Widget _buildRecipeList() {
+  Widget _buildProductList() {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -213,7 +206,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
             Text('Error: $_error'),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: _loadRecipes,
+              onPressed: _loadProducts,
               child: const Text('Retry'),
             ),
           ],
@@ -221,21 +214,21 @@ class _RecipesScreenState extends State<RecipesScreen> {
       );
     }
 
-    if (_filteredRecipes.isEmpty) {
+    if (_filteredProducts.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.restaurant_menu,
+              Icons.shopping_bag,
               size: 64,
               color: Colors.grey[400],
             ),
             const SizedBox(height: 16),
             Text(
               _searchQuery.isNotEmpty
-                  ? 'No recipes found for "$_searchQuery"'
-                  : 'No recipes available',
+                  ? 'No products found for "$_searchQuery"'
+                  : 'No products available',
               style: TextStyle(
                 fontSize: 16,
                 color: Colors.grey[600],
@@ -258,10 +251,10 @@ class _RecipesScreenState extends State<RecipesScreen> {
               mainAxisSpacing: 15,
               childAspectRatio: 0.75,
             ),
-            itemCount: _filteredRecipes.length,
+            itemCount: _filteredProducts.length,
             itemBuilder: (context, index) {
-              final recipe = _filteredRecipes[index];
-              return _RecipeGridCard(recipe: recipe);
+              final product = _filteredProducts[index];
+              return _ProductGridCard(product: product);
             },
           ),
         ),
@@ -274,7 +267,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                 children: [
                   CircularProgressIndicator(),
                   SizedBox(height: 12),
-                  Text('Loading more recipes...'),
+                  Text('Loading more products...'),
                 ],
               ),
             ),
@@ -284,10 +277,10 @@ class _RecipesScreenState extends State<RecipesScreen> {
   }
 }
 
-class _RecipeGridCard extends StatelessWidget {
-  final RecipeItem recipe;
+class _ProductGridCard extends StatelessWidget {
+  final TrendingProduct product;
 
-  const _RecipeGridCard({required this.recipe});
+  const _ProductGridCard({required this.product});
 
   @override
   Widget build(BuildContext context) {
@@ -296,7 +289,7 @@ class _RecipeGridCard extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => RecipeDetailScreen(recipe: recipe),
+            builder: (context) => TrendingProductDetailScreen(product: product),
           ),
         );
       },
@@ -315,17 +308,16 @@ class _RecipeGridCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // === Recipe Image ===
-            // === Recipe Image ===
+            // Product Image
             Expanded(
               child: ClipRRect(
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                 child: Stack(
                   children: [
                     Positioned.fill(
-                      child: (recipe.imageUrl != null && recipe.imageUrl.isNotEmpty)
+                      child: (product.image != null && product.image!.isNotEmpty)
                           ? Image.network(
-                        recipe.imageUrl,
+                        product.image!,
                         fit: BoxFit.cover,
                         alignment: Alignment.center,
                         errorBuilder: (context, error, stackTrace) {
@@ -345,25 +337,42 @@ class _RecipeGridCard extends StatelessWidget {
                     Positioned(
                       top: 8,
                       right: 8,
-                      child: _FavouriteButton(type: 'recipe', id: recipe.id),
+                      child: _FavouriteButton(
+                        type: 'product',
+                        id: product.id ?? 0,
+                      ),
                     ),
                   ],
                 ),
               ),
             ),
 
-            // === Title ===
+            // Product Name & Price
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Text(
-                recipe.title,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF4A3D4D),
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    product.name ?? '',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF4A3D4D),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    product.price != null ? "\$${product.price}" : '',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF7B8B57),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -397,10 +406,10 @@ class _FavouriteButtonState extends State<_FavouriteButton> {
       final repo = FavouritesRepository();
       final favorites = await repo.getFavourites();
 
-      if (widget.type == 'recipe') {
-        final recipeIds = favorites.favorites?.recipes?.map((r) => r.id).toList() ?? [];
+      if (widget.type == 'product') {
+        final productIds = favorites.favorites?.products?.map((p) => p.id).toList() ?? [];
         setState(() {
-          _isFavourite = recipeIds.contains(widget.id);
+          _isFavourite = productIds.contains(widget.id);
         });
       }
     } catch (e) {
