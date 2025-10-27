@@ -327,7 +327,16 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
 
                     const SizedBox(width: 19),
 
-                    const Icon(Icons.notifications_none, color: Colors.black87),
+                    IconButton(
+                      icon: const Icon(Icons.notifications_none, color: Colors.black87),
+                      onPressed: () {
+                      /*  Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => ()),
+                        );*/
+                      },
+                    ),
+
 
                     const SizedBox(width: 19),
                    // Icon(Icons.person_outline, color: Colors.black87),
