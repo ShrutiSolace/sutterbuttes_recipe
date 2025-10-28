@@ -194,13 +194,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               const SizedBox(height: 8),
               _sectionTitle('Shipping Information'),
               _verticalGrid([
-                _field('First Name *', _sFirst),
-                _field('Last Name *', _sLast),
-                _field('Phone *', _sPhone),
-                _field('Address *', _sAddress, maxLines: 2),
-                _field('City *', _sCity),
-                _field('State *', _sState),
-                _field('ZIP Code *', _sZip, keyboardType: TextInputType.number),
+                _field('First Name *', _sFirst , enabled: !_sameAsBilling),
+                _field('Last Name *', _sLast, enabled: !_sameAsBilling),
+                _field('Phone *', _sPhone,enabled: !_sameAsBilling),
+                _field('Address *', _sAddress, maxLines: 2,enabled: !_sameAsBilling),
+                _field('City *', _sCity,enabled: !_sameAsBilling),
+                _field('State *', _sState,enabled: !_sameAsBilling),
+                _field('ZIP Code *', _sZip, keyboardType: TextInputType.number,enabled: !_sameAsBilling),
               ]),
 
               const SizedBox(height: 16),
@@ -247,7 +247,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text('Total:', style: const TextStyle(fontWeight: FontWeight.w600)),
-                Text('\$$subtotal', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFD4B25C))),
+               // Text('\$$subtotal', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFD4B25C))),
+                Text('\$${double.tryParse(subtotal.toString())?.toStringAsFixed(2) ?? subtotal.toString()}', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFD4B25C))),
               ],
             ),
             const SizedBox(height: 8),
@@ -299,14 +300,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  Widget _field(String label, TextEditingController controller, {TextInputType? keyboardType, int maxLines = 1, bool isPhoneField = false,  List<TextInputFormatter>? inputFormatters,}) {
+  Widget _field(String label, TextEditingController controller, {TextInputType? keyboardType, int maxLines = 1, bool isPhoneField = false,  List<TextInputFormatter>? inputFormatters,  bool enabled = true,}) {
     return TextFormField(
       controller: controller,
+        enabled: enabled,
       keyboardType: keyboardType,
       maxLines: maxLines,
       decoration: InputDecoration(labelText: label, border: OutlineInputBorder(borderRadius: BorderRadius.circular(8))),
       validator: (v) {
-        // Check if field is empty
+        if (!enabled) return null; // ✅ skip validation if disabled
+        if (v == null || v.trim().isEmpty) {
+          return 'Please enter required fields';
+        }
+
         if (v == null || v.trim().isEmpty) {
           return 'Please enter required fields';
         }

@@ -4,6 +4,7 @@ import '../../modal/login_model.dart';
 import '../../repositories/auth_repository.dart';
 import '../../repositories/profile_repository.dart';
 import '../../services/google_signin_service.dart';
+import '../../services/notification_service.dart';
 import '../../services/secure_storage.dart';
 
 class AuthProvider extends ChangeNotifier {
@@ -69,6 +70,9 @@ class AuthProvider extends ChangeNotifier {
     _token = null;
     _errorMessage = null;
     _me = null;
+    // Clear FCM token and unregister device
+    await NotificationService.clearToken();
+
     // Clear token from secure storage
     await SecureStorage.deleteToken();
     notifyListeners();

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:html_unescape/html_unescape.dart';
 class TrendingRecipeDetailsScreen extends StatelessWidget {
   final String title;
   final String description;
@@ -16,6 +16,10 @@ class TrendingRecipeDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final unescape = HtmlUnescape();
+    final title = unescape.convert(this.title);
+    final description = unescape.convert(this.description);
+
     return Scaffold(
       appBar: AppBar(
         //title: Text(title),

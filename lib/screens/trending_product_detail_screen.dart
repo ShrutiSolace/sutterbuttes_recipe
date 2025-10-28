@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sutterbuttes_recipe/repositories/cart_repository.dart';
+import 'package:sutterbuttes_recipe/screens/home_screen.dart';
+import 'package:sutterbuttes_recipe/screens/state/cart_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../modal/trending_product_model.dart';
 import 'all_trending_products_screen.dart';
 import 'cart_screen.dart';
 
-class TrendingProductDetailScreen extends StatelessWidget {
+class TrendingProductDetailScreen extends StatefulWidget {
   final TrendingProduct product;
 
   const TrendingProductDetailScreen({
@@ -13,9 +16,16 @@ class TrendingProductDetailScreen extends StatelessWidget {
     required this.product,
   }) : super(key: key);
 
+  @override
+  State<TrendingProductDetailScreen> createState() => _TrendingProductDetailScreenState();
+}
+
+class _TrendingProductDetailScreenState extends State<TrendingProductDetailScreen> {
+  int _quantity = 1;
+
   Future<void> _launchProductUrl(BuildContext context) async {
-    if (product.permalink != null && product.permalink!.isNotEmpty) {
-      final uri = Uri.parse(product.permalink!);
+    if (widget.product.permalink != null && widget.product.permalink!.isNotEmpty) {
+      final uri = Uri.parse(widget.product.permalink!);
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
       } else {
@@ -30,8 +40,6 @@ class TrendingProductDetailScreen extends StatelessWidget {
     final RegExp exp = RegExp(r'<[^>]*>', multiLine: true, caseSensitive: true);
     return htmlText.replaceAll(exp, '');
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -65,9 +73,9 @@ class TrendingProductDetailScreen extends StatelessWidget {
             Container(
               height: 300,
               width: double.infinity,
-              child: (product.image != null && product.image!.isNotEmpty)
+              child: (widget.product.image != null && widget.product.image!.isNotEmpty)
                   ? Image.network(
-                product.image!,
+                widget.product.image!,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return Image.asset(
@@ -90,9 +98,9 @@ class TrendingProductDetailScreen extends StatelessWidget {
                 children: [
                   // Product Name
                   Text(
-                    product.name ?? 'Product Name',
+                    widget.product.name ?? 'Product Name',
                     style: const TextStyle(
-                      fontSize: 24,
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF4A3D4D),
                     ),
@@ -108,22 +116,21 @@ class TrendingProductDetailScreen extends StatelessWidget {
                     ),
                     child: Row(
                       children: [
-
                         const SizedBox(width: 8),
                         Text(
-                          product.price != null ? "\$${product.price}" : 'Price not available',
+                          widget.product.price != null ? "\$${double.tryParse(widget.product.price!)?.toStringAsFixed(2) ?? widget.product.price}" : '',
                           style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                             color: Color(0xFF7B8B57),
                           ),
                         ),
-                        if (product.regularPrice != null &&
-                            product.regularPrice != product.price)
+                        if (widget.product.regularPrice != null &&
+                            widget.product.regularPrice != widget.product.price)
                           Padding(
                             padding: const EdgeInsets.only(left: 12),
                             child: Text(
-                              "\${product.regularPrice}",
+                              "\$${double.tryParse(widget.product.regularPrice!)?.toStringAsFixed(2) ?? widget.product.regularPrice}",
                               style: const TextStyle(
                                 fontSize: 16,
                                 color: Colors.grey,
@@ -137,68 +144,63 @@ class TrendingProductDetailScreen extends StatelessWidget {
 
                   const SizedBox(height: 24),
 
-                  // Sale Price (if different from regular price)
-                 /* if (product.salePrice != null &&
-                      product.salePrice != product.price)
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.red.withOpacity(0.3)),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.local_offer,
-                            color: Colors.red,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Sale Price: \$${product.salePrice}',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.red,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),*/
-
-                  const SizedBox(height: 24),
-
-              /*    // Product ID
+                  // Quantity Selector with border
+                  // Quantity Selector with square buttons
+                  // Quantity Selector with square buttons
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
-                      color: Colors.grey.withOpacity(0.1),
+                      border: Border.all(color: Colors.grey.shade300),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(
-                          Icons.inventory,
-                          color: Colors.grey,
-                          size: 20,
+                        // Minus button
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: Color(0xFF7B8B57), // Same green as Add to Cart button
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: IconButton(
+                            icon: const Icon(Icons.remove, color: Colors.white),
+                            onPressed: () {
+                              if (_quantity > 0) setState(() => _quantity--); // Changed from > 1 to > 0
+                            },
+                          ),
                         ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Product ID: ${product.id ?? 'N/A'}',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey,
+
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            '$_quantity',
+                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                          ),
+                        ),
+
+                        // Plus button
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: Color(0xFF7B8B57), // Same green as Add to Cart button
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: IconButton(
+                            icon: const Icon(Icons.add, color: Colors.white),
+                            onPressed: () => setState(() => _quantity++),
                           ),
                         ),
                       ],
                     ),
-                  ),*/
+                  ),
 
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 16),
 
                   // Product Description
-                  if (product.description != null && product.description!.isNotEmpty)
+                  if (widget.product.description != null && widget.product.description!.isNotEmpty)
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -212,7 +214,7 @@ class TrendingProductDetailScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          removeHtmlTags(product.description!),
+                          removeHtmlTags(widget.product.description!),
                           style: const TextStyle(
                             fontSize: 14,
                             height: 1.5,
@@ -224,13 +226,12 @@ class TrendingProductDetailScreen extends StatelessWidget {
                       ],
                     ),
 
-
                   // View Product Button
                   SizedBox(
                     width: double.infinity,
                     height: 50,
                     child: ElevatedButton(
-                      onPressed: () async {
+                      onPressed: _quantity > 0 ? () async {
                         try {
                           // Show loading
                           showDialog(
@@ -241,8 +242,8 @@ class TrendingProductDetailScreen extends StatelessWidget {
                             ),
                           );
 
-                          // Add to cart
-                          final cart = await CartRepository().addToCart(productId: product.id!, quantity: 1);
+                          // Add to cart with selected quantity
+                          final cart = await CartRepository().addToCart(productId: widget.product.id!, quantity: _quantity);
 
                           // Hide loading
                           Navigator.pop(context);
@@ -261,7 +262,7 @@ class TrendingProductDetailScreen extends StatelessWidget {
                                 ),
                               ),
                               content: Text(
-                                '${product.name} added to cart successfully!',
+                                '${widget.product.name} added to cart successfully!',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 16,
@@ -301,8 +302,10 @@ class TrendingProductDetailScreen extends StatelessWidget {
                                     SizedBox(width: 12), // Space between buttons
                                     Expanded(
                                       child: ElevatedButton(
-                                        onPressed: () {
+                                        onPressed: () async {
                                           Navigator.pop(context);
+
+                                          // Just navigate to cart - it will load fresh data
                                           Navigator.push(
                                             context,
                                             MaterialPageRoute(builder: (context) => CartScreen()),
@@ -340,12 +343,10 @@ class TrendingProductDetailScreen extends StatelessWidget {
                             ),
                           );
                         }
-                      },
-
-
+                      } : null,
 
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFF7B8B57),// ✅ Light green background
+                        backgroundColor: _quantity > 0 ? Color(0xFF7B8B57) : Colors.grey,// ✅ Light green background
                         foregroundColor: Colors.white,      // ✅ White text & icon
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),

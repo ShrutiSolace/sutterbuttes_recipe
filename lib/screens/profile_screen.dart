@@ -6,6 +6,7 @@ import 'package:sutterbuttes_recipe/screens/change_password.dart';
 import '../modal/favourites_model.dart';
 import '../repositories/favourites_repository.dart';
 import '../repositories/order_repository.dart';
+import 'favorites_screen.dart';
 import 'login_screen.dart';
 import 'edit_profile_screen.dart';
 import 'help_center_screen.dart';
@@ -109,33 +110,41 @@ class ProfileScreen extends StatelessWidget {
 
                   // ✅ Dynamic Favorites count
                   Expanded(
-                    child: FutureBuilder<FavouritesModel>(
-                      future: FavouritesRepository().getFavourites(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => FavoritesScreen()),
+                        );
+                      },
+                      child: FutureBuilder<FavouritesModel>(
+                        future: FavouritesRepository().getFavourites(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
 
-                        }
-                        if (snapshot.hasError || snapshot.data == null) {
+                          }
+                          if (snapshot.hasError || snapshot.data == null) {
+                            return _StatCard(
+                              icon: Icons.favorite_border,
+                              title: 'Favorites',
+                              value: '0',
+                              iconColor: Colors.red,
+                            );
+                          }
+
+                          final favourites = snapshot.data!;
+                          final recipeCount = favourites.favorites?.recipes?.length ?? 0;
+                          final productCount = favourites.favorites?.products?.length ?? 0;
+                          final totalFavorites = recipeCount + productCount;
+
                           return _StatCard(
                             icon: Icons.favorite_border,
                             title: 'Favorites',
-                            value: '0',
+                            value: totalFavorites.toString(),
                             iconColor: Colors.red,
                           );
-                        }
-
-                        final favourites = snapshot.data!;
-                        final recipeCount = favourites.favorites?.recipes?.length ?? 0;
-                        final productCount = favourites.favorites?.products?.length ?? 0;
-                        final totalFavorites = recipeCount + productCount;
-
-                        return _StatCard(
-                          icon: Icons.favorite_border,
-                          title: 'Favorites',
-                          value: totalFavorites.toString(),
-                          iconColor: Colors.red,
-                        );
-                      },
+                        },
+                      ),
                     ),
                   ),
 
@@ -144,45 +153,56 @@ class ProfileScreen extends StatelessWidget {
                   // Static Orders card (or you can make it dynamic too)
                   // Replace the static orders card in lib/screens/profile_screen.dart (around line 143-151)
 
-// Static Orders card (or you can make it dynamic too)
+                  // Static Orders card (or you can make it dynamic too)
+                  // Orders card with navigation
                   Expanded(
-                    child: FutureBuilder<int>(
-                      future: OrderRepository().getOrderCount(),
-                      builder: (context, snapshot) {
-                        print("=== FutureBuilder state: ${snapshot.connectionState}");
-                        print("=== FutureBuilder hasData: ${snapshot.hasData}");
-                        print("====FutureBuilder data: ${snapshot.data}");
-                        print(" ====FutureBuilder error: ${snapshot.error}");
-
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-
-                          return _StatCard(
-                            icon: Icons.receipt_long_outlined,
-                            title: 'Orders',
-                            value: '0',
-                            iconColor: Colors.amber,
-                          );
-                        }
-                        if (snapshot.hasError) {
-                          return _StatCard(
-                            icon: Icons.receipt_long_outlined,
-                            title: 'Orders',
-                            value: '0',
-                            iconColor: Colors.amber,
-                          );
-                        }
-
-                        final orderCount = snapshot.data ?? 0;
-                        print("====ordercount: $orderCount");
-                        return _StatCard(
-                          icon: Icons.receipt_long_outlined,
-                          title: 'Orders',
-                          value: orderCount.toString(),
-                          iconColor: Colors.amber,
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const OrdersScreen()),
                         );
                       },
+                      child: FutureBuilder<int>(
+                        future: OrderRepository().getCount(),
+                        builder: (context, snapshot) {
+                          print("=== FutureBuilder state: ${snapshot.connectionState}");
+                          print("=== FutureBuilder hasData: ${snapshot.hasData}");
+                          print("====FutureBuilder data: ${snapshot.data}");
+                          print(" ====FutureBuilder error: ${snapshot.error}");
+
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return _StatCard(
+                              icon: Icons.receipt_long_outlined,
+                              title: 'Orders',
+                              value: '0',
+                              iconColor: Colors.amber,
+                            );
+                          }
+                          if (snapshot.hasError) {
+                            return _StatCard(
+                              icon: Icons.receipt_long_outlined,
+                              title: 'Orders',
+                              value: '0',
+                              iconColor: Colors.amber,
+                            );
+                          }
+
+                          final orderCount = snapshot.data ?? 0;
+                          print("====ordercount: $orderCount");
+                          return _StatCard(
+                            icon: Icons.receipt_long_outlined,
+                            title: 'Orders',
+                            value: orderCount.toString(),
+                            iconColor: Colors.amber,
+                          );
+                        },
+                      ),
                     ),
                   ),
+
+
+
                 ],
               ),
 

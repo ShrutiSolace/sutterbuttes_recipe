@@ -53,8 +53,11 @@ static String checkoutUrl = '$baseUrl/sbo/v1/checkout';
   static String unsubscribeUrl = '$baseUrl/sbo/v1/newsletter/unsubscribe';
 
 ///---Orders-- ///
-static String ordersUrl = '$baseUrl/wc/v3/orders';
-
+   static String ordersUrl = '$baseUrl/wc/v3/orders';
+///new ordres api
+  ///---Orders-- ///
+  static String orderslistUrl = '$baseUrl/sbo/v1/orders';  // Update this line
+  static String orderDetailUrl = '$baseUrl/sbo/v1/orders/';  // Add this line
 
 /// '$baseUrl/wc/v3/orders';
 
@@ -72,4 +75,8 @@ static String notificationsResetUrl = '$baseUrl/sbo/v1/notifications/reset';
   ///---Payments (Stripe) ---///
   static String stripeCreateIntentUrl = '$baseUrl/sbo/v1/confirm-payment';
 
+
+  ///notifications ///
+  static String deviceRegisterUrl = '$baseUrl/sbo/v1/device/new';
+  static String deviceUnregisterUrl = '$baseUrl/sbo/v1/device/remove';
 }

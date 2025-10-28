@@ -77,6 +77,7 @@ class UserData {
     final map = <String, dynamic>{};
     map['first_name'] = firstName;
     map['last_name'] = lastName;
+    map['username'] = username;
     map['email'] = email;
     map['phone'] = phone;
     map['street_address'] = streetAddress;

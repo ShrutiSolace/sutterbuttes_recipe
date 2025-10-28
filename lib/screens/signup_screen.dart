@@ -248,15 +248,34 @@ class _SignupScreenState extends State<SignupScreen> {
                                           firstName: _firstNameController.text,
                                           lastName: _lastNameController.text,
                                         );
-                                        if (success) {
+                                       /* if (success) {
                                           Navigator.of(context).pushReplacementNamed('/login');
-                                        } else {
+                                        }
+                                        */
+
+                                        if (success) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(
+                                              content: Text('Registration successful! Please sign in.'),
+                                              backgroundColor: Color(0xFF7B8B57),
+                                              duration: Duration(seconds: 2),
+                                            ),
+                                          );
+
+                                          await Future.delayed(const Duration(milliseconds: 300));
+                                          Navigator.of(context).pushReplacementNamed('/login');
+                                        }
+                                        else {
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             SnackBar(content: Text(authProvider.errorMessage ?? 'Sign up failed')),
                                           );
                                         }
                                       }
                                     },
+
+
+
+
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: _brandGreen,
                                       foregroundColor: Colors.white,

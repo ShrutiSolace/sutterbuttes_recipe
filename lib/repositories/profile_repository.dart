@@ -117,6 +117,11 @@ class UserRepository {
     // Add JSON fields as form fields
     request.fields.addAll(userData.toJson().map((key, value) => MapEntry(key, value.toString())));
 
+    print("=== Username Debug ===");
+    print("Username from UserData: ${userData.username}");
+    print("Username in toJson: ${userData.toJson()['username']}");
+    print("All request fields: ${request.fields}");
+
     // Add profile image if available
     if (profileImagePath != null && profileImagePath.isNotEmpty) {
       request.files.add(await http.MultipartFile.fromPath(

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sutterbuttes_recipe/screens/state/auth_provider.dart';
 
+import '../services/notification_service.dart';
+
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -35,6 +37,8 @@ class _SplashScreenState extends State<SplashScreen> {
 
       // Now check if user is logged in
       if (authProvider.isLoggedIn) {
+        // Register device for notifications
+        await NotificationService.registerDeviceWithBackend();
         Navigator.of(context).pushReplacementNamed('/home');
       } else {
         Navigator.of(context).pushReplacementNamed('/login');

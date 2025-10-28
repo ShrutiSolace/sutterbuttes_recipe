@@ -52,6 +52,12 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
+
+
+
+
+
+
   @override
   void initState() {
     super.initState();
@@ -350,7 +356,8 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
 
                   // Price
                   Text(
-                    '\$${product.price}',
+                   // '\$${product.price}',
+                    '\$${double.tryParse(product.price)?.toStringAsFixed(2) ?? product.price}',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -389,7 +396,6 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
   }
 }
 
-
 class _ProductFavouriteButton extends StatefulWidget {
   final int productId;
   const _ProductFavouriteButton({required this.productId});
@@ -402,22 +408,28 @@ class _ProductFavouriteButtonState extends State<_ProductFavouriteButton> {
   bool _isFavourite = false;
   bool _isLoading = false;
 
+  @override
+  void initState() {
+    super.initState();
+    _checkFavoriteStatus();
+  }
 
+  Future<void> _checkFavoriteStatus() async {
+    // slight delay to ensure context is ready
+    await Future.delayed(const Duration(milliseconds: 100));
+    try {
+      final repo = FavouritesRepository();
+      final favorites = await repo.getFavourites();
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+      final productIds = favorites.favorites?.products?.map((p) => p.id).toList() ?? [];
+      setState(() {
+        _isFavourite = productIds.contains(widget.productId);
+      });
+    } catch (e) {
+      // If there's an error, keep _isFavourite as false
+      print('Error checking favorite status: $e');
+    }
+  }
 
   Future<void> _toggle() async {
     if (_isLoading) return;
@@ -425,6 +437,7 @@ class _ProductFavouriteButtonState extends State<_ProductFavouriteButton> {
       _isLoading = true;
     });
     try {
+      // optimistic update
       final next = !_isFavourite;
       setState(() {
         _isFavourite = next;
@@ -432,17 +445,19 @@ class _ProductFavouriteButtonState extends State<_ProductFavouriteButton> {
       final repo = FavouritesRepository();
       final success = await repo.toggleFavourite(type: 'product', id: widget.productId);
       if (!success) {
+        // revert if server rejects
         setState(() {
           _isFavourite = !next;
         });
       }
     } catch (e) {
+      // revert on error
       setState(() {
         _isFavourite = !_isFavourite;
       });
       final messenger = ScaffoldMessenger.of(context);
       messenger.showSnackBar(
-        const SnackBar(content: Text('Failed to update favourite')),
+        SnackBar(content: Text('Failed to update favourite')),
       );
     } finally {
       if (mounted) {
@@ -466,11 +481,13 @@ class _ProductFavouriteButtonState extends State<_ProductFavouriteButton> {
         child: _isLoading
             ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2))
             : Icon(_isFavourite ? Icons.favorite : Icons.favorite_border,
-                size: 18, color: _isFavourite ? Colors.red : const Color(0xFF4A3D4D)),
+            size: 18, color: _isFavourite ? Colors.red : const Color(0xFF4A3D4D)),
       ),
     );
   }
 }
+
+
 
 class _SearchBar extends StatelessWidget {
   final String hint;

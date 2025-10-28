@@ -8,6 +8,8 @@ import 'package:sutterbuttes_recipe/screens/state/recipe_category_provider.dart'
 import 'package:sutterbuttes_recipe/screens/state/recipe_list_provider.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:provider/provider.dart';
+import 'package:sutterbuttes_recipe/screens/trending_product_detail_screen.dart';
+import 'package:sutterbuttes_recipe/screens/trending_recipe_detail_screen.dart';
 import 'package:sutterbuttes_recipe/screens/trending_screen.dart';
 import '../modal/product_model.dart';
 import '../modal/search_model.dart';
@@ -26,7 +28,7 @@ import '../modal/trending_product_model.dart';
 import 'dart:async';
 import 'state/search_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-
+import 'notifications_screen.dart';
 
 
 class HomeScreen extends StatelessWidget {
@@ -233,7 +235,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
 
 
       await recipeProvider.fetchRecipes();
-      await Future.delayed(const Duration(milliseconds: 300));
+      await Future.delayed(const Duration(milliseconds: 500));
       await categoryProvider.fetchCategories();
       await Future.delayed(const Duration(milliseconds: 300));
       await productProvider.fetchTrendingProducts();
@@ -291,7 +293,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
 
               Positioned(
                 top: 0,
-                right: 0,
+                right: -30,
                 child: Row(
                   children: <Widget>[
                     GestureDetector(
@@ -330,9 +332,9 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
                     IconButton(
                       icon: const Icon(Icons.notifications_none, color: Colors.black87),
                       onPressed: () {
-                      /*  Navigator.push(
+                   /*   Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => ()),
+                          MaterialPageRoute(builder: (_) => const NotificationsScreen()),
                         );*/
                       },
                     ),
@@ -432,7 +434,7 @@ class _ChipsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
-    final List<String> labels = <String>['All Recipes', 'Trending'];
+    final List<String> labels = <String>['All Recipes'];
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
@@ -730,11 +732,14 @@ class TrendingProductCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-     /* onTap: () {
-        if (product.permalink != null && product.permalink!.isNotEmpty) {
-          launchUrl(Uri.parse(product.permalink!));
-        }
-      },*/
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => TrendingProductDetailScreen(product: product),
+          ),
+        );
+      },
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -810,7 +815,7 @@ class TrendingProductCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    product.price != null ? "\$${product.price}" : '',
+                    product.price != null ? "\$${double.tryParse(product.price!)?.toStringAsFixed(2) ?? product.price}" : '',
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
@@ -1047,6 +1052,7 @@ class _TrendingThisWeekSection extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
+
         FutureBuilder<TrendingRecipesModel>(
         future: Future.delayed(const Duration(milliseconds: 100))
         .then((_) => RecipeListRepository().getTrendingRecipes()),
@@ -1063,8 +1069,7 @@ class _TrendingThisWeekSection extends StatelessWidget {
               return const SizedBox.shrink();
             }
             return SizedBox(
-
-          height: 280,
+              height: 280,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
                 itemCount: items.length,
@@ -1104,7 +1109,27 @@ class _TrendingRecipeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return GestureDetector(
+
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => TrendingRecipeDetailsScreen(
+                title: title,
+                description: description,
+                rating: rating,
+                imageUrl: imageUrl,
+              ),
+            ),
+          );
+        },
+
+
+
+
+
+    child:  Container(
       width: 200,
       margin: const EdgeInsets.only(right: 16),
       decoration: BoxDecoration(
@@ -1193,6 +1218,7 @@ class _TrendingRecipeCard extends StatelessWidget {
           ),
         ],
       ),
+    )
     );
   }
 }

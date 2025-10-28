@@ -141,17 +141,18 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           ),*/
                           //  Disabled decrement button when adding to cart
                           GestureDetector(
-                            onTap: _isAdding
+                            onTap: _isAdding || widget.product.stockStatus != 'instock'
                                 ? null // 🔒 disable tap when adding to cart
                                 : () {
-                              if (_quantity > 1) {
+                               if (_quantity > 0) {
                                 setState(() {
                                   _quantity--;
                                 });
                               }
                             },
                             child: Opacity(
-                              opacity: _isAdding ? 0.5 : 1, // 🔆 dim while disabled
+                              //disable if outof stock
+                              opacity: _isAdding  || widget.product.stockStatus != 'instock'? 0.5 : 1, // 🔆 dim while disabled
                               child: Container(
                                 width: 36,
                                 height: 36,
@@ -197,7 +198,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           ),*/
                           //  Disabled increment button when adding to cart
                           GestureDetector(
-                            onTap: _isAdding
+                            onTap: _isAdding || widget.product.stockStatus != 'instock'
                                 ? null // 🔒 disable tap when adding to cart
                                 : () {
                               setState(() {
@@ -205,7 +206,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               });
                             },
                             child: Opacity(
-                              opacity: _isAdding ? 0.5 : 1,
+                              opacity: _isAdding || widget.product.stockStatus != 'instock' ? 0.5 : 1,
                               child: Container(
                                 width: 36,
                                 height: 36,
@@ -232,7 +233,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      onPressed: _isAdding || widget.product.stockStatus != 'instock'
+                      onPressed: _isAdding || widget.product.stockStatus != 'instock' || _quantity == 0
+
                           ? null
                           : () async {
                               FocusScope.of(context).unfocus();
@@ -255,7 +257,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               }
                             },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: brandGreen,
+                        backgroundColor: _quantity > 0 ? brandGreen : Colors.grey,
                         disabledBackgroundColor:  Colors.grey,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(

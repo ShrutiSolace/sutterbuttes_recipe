@@ -11,6 +11,7 @@ class RecipeListRepository {
     print("getRecipes called with page: $page, perPage: $perPage");
 
 
+
     print("======================================");
     final response = await http.get(
       Uri.parse('${ApiConstants.recipesListUrl}?_embed=1&page=$page&per_page=$perPage'),
@@ -19,7 +20,7 @@ class RecipeListRepository {
         "Content-Type": "application/json",
       },
     );
-
+    print("request url : $Uri");
     print("Request URL: ${ApiConstants.recipesListUrl}?_embed=1&page=$page&per_page=$perPage");
     print("Response Status: ${response.statusCode}");
     print("Response Body: ${response.body}");
@@ -27,10 +28,14 @@ class RecipeListRepository {
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body) as List<dynamic>;
       return data.map((item) => RecipeItem.fromJson(item as Map<String, dynamic>)).toList();
-    } else {
-      throw Exception("Failed to fetch recipes: ${response.statusCode}");
     }
+    else {
+            throw Exception("Failed to fetch recipes: ${response.statusCode}");
+          }
   }
+  // else {
+  //       throw Exception("Failed to fetch recipes: ${response.statusCode}");
+  //     }
 
   Future<TrendingRecipesModel> getTrendingRecipes() async {
     print("Fetching trending recipes");
@@ -45,6 +50,11 @@ class RecipeListRepository {
     print("Request URL: $uri");
     print("Response Status: ${response.statusCode}");
     print("Response Body: ${response.body}");
+    print(response.body.length > 1000
+        ? response.body.substring(0, 1000) + '... [truncated]'
+        : response.body);
+    print('⬅️ Response Body End <<<');
+    print('======================================');
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = json.decode(response.body);

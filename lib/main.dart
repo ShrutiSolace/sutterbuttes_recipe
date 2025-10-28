@@ -51,6 +51,10 @@ void main() async {
     NotificationService.listenToForegroundMessages();
     NotificationService.listenToNotificationTap();
 
+   //device registration with backend
+    await NotificationService.registerDeviceWithBackend();
+    await NotificationService.registerDeviceOnTokenRefresh();
+
     print('Firebase initialized successfully!');
 
   } catch (e) {

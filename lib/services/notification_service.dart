@@ -1,5 +1,9 @@
+import 'dart:io';
+
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../repositories/notifications_repository.dart';
 
 class NotificationService {
   static const String _fcmTokenKey = 'fcm_token';
@@ -66,7 +70,45 @@ class NotificationService {
   }
 
 
+// Add these methods to the NotificationService class
+  static Future<void> registerDeviceWithBackend() async {
+    try {
+      final String? fcmToken = await getSavedToken();
+      if (fcmToken != null) {
+        final repository = DeviceRegistrationRepository();
+        final platform = Platform.isAndroid ? 'android' : 'ios';
 
+        await repository.registerDevice(
+          fcmToken: fcmToken,
+          platform: platform,
+        );
+        print('Device registered successfully with backend');
+      }
+    } catch (e) {
+      print('Failed to register device with backend: $e');
+    }
+  }
+
+  static Future<void> registerDeviceOnTokenRefresh() async {
+    _firebaseMessaging.onTokenRefresh.listen((String newToken) async {
+      print('Token refreshed: $newToken');
+      await saveToken(newToken);
+
+      // Register the new token with backend
+      try {
+        final repository = DeviceRegistrationRepository();
+        final platform = Platform.isAndroid ? 'android' : 'ios';
+
+        await repository.registerDevice(
+          fcmToken: newToken,
+          platform: platform,
+        );
+        print('Refreshed token registered with backend');
+      } catch (e) {
+        print('Failed to register refreshed token: $e');
+      }
+    });
+  }
 
 
 

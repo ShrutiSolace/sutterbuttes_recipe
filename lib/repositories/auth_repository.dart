@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../api_constant.dart';
 import '../modal/login_model.dart';
+import '../services/notification_service.dart';
 import '../services/secure_storage.dart';
 
 class AuthService {
@@ -47,7 +48,8 @@ class AuthService {
 
           await SecureStorage.saveToken(loginResponse.token!);
         }
-
+        // Register device for notifications
+        await NotificationService.registerDeviceWithBackend();
         return loginResponse;
       }
 
@@ -82,7 +84,6 @@ class AuthService {
           statusCode: response.statusCode,
         );
       }
-
     } on http.ClientException {
       print("=====ClientException in login");
       throw ApiError(message: 'Network error. Please check your connection.');

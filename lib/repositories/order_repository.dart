@@ -2,12 +2,14 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:sutterbuttes_recipe/repositories/profile_repository.dart';
 import '../api_constant.dart';
+import '../modal/order_list_model.dart';
 import '../modal/order_model.dart';
+import '../modal/single_order_detail_model.dart';
 import '../services/secure_storage.dart';
 
 class OrderRepository {
 
-  Future<List<OrderModel>> getOrders({int page = 1, int perPage = 10}) async {
+ /* Future<List<OrderModel>> getOrders({int page = 1, int perPage = 10}) async {
     Uri uri = Uri.parse('${ApiConstants.ordersUrl}?per_page=$perPage&page=$page').replace(
       queryParameters: {
         'consumer_key': ApiConstants.consumerKey,
@@ -45,7 +47,7 @@ class OrderRepository {
   }
 
 
-
+*/
 
   Future<int> getOrderCount() async {
     // Get user's JWT token
@@ -100,12 +102,85 @@ class OrderRepository {
   }
 
 
+  Future<List<OrderSummary>> getOrdersList({int page = 1, int perPage = 10}) async {
+    // Get user's JWT token
+    String? token = await SecureStorage.getLoginToken();
+
+    if (token == null) {
+      throw Exception('User not authenticated. Please login first.');
+    }
+
+    Uri uri = Uri.parse('${ApiConstants.orderslistUrl}?per_page=$perPage&page=$page');
+
+    final response = await http.get(
+      uri,
+      headers: {
+        'Authorization': 'Bearer $token',  // Add this line
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+    );
+   print("=======");
+    print("Orders List URL: $uri");
+    print("Orders List Response: ${response.statusCode} :: ${response.body}");
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final ordersResponse = OrdersListResponse.fromJson(data);
+      return ordersResponse.orders ?? <OrderSummary>[];
+    } else if (response.statusCode == 401) {
+      throw Exception('Unauthorized. Please login again.');
+    } else {
+      throw Exception('Failed to fetch orders: ${response.statusCode}');
+    }
+  }
 
 
+  // Add this method to the OrderRepository class
+  Future<OrderDetail> getOrderDetail(int orderId) async {
+    // Get user's JWT token
+    String? token = await SecureStorage.getLoginToken();
 
+    if (token == null) {
+      throw Exception('User not authenticated. Please login first.');
+    }
 
+    Uri uri = Uri.parse('${ApiConstants.orderDetailUrl}$orderId');
 
+    final response = await http.get(
+      uri,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+    );
+    print("====");
+    print("Order Detail URL: $uri");
+    print("Order Detail Response: ${response.statusCode} :: ${response.body}");
 
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final orderDetailResponse = OrderDetailResponse.fromJson(data);
+      return orderDetailResponse.order!;
+    } else if (response.statusCode == 401) {
+      throw Exception('Unauthorized. Please login again.');
+    } else {
+      throw Exception('Failed to fetch order detail: ${response.statusCode}');
+    }
+  }
+
+  Future<int> getCount() async {
+    String? token = await SecureStorage.getLoginToken();
+    if (token == null) return 0;
+
+    try {
+      final orders = await getOrdersList(page: 1, perPage: 1000);
+      return orders.length;
+    } catch (e) {
+      return 0;
+    }
+  }
 
 }
 /*

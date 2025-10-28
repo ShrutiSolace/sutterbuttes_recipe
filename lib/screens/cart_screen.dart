@@ -2,9 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'state/cart_provider.dart';
 import 'checkout_screen.dart';
-
-class CartScreen extends StatelessWidget {
+//convert state full wiget
+class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
+
+  @override
+  State<CartScreen> createState() => _CartScreenState();
+}
+
+class _CartScreenState extends State<CartScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Refresh cart data when screen opens
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<CartProvider>().loadCart();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,16 +41,14 @@ class CartScreen extends StatelessWidget {
           style: TextStyle(color: Colors.white),
         ),
       ),
-
       body: cartProvider.isLoading
           ? const Center(child: CircularProgressIndicator())
           : (cart == null || (cart.items?.isEmpty ?? true))
-              ? _EmptyCart()
-              : _CartContent(),
+          ? _EmptyCart()
+          : _CartContent(),
     );
   }
 }
-
 class _EmptyCart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -113,15 +125,52 @@ class _CartContent extends StatelessWidget {
                       children: [
                         IconButton(
                           icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-                          onPressed: () async {
+                      /*    onPressed: () async {
                             await context.read<CartProvider>().removeItemOptimistic(
                                   productId: item.productId ?? 0,
                                   variationId: item.variationId ?? 0,
                                 );
                             // 🔄 Immediate refresh to make sure totals update visually right away
                             await context.read<CartProvider>().loadCart(silent: true);
+                          },*/
+                          onPressed: () async {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Remove Item'),
+                                content: const Text('Are you sure you want to remove this item from your cart?'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context, false),
+                                    child: const Text('Cancel'),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () => Navigator.pop(context, true),
+                                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7B8B57)),
+                                    child: const Text('Delete', style: TextStyle(color: Colors.white)),
+                                  ),
+                                ],
+                              ),
+                            );
+
+                            if (confirm == true) {
+                              await context.read<CartProvider>().removeItemOptimistic(
+                                productId: item.productId ?? 0,
+                                variationId: item.variationId ?? 0,
+                              );
+                              // Remove this next line to avoid flicker:
+                              //await context.read<CartProvider>().loadCart(silent: true);
+
+                            }
                           },
                         ),
+
+
+
+
+
+
+
                         Row(
                           children: [
                             _QtyButton(
@@ -167,7 +216,8 @@ class _CartContent extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('Total ($totalItems items):', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                  Text('\$$subtotal', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFFD4B25C))),
+                 // Text('\$$subtotal', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFFD4B25C))),
+                  Text('\$${double.tryParse(subtotal.toString())?.toStringAsFixed(2) ?? subtotal.toString()}', style: const TextStyle(fontSize: 20,fontWeight: FontWeight.bold, color: Color(0xFFD4B25C))),
                 ],
               ),
               const SizedBox(height: 12),

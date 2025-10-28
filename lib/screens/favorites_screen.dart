@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../repositories/favourites_repository.dart';
 import '../modal/favourites_model.dart';
 
+
+
 class FavoritesScreen extends StatelessWidget {
   const FavoritesScreen({super.key});
 
@@ -122,7 +124,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
                     return _FavoriteCard(
                       title: p.title ?? '',
                       imageUrl: p.image ?? '',
-                      subtitle: p.price != null ? '\$${p.price}' : null,
+                      subtitle: p.price != null ? '\$${double.tryParse(p.price!)?.toStringAsFixed(2) ?? p.price}' : null,
                     );
                   },
                 ),
