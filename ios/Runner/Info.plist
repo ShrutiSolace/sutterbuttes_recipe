@@ -32,6 +32,14 @@
 				<string>com.googleusercontent.apps.730098433384-4a89grqv3eb35rhs7pfgs23b09p8i2nq</string>
 			</array>
 		</dict>
+		 <dict>
+                <key>CFBundleURLName</key>
+                <string>facebook</string>
+                <key>CFBundleURLSchemes</key>
+                <array>
+                    <string>fb2636916533310578</string>
+                </array>
+            </dict>
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
@@ -85,5 +93,11 @@
 	<string>This app requires photo library access to select your profile photo.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>This app requires permission to save photos to your library.</string>
+	<key>FacebookAppID</key>
+    <string>2636916533310578</string>
+    <key>FacebookClientToken</key>
+    <string>ea28e4827f391b93c34635f1aa825f51</string>
+    <key>FacebookDisplayName</key>
+    <string>Sutter Buttes Recipes</string>
 </dict>
 </plist>

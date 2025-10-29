@@ -19,8 +19,6 @@ class RecipeCategoryProvider extends ChangeNotifier {
   String get errorMessage => _errorMessage;
   List<RecipeCategory> get categories => _categories;
 
-
-
   List<CategoryRecipeItem> _recipes = []; // CHANGED TYPE
   List<CategoryRecipeItem> get recipes => _recipes;  // CHANGED THIS LINE
 

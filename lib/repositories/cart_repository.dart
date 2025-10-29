@@ -22,7 +22,7 @@ class CartRepository {
         'quantity': quantity,
       }),
     );
-
+    print("===ADD to cart ");
     print("url: $uri");
     print("Response body: ${response.body}");
     print("Request body: ${response.request}");

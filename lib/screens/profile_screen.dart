@@ -353,7 +353,7 @@ class ProfileScreen extends StatelessWidget {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('Logout successful'),
-                        backgroundColor: Colors.green,
+                        backgroundColor: Color(0xFF7B8B57),
                         duration: Duration(seconds: 2),
                       ),
                     );

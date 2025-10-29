@@ -234,7 +234,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
         crossAxisCount: 2,      // 2 per row (same as recipes)
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
-        childAspectRatio: 0.75, // adjust height vs width
+        childAspectRatio: 0.65, // adjust height vs width
       ),
       padding: const EdgeInsets.all(8),
       itemCount: data.length,

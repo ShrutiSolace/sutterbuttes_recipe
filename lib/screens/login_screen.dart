@@ -264,13 +264,29 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 8),
 
                         // Facebook
+                        // Facebook
                         _SocialButton(
                           label: 'Continue with Facebook',
                           icon: const Icon(Icons.facebook, color: Color(0xFF1877F2)),
                           onPressed: () async {
-                            await NotificationService.getToken();
+                            final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                            final success = await authProvider.signInWithFacebook();
+
+                            if (success) {
+                              await NotificationService.getToken();
+                              Navigator.of(context).pushReplacementNamed('/home');
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(authProvider.errorMessage ?? 'Facebook sign-in failed'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
                           },
                         ),
+
+
                         const SizedBox(height: 12),
 
                         // Signup link

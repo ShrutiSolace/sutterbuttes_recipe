@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../services/notification_service.dart';
 import 'state/auth_provider.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -24,6 +25,22 @@ class _SignupScreenState extends State<SignupScreen> {
   final _formKey = GlobalKey<FormState>();
 
   static const Color _brandGreen = Color(0xFF7B8B57);
+
+  void _handleGoogleSignIn(BuildContext context, AuthProvider authProvider) async {
+    final success = await authProvider.signInWithGoogle();
+
+    if (success) {
+      await NotificationService.getToken();
+      Navigator.of(context).pushReplacementNamed('/home');
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(authProvider.errorMessage ?? 'Google sign-in failed'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -294,17 +311,46 @@ class _SignupScreenState extends State<SignupScreen> {
                             const SizedBox(height: 12),
                             _OrDivider(color: Colors.black.withOpacity(0.2)),
                             const SizedBox(height: 12),
-                            _SocialButton(
-                              label: 'Continue with Google',
-                              icon: const _GoogleIcon(),
-                              onPressed: () {},
+
+
+                            // Google sign in
+                            Consumer<AuthProvider>(
+                              builder: (context, authProvider, child) {
+                                return _SocialButton(
+                                  label: 'Continue with Google',
+                                  icon: const _GoogleIcon(),
+                                  onPressed: () {  // ← FIXED: Remove the null check
+                                    _handleGoogleSignIn(context, authProvider);
+                                  },
+                                );
+                              },
                             ),
+
                             const SizedBox(height: 8),
                             _SocialButton(
                               label: 'Continue with Facebook',
                               icon: const Icon(Icons.facebook, color: Color(0xFF1877F2)),
-                              onPressed: () {},
+                              onPressed: () async {
+                                final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                                final success = await authProvider.signInWithFacebook();
+
+                                if (success) {
+                                  await NotificationService.getToken();
+                                  Navigator.of(context).pushReplacementNamed('/home');
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(authProvider.errorMessage ?? 'Facebook sign-in failed'),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                }
+                              },
                             ),
+
+
+
+
                             const SizedBox(height: 12),
                             Center(
                               child: RichText(
