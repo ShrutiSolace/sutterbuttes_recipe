@@ -74,7 +74,7 @@ class UserData {
   String? profileImage;
 
   Map<String, dynamic> toJson() {
-    final map = <String, dynamic>{};
+    final map = <String, dynamic>{};  // ✅ ADD THIS LINE
     map['first_name'] = firstName;
     map['last_name'] = lastName;
     map['username'] = username;

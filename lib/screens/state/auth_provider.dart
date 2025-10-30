@@ -19,17 +19,16 @@ class AuthProvider extends ChangeNotifier {
   Profile? get me => _me;
   final UserRepository _userRepo = UserRepository();
 
-
-
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   LoginResponse? get userData => _userData;
   String? get token => _token;
   bool get isLoggedIn => _token != null;
 
-
-  Future<bool> login({required String username, required String password,})
-  async {
+  Future<bool> login({
+    required String username,
+    required String password,
+  }) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -42,7 +41,6 @@ class AuthProvider extends ChangeNotifier {
       if (_token != null) {
         await fetchCurrentUser();
       }
-
 
       _isLoading = false;
       notifyListeners();
@@ -60,7 +58,7 @@ class AuthProvider extends ChangeNotifier {
   }
 
   // Logout method
- /* void logout() {
+  /* void logout() {
     _userData = null;
     _token = null;
     _errorMessage = null;
@@ -85,10 +83,13 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-
-  Future<bool> signUp({required String username, required String email, required String password, required String firstName, required String lastName,
-  })
-  async {
+  Future<bool> signUp({
+    required String username,
+    required String email,
+    required String password,
+    required String firstName,
+    required String lastName,
+  }) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -118,34 +119,51 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // Google Sign-In method
   Future<bool> signInWithGoogle() async {
-  _isLoading = true;
-  _errorMessage = null;
-  notifyListeners();
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
 
-  try {
-  final result = await GoogleSignInService.signInWithGoogle();
+    try {
+      // Trigger Google sign-in service (this also posts idToken to your backend and saves app JWT)
+      final result = await GoogleSignInService.signInWithGoogle();
 
-  if (result.success && result.user != null) {
-  _isLoading = false;
-  notifyListeners();
-  return true;
-  } else {
-  _errorMessage = result.message;
-  _isLoading = false;
-  notifyListeners();
-  return false;
+      if (result.success && result.user != null) {
+        // Read the app JWT saved by GoogleSignInService
+        final savedToken = await SecureStorage.getLoginToken();
+
+        if (savedToken != null && savedToken.isNotEmpty) {
+          // Set in-memory token so the app is no longer "Guest"
+          _token = savedToken;
+
+          // Fetch profile so UI can display the real user info
+          await fetchCurrentUser();
+
+          // Register device with backend now that we have a valid JWT
+          await NotificationService.registerDeviceWithBackend();
+
+          _isLoading = false;
+          notifyListeners();
+          return true;
+        } else {
+          _errorMessage = 'Login failed: app token not found after Google sign-in';
+          _isLoading = false;
+          notifyListeners();
+          return false;
+        }
+      } else {
+        _errorMessage = result.message;
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _errorMessage = 'Google sign-in failed: ${e.toString()}';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
   }
-  } catch (e) {
-  _errorMessage = 'Google sign-in failed: ${e.toString()}';
-  _isLoading = false;
-  notifyListeners();
-  return false;
-  }
-  }
-
-
 
 //facebook sign-in method can be added here similarly
 
@@ -186,9 +204,6 @@ class AuthProvider extends ChangeNotifier {
       return false;
     }
   }
-
-
-
 
   Future<bool> fetchCurrentUser() async {
     if (_token == null) return false;
@@ -237,10 +252,6 @@ class AuthProvider extends ChangeNotifier {
     _isLoading = false;
     notifyListeners();
   }
-
-
-
-
 
 /*
 // Google Sign-In method
@@ -351,8 +362,4 @@ Future<bool> signInWithGoogle() async {
   }
 }
  */
-
-
-
-
 }

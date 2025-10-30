@@ -1,5 +1,11 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:sutterbuttes_recipe/services/secure_storage.dart';
+
+import '../api_constant.dart';
+import '../modal/google_signin_modal.dart';
 
 
 class GoogleSignInService {
@@ -9,8 +15,9 @@ class GoogleSignInService {
 
   static final FirebaseAuth _auth = FirebaseAuth.instance;
 
+
   // Sign in with Google
-  static Future<GoogleSignInResult> signInWithGoogle() async {
+  static Future<GoogleSignInResult> signInWithGoogle() async{
     try {
       // Trigger the authentication flow
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
@@ -25,13 +32,46 @@ class GoogleSignInService {
 
       // Obtain the auth details from the request
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      print("ggl sign method called");
 
-      // Create a new credential
+
+      final response = await http.post(
+        Uri.parse(ApiConstants.googleLoginUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'token': googleAuth.idToken}),
+      );
+      print("Google login request sent.");
+      print("uri: ${Uri.parse(ApiConstants.googleLoginUrl)}");
+      print("response body: ${response.body}");
+      print("response status: ${response.statusCode}");
+
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final GoogleLoginResponse loginResult = GoogleLoginResponse.fromJson(data);
+        if (loginResult.success && loginResult.token != null) {
+          await SecureStorage.saveToken(loginResult.token!);
 
+          print("App token saved!");
+        } else {
+          print("Backend Google login failed: ${loginResult.message}");
+
+        }
+      } else {
+        // Handle HTTP/server error
+        print("HTTP error: ${response.statusCode} - ${response.reasonPhrase}");
+      }
+
+
+     /* final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );*/
+      print("accessToken: ${googleAuth.accessToken}");
+      print("idToken: ${googleAuth.idToken}");
       // Sign in to Firebase with the Google credential
       final UserCredential userCredential = await _auth.signInWithCredential(credential);
       final User? user = userCredential.user;

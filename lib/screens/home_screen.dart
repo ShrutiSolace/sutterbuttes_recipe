@@ -617,14 +617,18 @@ class FeaturedRecipeGridCard extends StatelessWidget {
             // === Title ===
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Text(
-                recipe.title,
-                maxLines:2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF4A3D4D),
+              child: Container(
+                height: 16.8, // Fixed height for product name
+                child: Text(
+                 recipe.title,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF4A3D4D),
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.left,
                 ),
               ),
             ),
@@ -803,16 +807,23 @@ class TrendingProductCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    product.name ?? '',
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF4A3D4D),
+                  SizedBox(
+                    height: 36, // fixed height to keep grid alignment consistent
+                    child: Text(
+                      product.name ?? '',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.left
+                      , // or .left depending on your layout
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF4A3D4D),
+                        height: 1.2, // line spacing
+                      ),
                     ),
                   ),
+
                   const SizedBox(height: 4),
                   Text(
                     product.price != null ? "\$${double.tryParse(product.price!)?.toStringAsFixed(2) ?? product.price}" : '',

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:sutterbuttes_recipe/screens/state/auth_provider.dart';
 import '../repositories/profile_repository.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
@@ -80,8 +82,18 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
       messenger.showSnackBar(SnackBar(content: Text(message)));
 
-      if (message.toLowerCase().contains('success')) {
+      /*if (message.toLowerCase().contains('success')) {
         Navigator.pop(context);
+      }*/
+      //messenger.showSnackBar(SnackBar(content: Text(message)));
+
+      if (message.toLowerCase().contains('success')) {
+        // Auto-logout user after password change
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        await authProvider.logout();
+
+        // Navigate to login screen
+        Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
       }
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text('Failed to change password: $e')));

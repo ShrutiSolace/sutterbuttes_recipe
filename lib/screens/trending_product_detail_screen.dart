@@ -7,7 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../modal/trending_product_model.dart';
 import 'all_trending_products_screen.dart';
 import 'cart_screen.dart';
-
+import 'package:html_unescape/html_unescape.dart';
 class TrendingProductDetailScreen extends StatefulWidget {
   final TrendingProduct product;
 
@@ -37,12 +37,16 @@ class _TrendingProductDetailScreenState extends State<TrendingProductDetailScree
   }
 
   String removeHtmlTags(String htmlText) {
+    final unescape = HtmlUnescape();
+    final unescaped = unescape.convert(htmlText); // decode &amp;, &nbsp;, etc.
     final RegExp exp = RegExp(r'<[^>]*>', multiLine: true, caseSensitive: true);
-    return htmlText.replaceAll(exp, '');
+    return unescaped.replaceAll(exp, '').trim(); // remove tags & clean spaces
   }
+
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFF4A3D4D),
@@ -76,7 +80,8 @@ class _TrendingProductDetailScreenState extends State<TrendingProductDetailScree
               child: (widget.product.image != null && widget.product.image!.isNotEmpty)
                   ? Image.network(
                 widget.product.image!,
-                fit: BoxFit.cover,
+                fit: BoxFit.contain
+                ,
                 errorBuilder: (context, error, stackTrace) {
                   return Image.asset(
                     "assets/images/homescreen logo.png",
@@ -214,7 +219,7 @@ class _TrendingProductDetailScreenState extends State<TrendingProductDetailScree
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          removeHtmlTags(widget.product.description!),
+                          removeHtmlTags(widget.product.description ?? ''),
                           style: const TextStyle(
                             fontSize: 14,
                             height: 1.5,

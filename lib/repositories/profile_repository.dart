@@ -116,6 +116,8 @@ class UserRepository {
 
     // Add JSON fields as form fields
     request.fields.addAll(userData.toJson().map((key, value) => MapEntry(key, value.toString())));
+    print("===UPdate profile api called===");
+    print("Updating user profile at: $uri");
 
     print("=== Username Debug ===");
     print("Username from UserData: ${userData.username}");
@@ -139,6 +141,7 @@ class UserRepository {
 
     print("Response Status: ${response.statusCode}");
     print("Response Body: ${response.body}");
+    print("Body contains '\"username\"': ${response.body.contains('"username"')}");
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = json.decode(response.body);

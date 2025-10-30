@@ -38,6 +38,7 @@ void main() async {
   //Stripe.publishableKey = 'pk_live_LE9xpcAG1zRlgr2igIoA7C14';
   //for testing purpose
   Stripe.publishableKey = 'pk_test_IVAM9eZVQcNrjEYVDgeEKNe5';
+  print("=====Stripe Key in app: ${Stripe.publishableKey}");
 
 
 

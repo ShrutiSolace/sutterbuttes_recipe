@@ -88,6 +88,7 @@ class FacebookSignInService {
   static Future<bool> isSignedIn() async {
     try {
       final accessToken = await _facebookAuth.accessToken;
+      print("====Facebook access token: $accessToken");
       return accessToken != null;
     } catch (e) {
       print("Error checking Facebook sign-in status: $e");

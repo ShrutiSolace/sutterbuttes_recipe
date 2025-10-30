@@ -15,7 +15,7 @@ class ApiConstants
   static String refreshTokenUrl = '$baseUrl/jwt-auth/v1/token/refresh';
   static String validateTokenUrl = '$baseUrl/jwt-auth/v1/token/validate';
   static String forgotPasswordUrl = '$baseUrl/sbo/v1/forgot-password';
-
+  static String googleLoginUrl = "$baseUrl/sbo/v1/google-login";
 
 
   ///--Listing recipes--///

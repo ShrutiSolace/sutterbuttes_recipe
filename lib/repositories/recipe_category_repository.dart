@@ -34,7 +34,7 @@ class RecipeCategoryRepository {
   }
 
 
-  Future<List<CategoryRecipeItem>> getRecipesByCategory(int categoryId) async { // CHANGED RETURN TYPE
+ /* Future<List<CategoryRecipeItem>> getRecipesByCategory(int categoryId) async { // CHANGED RETURN TYPE
     print("Fetching recipes for category ID: $categoryId");
 
     String? token = await SecureStorage.getLoginToken();
@@ -62,6 +62,44 @@ class RecipeCategoryRepository {
             .toList();
       } else {
         return []; // Return empty list for unexpected format
+      }
+    } else {
+      throw Exception("Failed to fetch recipes: ${response.statusCode}");
+    }
+  }*/
+  Future<List<CategoryRecipeItem>> getRecipesByCategory(
+      int categoryId, {
+        int page = 1,
+        int perPage = 20,
+      }) async {
+    print("Fetching recipes for category ID: $categoryId, page=$page, perPage=$perPage");
+
+    String? token = await SecureStorage.getLoginToken();
+    final url = Uri.parse(
+      '${ApiConstants.recipesByCategoryUrl}?category_id=$categoryId&page=$page&per_page=$perPage',
+    );
+
+    final response = await http.get(
+      url,
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+      },
+    );
+    print("Recipe by getRecipesByCategory");
+    print("Request URL: $url");
+    print("Response Status: ${response.statusCode}");
+    print("Response Body: ${response.body}");
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      if (data['recipes'] is List) {
+        final List recipesJson = data['recipes'];
+        return recipesJson
+            .map((e) => CategoryRecipeItem.fromJson(e as Map<String, dynamic>))
+            .toList();
+      } else {
+        return [];
       }
     } else {
       throw Exception("Failed to fetch recipes: ${response.statusCode}");

@@ -361,7 +361,19 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Items', style: TextStyle(fontWeight: FontWeight.w700)),
+         /* const Text('Items', style: TextStyle(fontWeight: FontWeight.w700)),
+          const SizedBox(height: 8),*/
+          Row(
+            children: [
+              const Text('Items', style: TextStyle(fontWeight: FontWeight.w700)),
+              Text(
+                orderDetail!.items != null && orderDetail!.items!.isNotEmpty
+                    ? ' - QTY ${orderDetail!.items!.first.quantity ?? 0}'
+                    : ' - QTY 0',
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ],
+          ),
           const SizedBox(height: 8),
           ...?orderDetail!.items?.map((item) => Container(
             margin: const EdgeInsets.only(bottom: 8),
@@ -392,14 +404,22 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                Expanded(child: Text(item.name ?? '')),
-                Column(
+                Expanded(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(child: Text(item.name ?? '')),
+                      Text('- \$${item.total ?? '0.00'}', style: const TextStyle(fontSize:15.3,fontWeight: FontWeight.w700)),
+                    ],
+                  ),
+                ),
+               /* Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text('Qty: ${item.quantity ?? 0}'),
+                   // Text('Qty: ${item.quantity ?? 0}'),
                     Text('\$${item.total ?? '0.00'}', style: const TextStyle(fontWeight: FontWeight.w700)),
                   ],
-                )
+                )*/
               ],
             ),
           )),

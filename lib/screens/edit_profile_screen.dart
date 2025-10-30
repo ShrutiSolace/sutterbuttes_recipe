@@ -35,6 +35,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _firstNameController.dispose();
     _lastNameController.dispose();
     _emailController.dispose();
+    _usernameController.dispose();
     _phoneController.dispose();
     _streetController.dispose();
     _cityController.dispose();
@@ -145,7 +146,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
             _buildTextField(label: "First Name", hint: "", controller: _firstNameController),
             _buildTextField(label: "Last Name", hint: "", controller: _lastNameController),
-            _buildTextField(label: "Username", hint: '',controller: _usernameController),
+            _buildTextField(label: "Username", hint: '',controller: _usernameController,enabled : false),
             _buildTextField(label: "Email Address", hint: "", icon: Icons.email_outlined, controller: _emailController, enabled : false),
             _buildTextField(label: "Phone Number", hint: "", icon: Icons.phone_outlined, controller: _phoneController),
 
@@ -247,6 +248,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _onSave() async {
+
     final messenger = ScaffoldMessenger.of(context);
     FocusScope.of(context).unfocus();
 
@@ -299,9 +301,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       final result = await repo.updateUserProfile(userData: userData, profileImagePath: _pickedImageFile?.path,);
 
       // Show profile update success first
-      messenger.showSnackBar(
-        SnackBar(content: Text(result.message ?? 'Profile updated successfully')),
-      );
+      // Check if the update was actually successful
+      if (result.success == true) {
+        messenger.showSnackBar(
+          SnackBar(content: Text(result.message ?? 'Profile updated successfully')),
+        );
+        // Navigate back to previous screen on success
+        Navigator.pop(context);
+      } else {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(result.message ?? 'Failed to update profile'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
 
      /* // Change password flow if fields provided
       final currentPwd = _currentPwdController.text.trim();

@@ -52,12 +52,17 @@
                 <data android:scheme="https" android:host="ADD_HERE" />
                 <data android:scheme="https" android:host="ADD_HERE" />
             </intent-filter>
-
         </activity>
+
         <!-- ✅ (Optional but recommended for Stripe) -->
         <activity android:name="com.stripe.android.view.PaymentAuthWebViewActivity"
             android:exported="false"
             android:launchMode="singleTop" />
+
+
+
+
+
 
 
 

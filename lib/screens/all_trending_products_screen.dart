@@ -318,7 +318,7 @@ class _ProductGridCard extends StatelessWidget {
                       child: (product.image != null && product.image!.isNotEmpty)
                           ? Image.network(
                         product.image!,
-                        fit: BoxFit.cover,
+                        fit: BoxFit.contain,
                         alignment: Alignment.center,
                         errorBuilder: (context, error, stackTrace) {
                           return Image.asset(
@@ -353,16 +353,22 @@ class _ProductGridCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    product.name ?? '',
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF4A3D4D),
+                  SizedBox(
+                    height: 36, // fixed height to keep grid alignment consistent
+                    child: Text(
+                      product.name ?? '',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.left, // or .left depending on your layout
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF4A3D4D),
+                        height: 1.2, // line spacing
+                      ),
                     ),
                   ),
+
                   const SizedBox(height: 4),
                   Text(
                     product.price != null ? "\$${product.price}" : '',

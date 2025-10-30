@@ -311,7 +311,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
                       child: (product.images.isNotEmpty)
                           ? Image.network(
                         product.images.first.src,
-                    fit: BoxFit.contain,
+                        fit: BoxFit.cover, // keeps full image, no cropping
                         errorBuilder: (context, error, stackTrace) {
                           return Image.asset(
                             "assets/images/homescreen logo.png",
@@ -319,6 +319,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
                           );
                         },
                       )
+
                           : Image.asset(
                         "assets/images/homescreen logo.png",
                         fit: BoxFit.contain,
@@ -336,57 +337,64 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
             ),
 
             // Product Information
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Product Name
-                  Text(
-                    product.name,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF4A3D4D),
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-
-                  // Price
-                  Text(
-                   // '\$${product.price}',
-                    '\$${double.tryParse(product.price)?.toStringAsFixed(2) ?? product.price}',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF7B8B57),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-
-                  // Stock Status
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: product.stockStatus == 'instock'
-                          ? Colors.green.withOpacity(0.1)
-                          : Colors.red.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      product.stockStatus == 'instock' ? 'In Stock' : 'Out of Stock',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: product.stockStatus == 'instock'
-                            ? Colors.green[700]
-                            : Colors.red[700],
-                        fontWeight: FontWeight.w500,
+            Container(
+              height: 100, // Fixed height for consistent alignment
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    // Product Name
+                    Container(
+                      height: 16.8, // Fixed height for product name
+                      child: Text(
+                        product.name,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF4A3D4D),
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.left,
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 4),
+
+                    // Price
+                    Text(
+                      '\$${double.tryParse(product.price)?.toStringAsFixed(2) ?? product.price}',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF7B8B57),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+
+                    // Stock Status
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: product.stockStatus == 'instock'
+                            ? Colors.green.withOpacity(0.1)
+                            : Colors.red.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        product.stockStatus == 'instock' ? 'In Stock' : 'Out of Stock',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: product.stockStatus == 'instock'
+                              ? Colors.green[700]
+                              : Colors.red[700],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
