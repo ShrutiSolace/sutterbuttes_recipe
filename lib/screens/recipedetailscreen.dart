@@ -67,7 +67,7 @@ class RecipeDetailScreen extends StatelessWidget {
                       Icon(Icons.star, color: Colors.amber, size: 24),
                       SizedBox(width: 8),
                       Text(
-                        '4.8',
+                        '0.0',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
+import 'package:sutterbuttes_recipe/screens/state/auth_provider.dart';
 import '../repositories/profile_repository.dart';
 import '../modal/update_profile_model.dart';
 
@@ -306,6 +308,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         messenger.showSnackBar(
           SnackBar(content: Text(result.message ?? 'Profile updated successfully')),
         );
+        await context.read<AuthProvider>().fetchCurrentUser();
         // Navigate back to previous screen on success
         Navigator.pop(context);
       } else {

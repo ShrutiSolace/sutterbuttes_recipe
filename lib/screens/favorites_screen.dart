@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:sutterbuttes_recipe/screens/recipedetailscreen.dart';
+import '../modal/recipe_model.dart';
 import '../repositories/favourites_repository.dart';
 import '../modal/favourites_model.dart';
 
@@ -96,6 +98,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
                     return _FavoriteCard(
                       title: r.title ?? '',
                       imageUrl: r.image ?? '',
+                      recipe: r,
                     );
                   },
                 ),
@@ -142,65 +145,89 @@ class _FavoriteCard extends StatelessWidget {
   final String title;
   final String imageUrl;
   final String? subtitle;
+  final Recipes? recipe;
 
-  const _FavoriteCard({required this.title, required this.imageUrl, this.subtitle});
+  const _FavoriteCard({required this.title, required this.imageUrl, this.subtitle, this.recipe});
 
   @override
   Widget build(BuildContext context) {
-    return Card(  // Use Card instead of Container
-      elevation: 3,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(  // Use Expanded instead of AspectRatio
-            child: ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-              child: imageUrl.isNotEmpty
-                  ? Image.network(imageUrl, fit: BoxFit.cover)
-                  : Container(color: const Color(0xFFF0F1F2)),
+    return GestureDetector(
+      onTap: () {
+        if (recipe != null) {
+          final recipeItem = RecipeItem(
+            id: recipe!.id ?? 0,
+            slug: '',
+            title: recipe!.title ?? '',
+            link: recipe!.link ?? '',
+            date: '',
+            contentHtml: '<p>${recipe!.title ?? ''}</p>',
+
+            featuredMediaId: 0,
+            imageUrl: recipe!.image ?? '',
+          );
+        /*  Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => RecipeDetailScreen(recipe: recipeItem),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child:
-            Container(
-              height: 40, // ensures all titles take same space
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              alignment: Alignment.center,
-              child: Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
-                  color: Color(0xFF4A3D4D),
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.left,
+          );*/
+        }
+      },
+      child: Card(  // Use Card instead of Container
+        elevation: 3,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(  // Use Expanded instead of AspectRatio
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                child: imageUrl.isNotEmpty
+                    ? Image.network(imageUrl, fit: BoxFit.cover)
+                    : Container(color: const Color(0xFFF0F1F2)),
               ),
             ),
-
-
-
-          ),
-          if (subtitle != null) ...[
             Padding(
-              padding: const EdgeInsets.only(bottom: 8.0, left: 8.0, right: 8.0),
-              child: Text(
-                subtitle!,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: Colors.black54,
-                  fontWeight: FontWeight.w600,
+              padding: const EdgeInsets.all(8.0),
+              child:
+              Container(
+                height: 40, // ensures all titles take same space
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                alignment: Alignment.center,
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    color: Color(0xFF4A3D4D),
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.left,
                 ),
-                textAlign: TextAlign.center,
               ),
+
+
+
             ),
+            if (subtitle != null) ...[
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8.0, left: 8.0, right: 8.0),
+                child: Text(
+                  subtitle!,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.black54,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }

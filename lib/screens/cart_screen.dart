@@ -116,7 +116,10 @@ class _CartContent extends StatelessWidget {
                         children: [
                           Text(item.name ?? '', style: const TextStyle(fontWeight: FontWeight.w600)),
                           const SizedBox(height: 4),
-                          Text('\$${item.price}', style: const TextStyle(color: Color(0xFFD4B25C), fontSize: 16, fontWeight: FontWeight.bold)),
+                          Text(
+                            '\$${(item.price is num ? (item.price as num).toDouble() : double.tryParse(item.price.toString()) ?? 0).toStringAsFixed(2)}',
+                            style: const TextStyle(color: Color(0xFFD4B25C), fontSize: 16, fontWeight: FontWeight.bold),
+                          )
                         ],
                       ),
                     ),
@@ -173,21 +176,24 @@ class _CartContent extends StatelessWidget {
 
                         Row(
                           children: [
-                            _QtyButton(
-                                icon: Icons.remove,
-                                onTap: () async {
-                                  final current = item.quantity ?? 1;
-                                  if (current <= 1) return;
-                                  await context.read<CartProvider>().updateQuantityOptimistic(
-                                        productId: item.productId ?? 0,
-                                        variationId: item.variationId ?? 0,
-                                        quantity: current - 1,
-                                      );
-                                }),
+              // AFTER:
+              _QtyButton(
+              icon: Icons.remove,
+              onTap: () async {
+              final current = item.quantity ?? 1;
+              // Allow quantity to go to 0
+              final newQuantity = (current - 1) >= 0 ? (current - 1) : 0;
+              await context.read<CartProvider>().updateQuantityOptimistic(
+              productId: item.productId ?? 0,
+              variationId: item.variationId ?? 0,
+              quantity: newQuantity,
+              );
+              }),
                             Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 12),
                               child: Text('${item.quantity ?? 0}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                             ),
+
                             _QtyButton(
                                 icon: Icons.add,
                                 onTap: () async {
@@ -221,16 +227,22 @@ class _CartContent extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 12),
+              // AFTER:
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: (cart.items?.any((item) => (item.quantity ?? 0) <= 0) ?? false)
+                      ? null  // Disable if any item has quantity 0 or less
+                      : () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (_) => const CheckoutScreen()),
                     );
                   },
-                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7B8B57), padding: const EdgeInsets.symmetric(vertical: 14)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF7B8B57),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
                   child: const Text('Proceed to Checkout', style: TextStyle(color: Colors.white)),
                 ),
               ),

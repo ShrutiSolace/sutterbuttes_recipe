@@ -67,7 +67,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Map<String, dynamic>? paymentIntentData;
  // String _selectedPaymentMethod = 'cod';
   String _selectedPaymentMethod = 'stripe';
-
+  double? _shippingTotal;
+  double? _finalTotal;
 
   void _syncShippingWithBilling() {
     if (_sameAsBilling) {
@@ -467,6 +468,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         }
 
         if (value) {
+          await context.read<CartProvider>().loadCart();  // <— ADD HERE
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Payment successful ✅')),
           );
@@ -530,7 +532,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       );
 
       // Refresh cart count post-order
-      await context.read<CartProvider>().loadCart();
+      //await context.read<CartProvider>().loadCart();
 
       return resp;
     } on StripeException catch (e) {

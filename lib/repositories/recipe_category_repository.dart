@@ -86,6 +86,8 @@ class RecipeCategoryRepository {
         "Content-Type": "application/json",
       },
     );
+    print("=========================");
+
     print("Recipe by getRecipesByCategory");
     print("Request URL: $url");
     print("Response Status: ${response.statusCode}");

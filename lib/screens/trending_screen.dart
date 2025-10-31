@@ -12,7 +12,7 @@ class AllTrendingRecipesScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Trending Recipes'),
+        title: const Text('Trending This Week'),
         backgroundColor: const Color(0xFF4A3D4D),
         foregroundColor: Colors.white, // makes back arrow and icons white
         titleTextStyle: const TextStyle(

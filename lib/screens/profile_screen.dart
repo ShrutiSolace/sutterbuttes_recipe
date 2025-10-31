@@ -6,6 +6,7 @@ import 'package:sutterbuttes_recipe/screens/change_password.dart';
 import '../modal/favourites_model.dart';
 import '../repositories/favourites_repository.dart';
 import '../repositories/order_repository.dart';
+import '../services/google_signin_service.dart';
 import 'favorites_screen.dart';
 import 'login_screen.dart';
 import 'edit_profile_screen.dart';
@@ -345,7 +346,7 @@ class ProfileScreen extends StatelessWidget {
                   onPressed: () async {
                     // Get AuthProvider instance
                     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-
+                    await GoogleSignInService.signOut();
                     // Call logout method to clear token from secure storage
                     await authProvider.logout();
 

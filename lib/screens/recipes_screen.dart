@@ -357,13 +357,15 @@ class _RecipeGridCard extends StatelessWidget {
               padding: const EdgeInsets.all(8.0),
               child: Text(
                 recipe.title,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                  fontSize: 11,
+                  fontSize: 12,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF4A3D4D),
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center
+                ,
               ),
             ),
           ],

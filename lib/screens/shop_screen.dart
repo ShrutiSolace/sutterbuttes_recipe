@@ -357,7 +357,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.left,
+                        textAlign: TextAlign.center,
                       ),
                     ),
                     const SizedBox(height: 4),

@@ -102,10 +102,22 @@ class GoogleSignInService {
   }
 
   // Sign out
-  static Future<void> signOut() async {
+/*  static Future<void> signOut() async {
     await _googleSignIn.signOut();
     await _auth.signOut();
+  }*/
+  // Sign out and clear session properly
+  static Future<void> signOut() async {
+    try {
+      await _googleSignIn.disconnect(); // This clears cached Google session
+    } catch (e) {
+      print("Google disconnect error: $e");
+    }
+
+    await _googleSignIn.signOut(); // Sign out from Google
+    await _auth.signOut(); // Sign out from Firebase
   }
+
 
   // Check if user is signed in
   static Future<bool> isSignedIn() async {

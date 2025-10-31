@@ -327,7 +327,7 @@ class _SignupScreenState extends State<SignupScreen> {
                             ),
 
                             const SizedBox(height: 8),
-                            _SocialButton(
+                            /*_SocialButton(
                               label: 'Continue with Facebook',
                               icon: const Icon(Icons.facebook, color: Color(0xFF1877F2)),
                               onPressed: () async {
@@ -347,7 +347,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                 }
                               },
                             ),
-
+*/
 
 
 

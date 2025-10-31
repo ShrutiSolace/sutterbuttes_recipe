@@ -265,7 +265,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                         // Facebook
                         // Facebook
-                        _SocialButton(
+                     /*  _SocialButton(
                           label: 'Continue with Facebook',
                           icon: const Icon(Icons.facebook, color: Color(0xFF1877F2)),
                           onPressed: () async {
@@ -284,7 +284,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               );
                             }
                           },
-                        ),
+                        ),*/
 
 
                         const SizedBox(height: 12),

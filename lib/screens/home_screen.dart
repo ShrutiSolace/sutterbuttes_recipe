@@ -355,17 +355,13 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
             controller: _searchController,
             onChanged: _onSearchChanged,
           ),
+          const SizedBox(height: 10),
 
-
-
-
-          const SizedBox(height: 16),
-
-          _ChipsRow(
+        /*  _ChipsRow(
             selectedIndex: _selectedChip,
             onSelected: (int i) => setState(() => _selectedChip = i),
             selectedColor: brandGreen,
-          ),
+          ),*/
                      const SizedBox(height: 16),
            // Featured Recipes Section
           FeaturedRecipesSection(),
@@ -434,7 +430,7 @@ class _ChipsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
-    final List<String> labels = <String>['All Recipes'];
+    final List<String> labels = <String>[''];
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
@@ -628,7 +624,8 @@ class FeaturedRecipeGridCard extends StatelessWidget {
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.left,
+                  textAlign: TextAlign.center
+                  ,
                 ),
               ),
             ),
@@ -813,7 +810,7 @@ class TrendingProductCard extends StatelessWidget {
                       product.name ?? '',
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.left
+                      textAlign: TextAlign.center
                       , // or .left depending on your layout
                       style: const TextStyle(
                         fontSize: 12,
