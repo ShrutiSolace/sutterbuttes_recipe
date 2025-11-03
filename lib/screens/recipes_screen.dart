@@ -28,6 +28,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
   int _currentPage = 1;
   final int _perPage = 10;
   bool _hasMoreData = true;
+  bool _isAllItemsLoaded = false;
 
   @override
   void initState() {
@@ -56,6 +57,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
       _error = null;
       _currentPage = 1;
       _hasMoreData = true;
+      _isAllItemsLoaded =  false;
     });
 
     try {
@@ -65,6 +67,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
         _filteredRecipes = recipes;
         _isLoading = false;
         _hasMoreData = recipes.length == _perPage;
+        _isAllItemsLoaded = true;  // <-- ADD THIS LINE
       });
     } catch (e) {
       setState(() {
@@ -93,6 +96,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
         _currentPage = nextPage;
         _isLoadingMore = false;
         _hasMoreData = newRecipes.length == _perPage;
+        //_isAllItemsLoaded = !_hasMoreData;  // <-- ADD THIS LINE
       });
     } catch (e) {
       setState(() {
@@ -148,6 +152,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
             padding: const EdgeInsets.all(16.0),
             child: TextField(
               controller: _searchController,
+              enabled: _isAllItemsLoaded,  // <-- ADD THIS LINE
               onChanged: _onSearchChanged,
               decoration: InputDecoration(
                 hintText: 'Search recipes...',
@@ -355,18 +360,20 @@ class _RecipeGridCard extends StatelessWidget {
             // === Title ===
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Text(
-                recipe.title,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF4A3D4D),
+              child: Center(
+                child: Text(
+                  recipe.title,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF4A3D4D),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center
-                ,
               ),
+
             ),
           ],
         ),

@@ -806,30 +806,41 @@ class TrendingProductCard extends StatelessWidget {
                 children: [
                   SizedBox(
                     height: 36, // fixed height to keep grid alignment consistent
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Center(
+                        child: Text(
+                          product.name ?? '',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF4A3D4D),
+                            height: 1.2, // line spacing
+                          ),
+                        ),
+                      ),
+                    ),
+
+                  ),
+
+                  const SizedBox(height: 4),
+                  Center(
                     child: Text(
-                      product.name ?? '',
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center
-                      , // or .left depending on your layout
+                      product.price != null
+                          ? "\$${double.tryParse(product.price!)?.toStringAsFixed(2) ?? product.price}"
+                          : '',
+                      textAlign: TextAlign.center,
                       style: const TextStyle(
                         fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF4A3D4D),
-                        height: 1.2, // line spacing
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF7B8B57),
                       ),
                     ),
                   ),
 
-                  const SizedBox(height: 4),
-                  Text(
-                    product.price != null ? "\$${double.tryParse(product.price!)?.toStringAsFixed(2) ?? product.price}" : '',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: Color(0xFF7B8B57),
-                    ),
-                  ),
                 ],
               ),
             ),

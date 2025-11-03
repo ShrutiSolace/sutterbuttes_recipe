@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
@@ -10,6 +9,8 @@ import 'package:flutter_stripe/flutter_stripe.dart';
 import '../repositories/payment_repository.dart';
 import 'state/cart_provider.dart';
 import 'order_success_screen.dart';
+import '../modal/check_out_model.dart';
+
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -244,6 +245,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+
+           /*
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -252,6 +255,56 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 Text('\$${double.tryParse(subtotal.toString())?.toStringAsFixed(2) ?? subtotal.toString()}', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFD4B25C))),
               ],
             ),
+            */
+            // Subtotal Row
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Subtotal:', style: const TextStyle(fontWeight: FontWeight.w600)),
+                Text('\$${double.tryParse(subtotal.toString())?.toStringAsFixed(2) ?? subtotal.toString()}', style: const TextStyle(fontWeight: FontWeight.w500)),
+              ],
+            ),
+
+            // Shipping Row (only show if shipping > 0)
+            if (_shippingTotal != null && _shippingTotal! > 0)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Shipping:', style: const TextStyle(fontWeight: FontWeight.w600)),
+                    Text('\$${_shippingTotal!.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.w500)),
+                  ],
+                ),
+              ),
+
+            // Divider
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: Divider(),
+            ),
+
+            // Total Row
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Total:', style: const TextStyle(fontWeight: FontWeight.w600)),
+                Text('\$${(_finalTotal ?? double.tryParse(subtotal.toString()) ?? 0.0).toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFD4B25C))),
+              ],
+            ),
+            const SizedBox(height: 8),
+
+
+
+
+
+
+
+
+
+
+
+
             const SizedBox(height: 8),
             ElevatedButton(
               onPressed: _submitting
@@ -530,7 +583,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         },
         paymentMethod: paymentMethod,
       );
+      //calculate shipping and total
+      final checkoutData = CheckOutModel.fromJson(resp);
+      final shippingValue = checkoutData.shippingTotal ?? '0';
+      final totalValue = checkoutData.total ?? '0';
 
+      setState(() {
+        _shippingTotal = double.tryParse(shippingValue) ?? 0.0;
+        _finalTotal = double.tryParse(totalValue) ?? 0.0;
+      });
       // Refresh cart count post-order
       //await context.read<CartProvider>().loadCart();
 

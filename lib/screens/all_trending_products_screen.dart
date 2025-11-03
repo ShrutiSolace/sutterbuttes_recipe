@@ -32,6 +32,7 @@ class _AllTrendingProductsScreenState extends State<AllTrendingProductsScreen> {
   int _currentPage = 1;
   final int _perPage = 10;
   bool _hasMoreData = true;
+  bool _isAllItemsLoaded = false;
 
   @override
   void initState() {
@@ -60,6 +61,8 @@ class _AllTrendingProductsScreenState extends State<AllTrendingProductsScreen> {
       _error = null;
       _currentPage = 1;
       _hasMoreData = true;
+      _isAllItemsLoaded =  false;
+
     });
 
     try {
@@ -69,6 +72,7 @@ class _AllTrendingProductsScreenState extends State<AllTrendingProductsScreen> {
         _filteredProducts = result.products ?? [];
         _isLoading = false;
         _hasMoreData = (_allProducts.length >= _perPage);
+        _isAllItemsLoaded = true;
       });
     } catch (e) {
       setState(() {
@@ -90,7 +94,7 @@ class _AllTrendingProductsScreenState extends State<AllTrendingProductsScreen> {
       // You'll need to implement pagination in your API later
       setState(() {
         _isLoadingMore = false;
-        _hasMoreData = false; // No more data for now
+        _hasMoreData = true; // No more data for now
       });
     } catch (e) {
       setState(() {
@@ -140,6 +144,7 @@ class _AllTrendingProductsScreenState extends State<AllTrendingProductsScreen> {
             child: TextField(
               controller: _searchController,
               onChanged: _onSearchChanged,
+              enabled: _isAllItemsLoaded,
               decoration: InputDecoration(
                 hintText: 'Search products...',
                 filled: true,
@@ -350,28 +355,35 @@ class _ProductGridCard extends StatelessWidget {
             // Product Name & Price
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child:Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center, // ensures everything is centered horizontally
                 children: [
-                  SizedBox(
-                    height: 36, // fixed height to keep grid alignment consistent
-                    child: Text(
-                      product.name ?? '',
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center, // or .left depending on your layout
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF4A3D4D),
-                        height: 1.2, // line spacing
+                  // Product name
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    child: Center(
+                      child: Text(
+                        product.name ?? '',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF4A3D4D),
+                          height: 1.2, // line spacing
+                        ),
                       ),
                     ),
                   ),
 
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 4), // small space between name and price
+
+                  // Product price
                   Text(
                     product.price != null ? "\$${product.price}" : '',
+                    textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
@@ -379,7 +391,8 @@ class _ProductGridCard extends StatelessWidget {
                     ),
                   ),
                 ],
-              ),
+              )
+
             ),
           ],
         ),

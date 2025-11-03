@@ -337,66 +337,70 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
             ),
 
             // Product Information
+            // Product Information
             Container(
               height: 100, // Fixed height for consistent alignment
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    // Product Name
-                    Container(
-                      height: 16.8, // Fixed height for product name
-                      child: Text(
-                        product.name,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF4A3D4D),
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.center,
-                      ),
+              alignment: Alignment.center, // Center all content vertically
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center, // Vertically center
+                crossAxisAlignment: CrossAxisAlignment.center, // Horizontally center
+                children: [
+                  // Product Name
+                  Text(
+                    product.name,
+                    textAlign: TextAlign.center, // Center the text
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF4A3D4D),
+                      height: 1.2,
                     ),
-                    const SizedBox(height: 4),
+                  ),
+                  const SizedBox(height: 6),
 
-                    // Price
-                    Text(
-                      '\$${double.tryParse(product.price)?.toStringAsFixed(2) ?? product.price}',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF7B8B57),
-                      ),
+                  // Price
+                  Text(
+                    '\$${double.tryParse(product.price)?.toStringAsFixed(2) ?? product.price}',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF7B8B57),
                     ),
-                    const SizedBox(height: 4),
+                  ),
+                  const SizedBox(height: 6),
 
-                    // Stock Status
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
+                  // Stock Status
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: product.stockStatus == 'instock'
+                          ? Colors.green.withOpacity(0.1)
+                          : Colors.red.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      product.stockStatus == 'instock' ? 'In Stock' : 'Out of Stock',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 10,
                         color: product.stockStatus == 'instock'
-                            ? Colors.green.withOpacity(0.1)
-                            : Colors.red.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        product.stockStatus == 'instock' ? 'In Stock' : 'Out of Stock',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: product.stockStatus == 'instock'
-                              ? Colors.green[700]
-                              : Colors.red[700],
-                          fontWeight: FontWeight.w500,
-                        ),
+                            ? Colors.green[700]
+                            : Colors.red[700],
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
+
+
+
+
           ],
         ),
       ),

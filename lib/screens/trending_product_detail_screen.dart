@@ -113,89 +113,103 @@ class _TrendingProductDetailScreenState extends State<TrendingProductDetailScree
                   const SizedBox(height: 16),
 
                   // Price Section
+                  // Combined Price and Quantity Card
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF7B8B57).withOpacity(0.1),
+                      color: Colors.grey.shade100, // Light grey background
                       borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        const SizedBox(width: 8),
-                        Text(
-                          widget.product.price != null ? "\$${double.tryParse(widget.product.price!)?.toStringAsFixed(2) ?? widget.product.price}" : '',
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF7B8B57),
-                          ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.08),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
                         ),
-                        if (widget.product.regularPrice != null &&
-                            widget.product.regularPrice != widget.product.price)
-                          Padding(
-                            padding: const EdgeInsets.only(left: 12),
-                            child: Text(
-                              "\$${double.tryParse(widget.product.regularPrice!)?.toStringAsFixed(2) ?? widget.product.regularPrice}",
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey,
-                                decoration: TextDecoration.lineThrough,
-                              ),
-                            ),
-                          ),
                       ],
                     ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Quantity Selector with border
-                  // Quantity Selector with square buttons
-                  // Quantity Selector with square buttons
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade300),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // Minus button
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: Color(0xFF7B8B57), // Same green as Add to Cart button
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: IconButton(
-                            icon: const Icon(Icons.remove, color: Colors.white),
-                            onPressed: () {
-                              if (_quantity > 0) setState(() => _quantity--); // Changed from > 1 to > 0
-                            },
-                          ),
+                        // Price Section (Left)
+                        Row(
+                          children: [
+                            Text(
+                              widget.product.price != null
+                                  ? "\$${double.tryParse(widget.product.price!)?.toStringAsFixed(2) ?? widget.product.price}"
+                                  : '',
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF7B8B57),
+                              ),
+                            ),
+                            if (widget.product.regularPrice != null &&
+                                widget.product.regularPrice != widget.product.price)
+                              Padding(
+                                padding: const EdgeInsets.only(left: 12),
+                                child: Text(
+                                  "\$${double.tryParse(widget.product.regularPrice!)?.toStringAsFixed(2) ?? widget.product.regularPrice}",
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.grey,
+                                    decoration: TextDecoration.lineThrough,
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
 
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Text(
-                            '$_quantity',
-                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                          ),
-                        ),
-
-                        // Plus button
+                        // Quantity Selector (Right)
                         Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: Color(0xFF7B8B57), // Same green as Add to Cart button
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                         /* decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey.shade300),
                             borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: IconButton(
-                            icon: const Icon(Icons.add, color: Colors.white),
-                            onPressed: () => setState(() => _quantity++),
+                          ),*/
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Minus button
+                              Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: Color(0xFF7B8B57),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: IconButton(
+                                  icon: const Icon(Icons.remove, color: Colors.white, size: 20),
+                                  padding: EdgeInsets.zero,
+                                  onPressed: () {
+                                    if (_quantity > 0) setState(() => _quantity--);
+                                  },
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                                child: Text(
+                                  '$_quantity',
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                              // Plus button
+                              Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: Color(0xFF7B8B57),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: IconButton(
+                                  icon: const Icon(Icons.add, color: Colors.white, size: 20),
+                                  padding: EdgeInsets.zero,
+                                  onPressed: () => setState(() => _quantity++),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -291,6 +305,7 @@ class _TrendingProductDetailScreenState extends State<TrendingProductDetailScree
                                           backgroundColor: Color(0xFF7B8B57), // Same green as Add to Cart button
                                           foregroundColor: Colors.white,
                                           shape: RoundedRectangleBorder(
+
                                             borderRadius: BorderRadius.circular(8),
                                           ),
                                         ),

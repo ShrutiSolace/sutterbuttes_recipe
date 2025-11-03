@@ -44,6 +44,7 @@ static String checkoutUrl = '$baseUrl/sbo/v1/checkout';
   static String profileUrl = '$baseUrl/sbo/v1/get-profile';
   static String updateProfileUrl = '$baseUrl/sbo/v1/update-profile';
   static String changePasswordUrl = '$baseUrl/sbo/v1/change-password';
+  static String uploadProfileImageUrl = '$baseUrl/sbo/v1/upload-profile-image';
 
 
 

@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import '../api_constant.dart';
 import '../modal/profile_model.dart';
 import '../modal/update_profile_model.dart';
+import '../modal/upload_profile_image_model.dart';
 import '../services/secure_storage.dart';
 
 
@@ -150,6 +151,42 @@ class UserRepository {
       throw Exception('Unauthorized (401). Token may be expired/invalid.');
     } else {
       throw Exception('Failed to update profile: ${response.statusCode}');
+    }
+  }
+
+ //api for upload profile image
+  Future<UploadProfileImageModel> uploadProfileImage({required String imagePath}) async {
+    String? token = await SecureStorage.getLoginToken();
+    print("Uploading profile image with token: $token");
+
+    final uri = Uri.parse(ApiConstants.uploadProfileImageUrl);
+    final request = http.MultipartRequest('POST', uri)
+      ..headers['Authorization'] = 'Bearer $token'
+      ..headers['Accept'] = 'application/json';
+    request.files.add(await http.MultipartFile.fromPath(
+      'profile_image', // Field name must match backend expectation
+      imagePath,
+    ));
+    print("=====================");
+    print("Uploading profile image to: $uri");
+    print("Image path: $imagePath");
+    print("Request files: ${request.files.map((f) => f.filename).toList()}");
+
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+
+    print("Response Status: ${response.statusCode}");
+    print("Response Body: ${response.body}");
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = json.decode(response.body);
+      return UploadProfileImageModel.fromJson(data);
+    } else if (response.statusCode == 401) {
+      throw Exception('Unauthorized (401). Token may be expired/invalid.');
+    } else {
+      final Map<String, dynamic> errorData = json.decode(response.body);
+      throw Exception(errorData['message'] ?? 'Failed to upload profile image: ${response.statusCode}');
     }
   }
 

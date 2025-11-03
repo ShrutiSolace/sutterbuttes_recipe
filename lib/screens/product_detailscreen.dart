@@ -4,7 +4,7 @@ import 'package:flutter_html/flutter_html.dart';
 import '../repositories/cart_repository.dart';
 import 'package:provider/provider.dart';
 import 'state/cart_provider.dart';
-
+import 'package:html/parser.dart' as html_parser;
 
 
 class ProductDetailScreen extends StatefulWidget {
@@ -19,6 +19,17 @@ class ProductDetailScreen extends StatefulWidget {
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
   int _quantity = 1;
   bool _isAdding = false;
+
+  String cleanHtmlText(String text) {
+    // Parse the HTML and extract text content (this handles all HTML entities)
+    final document = html_parser.parse(text);
+    final cleanText = document.body?.text ?? text;
+
+    // Remove any remaining HTML tags
+    final RegExp htmlTagRegex = RegExp(r'<[^>]*>', multiLine: true, caseSensitive: true);
+    return cleanText.replaceAll(htmlTagRegex, '').trim();
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -160,9 +171,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(8),
                                   border: Border.all(color: const Color(0xFFE0E0E0)),
-                                  color: Colors.white,
+                                  color: Color(0xFF7B8B57),
                                 ),
-                                child: const Icon(Icons.remove, size: 18, color: Colors.black54),
+                                child: const Icon(Icons.remove, size: 18, color: Colors.white),
                               ),
                             ),
                           ),
@@ -214,9 +225,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(8),
                                   border: Border.all(color: const Color(0xFFE0E0E0)),
-                                  color: Colors.white,
+                                  color: Color(0xFF7B8B57),
                                 ),
-                                child: const Icon(Icons.add, size: 18, color: Colors.black54),
+                                child: const Icon(Icons.add, size: 18, color: Colors.white),
                               ),
                             ),
                           ),
@@ -289,7 +300,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
             // Price
             // Price
-            if (widget.product.priceHtml.isNotEmpty)
+          /*  if (widget.product.priceHtml.isNotEmpty)
               Html(
                 data: """<div>${widget.product.priceHtml}</div>""", // wrapped inside a div
                 style: {
@@ -297,16 +308,19 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     fontSize: FontSize(18),
                     fontWeight: FontWeight.bold,
                     color: brandGreen,
+                    margin: Margins.zero,
                   ),
                   "span": Style(
                     fontSize: FontSize(18),
                     fontWeight: FontWeight.bold,
                     color: brandGreen,
+                    margin: Margins.zero,
                   ),
                   "bdi": Style(
                     fontSize: FontSize(18),
                     fontWeight: FontWeight.bold,
                     color: brandGreen,
+                    margin: Margins.zero,
                   ),
                 },
               )
@@ -318,7 +332,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   fontWeight: FontWeight.bold,
                   color: brandGreen,
                 ),
-              ),
+              ),*/
 
 
             const SizedBox(height: 8),
@@ -356,7 +370,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             // Short Description
             if (widget.product.shortDescription.isNotEmpty)
               Html(
-                data: widget.product.shortDescription,
+                data:  cleanHtmlText(widget.product.shortDescription),
                 style: {
                   "body": Style(
                     fontSize: FontSize(14),
@@ -378,7 +392,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ),
               const SizedBox(height: 8),
               Html(
-                data: widget.product.description,
+                data: cleanHtmlText(widget.product.description),
                 style: {
                   "body": Style(
                     fontSize: FontSize(14),

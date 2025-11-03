@@ -4,7 +4,8 @@ class CheckOutModel {
       this.orderId, 
       this.orderKey, 
       this.status, 
-      this.total, 
+      this.total,
+      this.shippingTotal,
       this.currency, 
       this.payment, 
       this.viewOrder,});
@@ -15,6 +16,7 @@ class CheckOutModel {
     orderKey = json['order_key'];
     status = json['status'];
     total = json['total'];
+    shippingTotal = json['shipping_total'];
     currency = json['currency'];
     payment = json['payment'];
     viewOrder = json['view_order'];
@@ -24,6 +26,7 @@ class CheckOutModel {
   String? orderKey;
   String? status;
   String? total;
+  String? shippingTotal;
   String? currency;
   String? payment;
   String? viewOrder;
@@ -35,6 +38,7 @@ class CheckOutModel {
     map['order_key'] = orderKey;
     map['status'] = status;
     map['total'] = total;
+    map['shipping_total'] = shippingTotal;
     map['currency'] = currency;
     map['payment'] = payment;
     map['view_order'] = viewOrder;

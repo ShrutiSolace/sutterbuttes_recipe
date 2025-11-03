@@ -176,24 +176,24 @@ class _CartContent extends StatelessWidget {
 
                         Row(
                           children: [
-              // AFTER:
-              _QtyButton(
-              icon: Icons.remove,
-              onTap: () async {
-              final current = item.quantity ?? 1;
-              // Allow quantity to go to 0
-              final newQuantity = (current - 1) >= 0 ? (current - 1) : 0;
-              await context.read<CartProvider>().updateQuantityOptimistic(
-              productId: item.productId ?? 0,
-              variationId: item.variationId ?? 0,
-              quantity: newQuantity,
-              );
-              }),
+                            _QtyButton(
+                                icon: Icons.remove,
+                                onTap: () async {
+                                 final current = item.quantity ?? 1;
+                                // Allow quantity to go to 0
+                                 final newQuantity = (current - 1) >= 0 ? (current - 1) : 0;
+                                 await context.read<CartProvider>().updateQuantityOptimistic(
+                                  productId: item.productId ?? 0,
+                                  variationId: item.variationId ?? 0,
+                                     quantity: newQuantity,
+                                   );
+                                  }
+                                  ),
+
                             Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 12),
                               child: Text('${item.quantity ?? 0}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                             ),
-
                             _QtyButton(
                                 icon: Icons.add,
                                 onTap: () async {
@@ -203,7 +203,8 @@ class _CartContent extends StatelessWidget {
                                         variationId: item.variationId ?? 0,
                                         quantity: current + 1,
                                       );
-                                }),
+                                }
+                                ),
                           ],
                         ),
                       ],

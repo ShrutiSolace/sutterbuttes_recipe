@@ -31,6 +31,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   bool _isLoading = true;
   String? _profileImageUrl;
   File? _pickedImageFile;
+  bool _isUploadingImage = false;
 
   @override
   void dispose() {
@@ -112,7 +113,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             Center(
               child: Column(
                 children: [
-                  _pickedImageFile != null
+                  /*_pickedImageFile != null
                       ? CircleAvatar(
                           radius: 38,
                           backgroundColor: const Color(0xFF7B8B57),
@@ -132,7 +133,62 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             color: Colors.white,
                             size: 40, // Adjust size as needed
                           ),
+                        ),*/
+                  _isUploadingImage
+                      ? Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      _pickedImageFile != null
+                          ? CircleAvatar(
+                        radius: 38,
+                        backgroundColor: const Color(0xFF7B8B57),
+                        backgroundImage: FileImage(_pickedImageFile!),
+                      )
+                          : _profileImageUrl != null && _profileImageUrl!.isNotEmpty
+                          ? CircleAvatar(
+                        radius: 38,
+                        backgroundColor: const Color(0xFF7B8B57),
+                        backgroundImage: NetworkImage(_profileImageUrl!),
+                      )
+                          : CircleAvatar(
+                        radius: 38,
+                        backgroundColor: Color(0xFF7B8B57),
+                        child: Icon(
+                          Icons.person,
+                          color: Colors.white,
+                          size: 40,
                         ),
+                      ),
+                      const CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    ],
+                  )
+                      : _pickedImageFile != null
+                      ? CircleAvatar(
+                    radius: 38,
+                    backgroundColor: const Color(0xFF7B8B57),
+                    backgroundImage: FileImage(_pickedImageFile!),
+                  )
+                      : _profileImageUrl != null && _profileImageUrl!.isNotEmpty
+                      ? CircleAvatar(
+                    radius: 38,
+                    backgroundColor: const Color(0xFF7B8B57),
+                    backgroundImage: NetworkImage(_profileImageUrl!),
+                  )
+                      : CircleAvatar(
+                    radius: 38,
+                    backgroundColor: Color(0xFF7B8B57),
+                    child: Icon(
+                      Icons.person,
+                      color: Colors.white,
+                      size: 40,
+                    ),
+                  ),
+
+
+
                   TextButton.icon(
                     onPressed: _showImageSourceDialog,
                     icon: const Icon(Icons.camera_alt, size: 18),
@@ -430,7 +486,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  Future<void> _pickImage(ImageSource source) async {
+
+
+ /* Future<void> _pickImage(ImageSource source) async {
     try {
       final ImagePicker picker = ImagePicker();
       final XFile? picked = await picker.pickImage(source: source, maxWidth: 1200, imageQuality: 85);
@@ -446,7 +504,64 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       );
     }
   }
-}
+}*/
+
+  Future<void> _pickImage(ImageSource source) async {
+    print("Picking image from source: $source");
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? picked = await picker.pickImage(source: source, maxWidth: 1200, imageQuality: 85);
+      if (picked != null) {
+        setState(() {
+          _pickedImageFile = File(picked.path);
+          _isUploadingImage = true;
+        });
+        final repo = UserRepository();
+        final uploadResult = await repo.uploadProfileImage(imagePath: picked.path);
+
+        if (uploadResult.success == true && uploadResult.data?.profileImage?.full != null) {
+          setState(() {
+            _profileImageUrl = uploadResult.data!.profileImage!.full;
+            _pickedImageFile = null;
+            _isUploadingImage = false;
+          });
+          final messenger = ScaffoldMessenger.of(context);
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text(uploadResult.message ?? 'Profile image uploaded successfully'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else {
+          setState(() {
+            _isUploadingImage = false;
+          });
+          final messenger = ScaffoldMessenger.of(context);
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text(uploadResult.message ?? 'Failed to upload image'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      setState(() {
+        _isUploadingImage = false;
+      });
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Failed to upload image: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+
+
+
 
 String? nameValidator(String? value, String fieldName) {
   if (value == null || value.trim().isEmpty) return '$fieldName is required';
@@ -480,4 +595,5 @@ String? zipValidator(String? value) {
 String? bioValidator(String? value) {
   if (value != null && value.trim().length > 200) return 'Bio cannot exceed 200 characters';
   return null;
+}
 }

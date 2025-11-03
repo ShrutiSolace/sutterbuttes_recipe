@@ -3,11 +3,22 @@ import 'package:sutterbuttes_recipe/screens/recipedetailscreen.dart';
 import '../modal/recipe_model.dart';
 import '../repositories/favourites_repository.dart';
 import '../modal/favourites_model.dart';
-
+import 'package:html/parser.dart' as html_parser;
 
 
 class FavoritesScreen extends StatelessWidget {
   const FavoritesScreen({super.key});
+
+
+  String cleanHtmlText(String text) {
+    // Parse the HTML and extract text content (this handles all HTML entities)
+    final document = html_parser.parse(text);
+    final cleanText = document.body?.text ?? text;
+
+    // Remove any remaining HTML tags
+    final RegExp htmlTagRegex = RegExp(r'<[^>]*>', multiLine: true, caseSensitive: true);
+    return cleanText.replaceAll(htmlTagRegex, '').trim();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -92,7 +103,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
                     mainAxisSpacing: 15,
                     childAspectRatio: 0.75, // Adjust height/width ratio
                   ),
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(2),
                   itemBuilder: (context, index) {
                     final r = recipeItems[index];
                     return _FavoriteCard(
@@ -121,7 +132,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
                     mainAxisSpacing: 15,
                     childAspectRatio: 0.75, // Adjust the height/width ratio
                   ),
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(2),
                   itemBuilder: (context, index) {
                     final p = productItems[index];
                     return _FavoriteCard(
@@ -149,6 +160,14 @@ class _FavoriteCard extends StatelessWidget {
 
   const _FavoriteCard({required this.title, required this.imageUrl, this.subtitle, this.recipe});
 
+   String cleanHtmlText(String text) {
+     final document = html_parser.parse(text);
+    final cleanText = document.body?.text ?? text;
+    final RegExp htmlTagRegex = RegExp(r'<[^>]*>', multiLine: true, caseSensitive: true);
+    return cleanText.replaceAll(htmlTagRegex, '').trim();
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -160,12 +179,12 @@ class _FavoriteCard extends StatelessWidget {
             title: recipe!.title ?? '',
             link: recipe!.link ?? '',
             date: '',
-            contentHtml: '<p>${recipe!.title ?? ''}</p>',
+            contentHtml: '<p>${cleanHtmlText(recipe!.title ?? '')}</p>',
 
             featuredMediaId: 0,
             imageUrl: recipe!.image ?? '',
           );
-        /*  Navigator.push(
+            /*Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => RecipeDetailScreen(recipe: recipeItem),
@@ -173,19 +192,27 @@ class _FavoriteCard extends StatelessWidget {
           );*/
         }
       },
-      child: Card(  // Use Card instead of Container
-        elevation: 3,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(  // Use Expanded instead of AspectRatio
               child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                 child: imageUrl.isNotEmpty
-                    ? Image.network(imageUrl, fit: BoxFit.cover)
+                    ? Image.network(imageUrl, fit: BoxFit.cover,
+                )
                     : Container(color: const Color(0xFFF0F1F2)),
               ),
             ),
@@ -197,15 +224,15 @@ class _FavoriteCard extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 alignment: Alignment.center,
                 child: Text(
-                  title,
+                  cleanHtmlText(title),
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 13,
+                    fontSize: 12,
                     color: Color(0xFF4A3D4D),
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.left,
+                  textAlign: TextAlign.center,
                 ),
               ),
 
