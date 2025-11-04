@@ -365,7 +365,7 @@ class _ProductGridCard extends StatelessWidget {
                     child: Center(
                       child: Text(
                         product.name ?? '',
-                        maxLines: 2,
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         textAlign: TextAlign.center,
                         style: const TextStyle(

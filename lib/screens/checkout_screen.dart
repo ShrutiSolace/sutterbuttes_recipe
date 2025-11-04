@@ -10,6 +10,7 @@ import '../repositories/payment_repository.dart';
 import 'state/cart_provider.dart';
 import 'order_success_screen.dart';
 import '../modal/check_out_model.dart';
+import '../repositories/profile_repository.dart';
 
 
 class CheckoutScreen extends StatefulWidget {
@@ -45,6 +46,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   @override
   void initState() {
     super.initState();
+    _loadBillingInfo();
 
     // Listen to billing changes
     _bFirst.addListener(_syncShippingWithBilling);
@@ -70,6 +72,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   String _selectedPaymentMethod = 'stripe';
   double? _shippingTotal;
   double? _finalTotal;
+  static const double _defaultShippingCost = 10.95;
 
   void _syncShippingWithBilling() {
     if (_sameAsBilling) {
@@ -85,9 +88,48 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
+  // Calculate and update default shipping if subtotal < 100
+  void _updateDefaultShipping(double subtotalValue) {
+    // Only set default shipping if subtotal < 100 and shipping hasn't been set from order placement
+    if (subtotalValue > 0 && subtotalValue < 100 && _shippingTotal == null) {
+      setState(() {
+        _shippingTotal = _defaultShippingCost;
+        _finalTotal = subtotalValue + _defaultShippingCost;
+      });
+    }
+    // Clear default shipping if subtotal >= 100
+    else if (subtotalValue >= 100 && _shippingTotal == _defaultShippingCost) {
+      setState(() {
+        _shippingTotal = null;
+        _finalTotal = null;
+      });
+    }
+  }
 
 
 
+  Future<void> _loadBillingInfo() async {
+    print("Fetching the billing info");
+    try {
+      final repo = UserRepository();
+      final userData = await repo.getUserProfileData();
+
+      setState(() {
+        _bFirst.text = userData.firstName ?? '';
+        _bLast.text = userData.lastName ?? '';
+        _bEmail.text = userData.email ?? '';
+        _bPhone.text = userData.phone ?? '';
+        _bAddress.text = userData.streetAddress ?? '';
+        _bCity.text = userData.city ?? '';
+        _bState.text = userData.state ?? '';
+        _bZip.text = userData.zipcode ?? '';
+      });
+    } catch (e) {
+      print('Error loading billing info: $e');
+       SnackBar(content: Text('Failed to load billing information'));
+
+    }
+  }
 
   @override
   void dispose() {
@@ -122,24 +164,41 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Widget build(BuildContext context) {
     final cart = context.watch<CartProvider>().cart;
     final subtotal = cart?.totals?.subtotal ?? 0;
+
+
+    // Convert subtotal to double for calculations
+    final subtotalDouble = double.tryParse(subtotal.toString()) ?? 0.0;
+
+    // Update default shipping if subtotal < 100
+    // Use addPostFrameCallback to avoid calling setState during build
+    if (subtotalDouble > 0) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _updateDefaultShipping(subtotalDouble);
+        }
+      });
+    }
+
+
     const brandGreen = Color(0xFF7B8B57);
 
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFF4A3D4D),
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white), // ✅ White back arrow
+        iconTheme: const IconThemeData(color: Colors.white),
         title: Text(
           "Checkout",
           style: const TextStyle(
             color: Colors.white,
-            fontSize: 20, // ✅ smaller font size
+            fontSize: 20,
             fontWeight: FontWeight.w500,
           ),
-          overflow: TextOverflow.ellipsis, // ✅ truncate long names
+          overflow: TextOverflow.ellipsis,
         ),
         centerTitle: true, // optional: centers the title nicely
       ),
+
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(
@@ -198,11 +257,23 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               _verticalGrid([
                 _field('First Name *', _sFirst , enabled: !_sameAsBilling),
                 _field('Last Name *', _sLast, enabled: !_sameAsBilling),
-                _field('Phone *', _sPhone,enabled: !_sameAsBilling),
+                _field('Phone *', _sPhone,
+                  enabled: !_sameAsBilling,
+                  keyboardType: TextInputType.phone,
+                  isPhoneField: true,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(10),
+                  ],
+                ),
                 _field('Address *', _sAddress, maxLines: 2,enabled: !_sameAsBilling),
                 _field('City *', _sCity,enabled: !_sameAsBilling),
                 _field('State *', _sState,enabled: !_sameAsBilling),
-                _field('ZIP Code *', _sZip, keyboardType: TextInputType.number,enabled: !_sameAsBilling),
+                _field('ZIP Code *', _sZip, keyboardType: TextInputType.number,enabled: !_sameAsBilling,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(5),
+                  ],),
               ]),
 
               const SizedBox(height: 16),
@@ -239,6 +310,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ),
         ),
       ),
+
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(12),
         child: Column(
@@ -289,7 +361,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text('Total:', style: const TextStyle(fontWeight: FontWeight.w600)),
-                Text('\$${(_finalTotal ?? double.tryParse(subtotal.toString()) ?? 0.0).toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFD4B25C))),
+                //Text('\$${(_finalTotal ?? double.tryParse(subtotal.toString()) ?? 0.0).toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFD4B25C))),
+                Text('\$${(_finalTotal ?? (subtotalDouble + (subtotalDouble < 100 ? (_shippingTotal ?? _defaultShippingCost) : 0.0))).toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFD4B25C))),
               ],
             ),
             const SizedBox(height: 8),
@@ -360,6 +433,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         enabled: enabled,
       keyboardType: keyboardType,
       maxLines: maxLines,
+      inputFormatters: inputFormatters,
       decoration: InputDecoration(labelText: label, border: OutlineInputBorder(borderRadius: BorderRadius.circular(8))),
       validator: (v) {
         if (!enabled) return null; // ✅ skip validation if disabled
@@ -491,25 +565,26 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
       print("====== Initialize the payment sheet");
 
-      // ✅ Initialize the Stripe payment sheet
       await Stripe.instance.initPaymentSheet(
         paymentSheetParameters: SetupPaymentSheetParameters(
           paymentIntentClientSecret: clientSecret,
           merchantDisplayName: 'My Store',
           style: ThemeMode.system,
           allowsDelayedPaymentMethods: true,
+
+
         ),
       );
 
       print("====== Show the payment sheet");
 
-      // ✅ Show the payment sheet (await user action)
+      // Show the payment sheet (await user action)
       try {
         await Stripe.instance.presentPaymentSheet();
 
         print("====== Payment sheet closed successfully");
 
-        // ✅ Notify your backend after successful payment
+
         print("====== Notify your backend to confirm payment");
 
         setState(() => _submitting = true);

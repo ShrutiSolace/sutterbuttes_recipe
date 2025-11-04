@@ -39,7 +39,6 @@ class PaymentRepository {
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = json.decode(response.body) as Map<String, dynamic>;
-
       return true;
     } else if (response.statusCode == 401) {
       throw Exception('Unauthorized (401). Token may be expired/invalid.');

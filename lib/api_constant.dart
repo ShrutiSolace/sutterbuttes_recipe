@@ -66,6 +66,7 @@ static String checkoutUrl = '$baseUrl/sbo/v1/checkout';
 static String notificationsUrl = '$baseUrl/sbo/v1/notifications';
 static String notificationsUpdateUrl = '$baseUrl/sbo/v1/notifications/update';
 static String notificationsResetUrl = '$baseUrl/sbo/v1/notifications/reset';
+static String notificationslistUrl = '$baseUrl/sbo/v1/my-notifications';
 
  ///About us ///
   static String aboutUsUrl = '$baseUrl/sbo/v1/page-details?slug=about-us';

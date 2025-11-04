@@ -30,7 +30,7 @@ class RecipeListRepository {
       return data.map((item) => RecipeItem.fromJson(item as Map<String, dynamic>)).toList();
     }
     else {
-            throw Exception("Failed to fetch recipes: ${response.statusCode}");
+            throw Exception("Something went wrong, please try again later");
           }
   }
   // else {

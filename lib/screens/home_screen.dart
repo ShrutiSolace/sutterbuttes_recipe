@@ -13,6 +13,8 @@ import 'package:sutterbuttes_recipe/screens/trending_recipe_detail_screen.dart';
 import 'package:sutterbuttes_recipe/screens/trending_screen.dart';
 import '../modal/product_model.dart';
 import '../modal/search_model.dart';
+import '../repositories/notifications_repository.dart';
+import '../services/notification_service.dart';
 import 'all_trending_products_screen.dart';
 import 'bottom_navigation.dart';
 import 'category_recipe_screen.dart';
@@ -185,6 +187,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
   //List<RecipeItem> _filteredRecipes = [];
   Timer? _debounceTimer;
   bool _isSearching = false;
+  int _unreadNotificationCount = 0;
 
 /*  Future<void> _loadAllRecipesForSearch() async {
     try {
@@ -198,6 +201,20 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
       print('Error loading recipes for search: $e');
     }
   }*/
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Refresh notification count when screen is visible
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadUnreadNotificationCount();
+    });
+  }
+
+
+
+
+
   void _onSearchChanged(String query) {
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 500), () {
@@ -216,10 +233,50 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
   }
 
 
+  Future<void> _loadUnreadNotificationCount() async {
+    try {
+      final notificationsRepository = DeviceRegistrationRepository();
+      final response = await notificationsRepository.getNotifications();
+      final notifications = response.notifications ?? [];
+      print("+++++++");
+      print('=== NOTIFICATION COUNT DEBUG ===');
+      print('API Count field: ${response.count}');
+      print('Total notifications: ${response.notifications?.length ?? 0}');
+
+      int count = response.count ?? 0;
+      print('Using API count: $count');
+
+
+     /* for (var notification in notifications) {
+        if (notification.status != null && notification.status!.isNotEmpty) {
+          final status = notification.status!.toLowerCase();
+          if (status == 'new' || status == 'unread' || status == '0') {
+            count++;
+          }
+        }
+      }*/
+
+      if (mounted) {
+        setState(() {
+          _unreadNotificationCount = count;
+        });
+      }
+    } catch (e) {
+      print('Error loading notification count: $e');
+      if (mounted) {
+        setState(() {
+          _unreadNotificationCount = 0;
+        });
+      }
+    }
+  }
+
   @override
   void dispose() {
     _debounceTimer?.cancel();
     _searchController.dispose();
+    // Clear notification callback
+    NotificationService.onNotificationReceived = null;
     super.dispose();
   }
 
@@ -239,11 +296,23 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
       await categoryProvider.fetchCategories();
       await Future.delayed(const Duration(milliseconds: 300));
       await productProvider.fetchTrendingProducts();
-
+      _loadUnreadNotificationCount();
+      // Register callback to refresh count when new notification arrives
+      NotificationService.onNotificationReceived = _loadUnreadNotificationCount;
     //  _loadAllRecipesForSearch();
     });
   }
+  Future<void> _refreshHomeScreen() async {
+    final recipeProvider = context.read<RecipeProvider>();
+    final categoryProvider = context.read<RecipeCategoryProvider>();
+    final productProvider = context.read<ProductProvider>();
 
+    // Refresh all data
+    await recipeProvider.fetchRecipes();
+    await categoryProvider.fetchCategories();
+    await productProvider.fetchTrendingProducts();
+    await _loadUnreadNotificationCount();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -272,9 +341,11 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
 
 
 
-
-    return SingleChildScrollView(
+    return RefreshIndicator(
+        onRefresh: _refreshHomeScreen,
+       child  : SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      physics: const AlwaysScrollableScrollPhysics(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -293,7 +364,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
 
               Positioned(
                 top: 0,
-                right: -30,
+                right: 0,
                 child: Row(
                   children: <Widget>[
                     GestureDetector(
@@ -329,14 +400,42 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
 
                     const SizedBox(width: 19),
 
-                    IconButton(
-                      icon: const Icon(Icons.notifications_none, color: Colors.black87),
-                      onPressed: () {
-                   /*   Navigator.push(
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
                           context,
                           MaterialPageRoute(builder: (_) => const NotificationsScreen()),
-                        );*/
+                        ).then((_) {
+                          // Reload count when returning from notifications screen
+                          _loadUnreadNotificationCount();
+                        });
                       },
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          const Icon(Icons.notifications_none, color: Colors.black87),
+                          if (_unreadNotificationCount > 0)
+                            Positioned(
+                              top: -6,
+                              right: -6,
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFF7B8B57),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Text(
+                                  '$_unreadNotificationCount',
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
 
 
@@ -378,6 +477,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
            _TrendingThisWeekSection(),
         ],
       ),
+    ),
     );
   }
 }
@@ -613,21 +713,20 @@ class FeaturedRecipeGridCard extends StatelessWidget {
             // === Title ===
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Container(
-                height: 16.8, // Fixed height for product name
+              child: Center(
                 child: Text(
-                 recipe.title,
+                  recipe.title,
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF4A3D4D),
                   ),
-                  maxLines: 2,
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center
-                  ,
+                  textAlign: TextAlign.center,
                 ),
               ),
+
             ),
           ],
         ),
@@ -811,7 +910,7 @@ class TrendingProductCard extends StatelessWidget {
                       child: Center(
                         child: Text(
                           product.name ?? '',
-                          maxLines: 2,
+                          maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           textAlign: TextAlign.center,
                           style: const TextStyle(

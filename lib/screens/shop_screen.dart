@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'state/cart_provider.dart';
 import 'cart_screen.dart';
 
+
 class ShopScreen extends StatelessWidget {
   const ShopScreen({super.key});
 
@@ -153,7 +154,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
                       ),
                     ),
                     const SizedBox(width: 19),
-                    const Icon(Icons.notifications_none, color: Colors.black87),
+                  //  const Icon(Icons.notifications_none, color: Colors.black87),
                     const SizedBox(width: 19),
                   ],
                 ),
@@ -247,6 +248,12 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
 
   List<Product> _applyFilters(List<Product> products) {
     Iterable<Product> result = products;
+
+    // Filter to show only published products
+    result = result.where((p) => p.status.trim().toLowerCase() == 'publish');
+
+
+
 
     // Chip filters
     switch (_selectedChip) {
@@ -350,7 +357,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
                   Text(
                     product.name,
                     textAlign: TextAlign.center, // Center the text
-                    maxLines: 2,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 12,

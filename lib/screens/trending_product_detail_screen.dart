@@ -261,21 +261,24 @@ class _TrendingProductDetailScreenState extends State<TrendingProductDetailScree
                             ),
                           );
 
-                          // Add to cart with selected quantity
+
                           final cart = await CartRepository().addToCart(productId: widget.product.id!, quantity: _quantity);
 
-                          // Hide loading
+                          try {
+                            await context.read<CartProvider>().loadCart();
+                          } catch (_) {}
+
                           Navigator.pop(context);
 
                           // Show success dialog with both buttons styled the same
                           showDialog(
                             context: context,
                             builder: (context) => AlertDialog(
-                              backgroundColor: Color(0xFF4A3D4D), // Dark background
+                              backgroundColor: Colors.white, // Dark background
                               title: Text(
                                 'Success!',
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: Colors.black,
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -283,7 +286,7 @@ class _TrendingProductDetailScreenState extends State<TrendingProductDetailScree
                               content: Text(
                                 '${widget.product.name} added to cart successfully!',
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: Colors.black,
                                   fontSize: 16,
                                 ),
                               ),
@@ -313,7 +316,7 @@ class _TrendingProductDetailScreenState extends State<TrendingProductDetailScree
                                           'Continue Shopping',
                                           style: TextStyle(
                                             color: Colors.white,
-                                            fontSize: 13,
+                                            fontSize: 12.5,
                                             fontWeight: FontWeight.w600,
                                           ),
                                         ),

@@ -14,11 +14,11 @@ class RecipeDetailScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: const Color(0xFF4A3D4D),
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white), // ✅ white back arrow
+        iconTheme: const IconThemeData(color: Colors.white),
         title: Text(
           recipe.title,
           style: const TextStyle(
-            color: Colors.white, // ✅ white title text
+            color: Colors.white,
             fontSize: 18,
             fontWeight: FontWeight.w500,
           ),
@@ -59,7 +59,10 @@ class RecipeDetailScreen extends StatelessWidget {
                       color: Color(0xFF4A3D4D),
                     ),
                   ),
+
+
                   const SizedBox(height: 8),
+
 
                   // Rating
                   Row(
@@ -112,6 +115,49 @@ class RecipeDetailScreen extends StatelessWidget {
                         ? recipe.contentHtml
                         : "No description available",
                     style: {
+                      "img": Style(
+                        display: Display.none, // Hide all images
+                      ),
+                      "h1": Style(
+                        fontSize: FontSize(20),
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[800],
+                        margin: Margins.only(top: 24, bottom: 16),
+                      ),
+                      "h2": Style(
+                        fontSize: FontSize(18),
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[800],
+                        margin: Margins.only(top: 20, bottom: 12),
+                      ),
+                      "h3": Style(
+                        fontSize: FontSize(16),
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[800],
+                        margin: Margins.only(top: 16, bottom: 12),
+                      ),
+                      "p": Style(
+                        fontSize: FontSize(16),
+                        color: Colors.grey[800],
+                        margin: Margins.only(top: 8, bottom: 12),
+                        padding: HtmlPaddings.zero,
+                      ),
+                      "ul": Style(
+                        padding: HtmlPaddings.only(left: 20), // Add left padding for bullets
+                        margin: Margins.only(top: 8, bottom: 16), // Add top and bottom margin
+                      ),
+                      "ol": Style(
+                        padding: HtmlPaddings.only(left: 20), // Add left padding for bullets (same as ul)
+                        margin: Margins.only(top: 8, bottom: 16), // Add top and bottom margin
+                      ),
+                      "li": Style(
+                        padding: HtmlPaddings.only(left: 8, bottom: 8), // Spacing for list items
+                        margin: Margins.zero,
+                        fontSize: FontSize(16),
+                        color: Colors.grey[800],
+                        listStyleType: ListStyleType.disc, // Force bullet points on ALL list items (ul and ol)
+                        display: Display.listItem, // Proper list item display
+                      ),
                       "body": Style(
                         padding: HtmlPaddings.all(0),
                         margin: Margins.zero,

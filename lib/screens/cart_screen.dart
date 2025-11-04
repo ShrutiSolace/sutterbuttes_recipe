@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'bottom_navigation.dart';
 import 'state/cart_provider.dart';
 import 'checkout_screen.dart';
 //convert state full wiget
@@ -65,7 +66,14 @@ class _EmptyCart extends StatelessWidget {
             const Text('Add some products to get started'),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () {
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                    builder: (context) => const BottomNavigationScreen(initialIndex: 2),
+                  ),
+                      (route) => false,
+                );
+              },
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7B8B57)),
               child: const Text('Start Shopping', style: TextStyle(color: Colors.white)),
             ),

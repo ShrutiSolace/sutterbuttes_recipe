@@ -225,7 +225,7 @@ class _AboutScreenState extends State<AboutScreen> {
             children: [
               Expanded(
                 child: SizedBox(
-                  height: 48, // consistent button height
+                  height: 50, // consistent button height
                   child: ElevatedButton(
                     onPressed: () {
                       Navigator.push(

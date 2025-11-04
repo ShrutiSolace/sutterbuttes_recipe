@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -10,6 +11,10 @@ class NotificationService {
 
 
   static final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
+
+  // Callback to refresh notification count when new notification arrives
+  static VoidCallback? onNotificationReceived;
+
 
   static Future<void> requestPermission() async {
     NotificationSettings settings = await _firebaseMessaging.requestPermission();
@@ -40,6 +45,16 @@ class NotificationService {
       print("Foreground message received:");
       print("Title: ${message.notification?.title}");
       print("Body: ${message.notification?.body}");
+
+
+
+      // Trigger notification count refresh
+      if (onNotificationReceived != null) {
+        onNotificationReceived!();
+      }
+
+
+
     });
   }
 
@@ -49,6 +64,14 @@ class NotificationService {
       print("Notification tapped:");
       print("Title: ${message.notification?.title}");
       print("Body: ${message.notification?.body}");
+
+
+      // Trigger notification count refresh
+      if (onNotificationReceived != null) {
+        onNotificationReceived!();
+      }
+
+
     });
   }
 
