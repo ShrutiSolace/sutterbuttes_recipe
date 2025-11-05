@@ -409,7 +409,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Expanded(child: Text(item.name ?? '')),
-                      Text('\$${item.total ?? '0.00'}', style: const TextStyle(fontSize:15.3,fontWeight: FontWeight.w700)),
+                      Text('\$${(double.tryParse(item.total ?? '0') ?? 0.0).toStringAsFixed(2)}', style: const TextStyle(fontSize:15.3,fontWeight: FontWeight.w700)),
                     ],
                   ),
                 ),

@@ -28,11 +28,15 @@ class UserData {
   final int id;
   final String? email;
   final String? name;
+  final String? firstName;
+  final String? lastName;
 
   UserData({
     required this.id,
     this.email,
     this.name,
+    this.firstName,
+    this.lastName,
   });
 
   factory UserData.fromJson(Map<String, dynamic> json) {
@@ -40,6 +44,8 @@ class UserData {
       id: int.parse(json['id'].toString()),
       email: json['email'],
       name: json['name'],
+      firstName: json['first_name'],
+      lastName: json['last_name'],
     );
   }
 }

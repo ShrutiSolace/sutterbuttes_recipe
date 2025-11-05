@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:sutterbuttes_recipe/screens/product_detailscreen.dart';
+import '../repositories/notifications_repository.dart';
 import '../repositories/product_repository.dart';
 import '../modal/product_model.dart';
 import '../repositories/favourites_repository.dart';
 import 'package:provider/provider.dart';
+import 'notifications_screen.dart';
 import 'state/cart_provider.dart';
 import 'cart_screen.dart';
 
@@ -52,8 +54,48 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
   final ProductRepository _productRepository = ProductRepository();
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  int _unreadNotificationCount = 0;
+  bool _hasViewedNotifications = false;
 
 
+  Future<void> _loadUnreadNotificationCount() async {
+    if (_hasViewedNotifications) return;
+    try {
+      final notificationsRepository = DeviceRegistrationRepository();
+      final response = await notificationsRepository.getNotifications();
+      final notifications = response.notifications ?? [];
+      print("+++++++");
+      print('=== NOTIFICATION COUNT DEBUG ===');
+      print('API Count field: ${response.count}');
+      print('Total notifications: ${response.notifications?.length ?? 0}');
+
+      int count = response.count ?? 0;
+      print('Using API count: $count');
+
+
+      /* for (var notification in notifications) {
+        if (notification.status != null && notification.status!.isNotEmpty) {
+          final status = notification.status!.toLowerCase();
+          if (status == 'new' || status == 'unread' || status == '0') {
+            count++;
+          }
+        }
+      }*/
+
+      if (mounted) {
+        setState(() {
+          _unreadNotificationCount = count;
+        });
+      }
+    } catch (e) {
+      print('Error loading notification count: $e');
+      if (mounted) {
+        setState(() {
+          _unreadNotificationCount = 0;
+        });
+      }
+    }
+  }
 
 
 
@@ -63,6 +105,8 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
   void initState() {
     super.initState();
     _loadProducts();
+    _loadUnreadNotificationCount();
+
   }
 
   @override
@@ -154,7 +198,46 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
                       ),
                     ),
                     const SizedBox(width: 19),
-                  //  const Icon(Icons.notifications_none, color: Colors.black87),
+
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+                        ).then((_) {
+                          setState(() {
+                            _unreadNotificationCount = 0;
+                            _hasViewedNotifications = true;   // Reset local count
+                          });
+                        });
+                      },
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          const Icon(Icons.notifications_none, color: Colors.black87),
+                          if (_unreadNotificationCount > 0)
+                            Positioned(
+                              top: -6,
+                              right: -6,
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFF7B8B57),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Text(
+                                  '$_unreadNotificationCount',
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
                     const SizedBox(width: 19),
                   ],
                 ),
@@ -373,7 +456,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
                     '\$${double.tryParse(product.price)?.toStringAsFixed(2) ?? product.price}',
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                      fontSize: 16,
+                      fontSize: 12,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF7B8B57),
                     ),

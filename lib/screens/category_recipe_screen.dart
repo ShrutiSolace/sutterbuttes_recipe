@@ -147,7 +147,7 @@ class _CategoryRecipesScreenState extends State<CategoryRecipesScreen> {
                                   cleanHtmlText(recipe.title),
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 14,
+                                    fontSize: 12,
                                     color: Color(0xFF4A3D4D),
                                   ),
                                   textAlign: TextAlign.center,

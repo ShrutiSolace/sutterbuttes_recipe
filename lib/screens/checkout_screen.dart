@@ -23,6 +23,7 @@ class CheckoutScreen extends StatefulWidget {
 class _CheckoutScreenState extends State<CheckoutScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _sameAsBilling = false;
+  List<Map<String, dynamic>>? _savedCartItems;
 
 
   // Billing
@@ -208,8 +209,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             children: [
               _sectionTitle('Billing Information'),
               _verticalGrid([
-                _field('First Name *', _bFirst),
-                _field('Last Name *', _bLast),
+                _field('First Name *', _bFirst,  inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z ]'))]),
+                _field('Last Name *', _bLast, inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z ]'))]),
                 _field('Email *', _bEmail, keyboardType: TextInputType.emailAddress),
                 _field('Phone *', _bPhone, keyboardType: TextInputType.phone, isPhoneField: true,
                   inputFormatters: [
@@ -217,10 +218,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     LengthLimitingTextInputFormatter(10),
                   ],
                 ),
-                _field('Address *', _bAddress, maxLines: 2,
+                _field('Address *', _bAddress, maxLines: 2, inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z ]'))]
                 ),
-                _field('City *', _bCity),
-                _field('State *', _bState),
+                _field('City *', _bCity, inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z ]'))]),
+                _field('State *', _bState, inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z ]'))]),
                 _field('ZIP Code *', _bZip, keyboardType: TextInputType.number,
                   inputFormatters: [
                     FilteringTextInputFormatter.digitsOnly,
@@ -383,6 +384,26 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               onPressed: _submitting
                   ? null
                   : () async {
+                // Save cart items before checkout (in case payment fails)
+                final cartProvider = context.read<CartProvider>();
+                final cart = cartProvider.cart;
+                if (cart?.items != null) {
+                  _savedCartItems = cart!.items!.map((item) => {
+                    'product_id': item.productId ?? 0,
+                    'variation_id': item.variationId ?? 0,
+                    'quantity': item.quantity ?? 0,
+                  }).toList();
+                }
+
+
+
+
+
+
+
+
+
+
                       final method = _selectedPaymentMethod;
                       final resp = await _placeOrder(paymentMethod: method);
                       if (resp == null) return;
@@ -427,16 +448,23 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  Widget _field(String label, TextEditingController controller, {TextInputType? keyboardType, int maxLines = 1, bool isPhoneField = false,  List<TextInputFormatter>? inputFormatters,  bool enabled = true,}) {
+  Widget _field(
+      String label,
+        TextEditingController controller,
+        {TextInputType? keyboardType, int maxLines = 1,
+        bool isPhoneField = false,
+        List<TextInputFormatter>? inputFormatters,
+        bool enabled = true,}) {
+
     return TextFormField(
       controller: controller,
-        enabled: enabled,
+      enabled: enabled,
       keyboardType: keyboardType,
       maxLines: maxLines,
       inputFormatters: inputFormatters,
       decoration: InputDecoration(labelText: label, border: OutlineInputBorder(borderRadius: BorderRadius.circular(8))),
       validator: (v) {
-        if (!enabled) return null; // ✅ skip validation if disabled
+        if (!enabled) return null;
         if (v == null || v.trim().isEmpty) {
           return 'Please enter required fields';
         }
@@ -571,14 +599,26 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           merchantDisplayName: 'My Store',
           style: ThemeMode.system,
           allowsDelayedPaymentMethods: true,
+          billingDetails: BillingDetails(
+            address: Address(
+              line1: _bAddress.text,
+              line2: _bState.text,
+              city: _bCity.text,
+              country: 'US',
+              state: _bState.text,
+              postalCode: _bZip.text,
+            ),
 
 
-        ),
-      );
+              // 👈 Sets default country to US
+            ),
+          ),
+        );
+
 
       print("====== Show the payment sheet");
 
-      // Show the payment sheet (await user action)
+
       try {
         await Stripe.instance.presentPaymentSheet();
 
@@ -598,13 +638,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         if (value) {
           await context.read<CartProvider>().loadCart();  // <— ADD HERE
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Payment successful ✅')),
+            const SnackBar(content: Text('Payment successful'),
+             ),
           );
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (_) => const OrderSuccessScreen()),
           );
-        } else {
+        }
+
+
+        else {
           throw Exception('Payment confirmation failed on backend');
         }
       } on StripeException catch (e) {
@@ -612,19 +656,71 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Payment cancelled: ${e.error.localizedMessage}')),
         );
+        await _restoreCartItems();
+        if (mounted) {
+          Navigator.pop(context); // Go back to cart screen
+        }
+
+
       } catch (e) {
         print("====== Unexpected payment error: $e");
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Payment failed: $e')),
         );
+        await _restoreCartItems();
+        if (mounted) {
+          Navigator.pop(context); // Go back to cart screen
+        }
+
       }
     } catch (e) {
       print("====== makePayment() exception: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Payment initialization failed: $e')),
       );
+
+      await _restoreCartItems();
+      if (mounted) {
+        Navigator.pop(context); // Go back to cart screen
+      }
     }
   }
+
+
+  Future<void> _restoreCartItems() async {
+    if (_savedCartItems == null || _savedCartItems!.isEmpty) return;
+
+    try {
+      final cartRepo = CartRepository();
+      // Restore each item using updateCart API
+      for (var item in _savedCartItems!) {
+        await cartRepo.addToCart(
+          productId: item['product_id'] as int,
+          quantity: item['quantity'] as int,
+        );
+      }
+      // Reload cart to update UI
+      await context.read<CartProvider>().loadCart();
+      // Clear saved items
+      _savedCartItems = null;
+    } catch (e) {
+      print('Error restoring cart items: $e');
+    }
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   Future<Map<String, dynamic>?> _placeOrder({required String paymentMethod}) async {
     FocusScope.of(context).unfocus();

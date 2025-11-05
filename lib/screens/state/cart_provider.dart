@@ -43,6 +43,7 @@ class CartProvider extends ChangeNotifier {
   }) async {
     await _repo.updateCart(productId: productId, variationId: variationId, quantity: quantity);
     await loadCart(silent: true);
+    notifyListeners();
   }
 
   Future<void> updateQuantityOptimistic({
@@ -72,6 +73,7 @@ class CartProvider extends ChangeNotifier {
   }) async {
     await _repo.removeFromCart(productId: productId, variationId: variationId);
     await loadCart(silent: true);
+    notifyListeners();
   }
 
   Future<void> removeItemOptimistic({

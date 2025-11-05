@@ -188,6 +188,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
   Timer? _debounceTimer;
   bool _isSearching = false;
   int _unreadNotificationCount = 0;
+  bool _hasViewedNotifications = false;
 
 /*  Future<void> _loadAllRecipesForSearch() async {
     try {
@@ -207,7 +208,10 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
     super.didChangeDependencies();
     // Refresh notification count when screen is visible
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadUnreadNotificationCount();
+      if (!_hasViewedNotifications) {
+        _loadUnreadNotificationCount();
+      }
+      context.read<CartProvider>().loadCart();
     });
   }
 
@@ -234,6 +238,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
 
 
   Future<void> _loadUnreadNotificationCount() async {
+    if (_hasViewedNotifications) return;
     try {
       final notificationsRepository = DeviceRegistrationRepository();
       final response = await notificationsRepository.getNotifications();
@@ -271,6 +276,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
     }
   }
 
+
   @override
   void dispose() {
     _debounceTimer?.cancel();
@@ -297,7 +303,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
       await Future.delayed(const Duration(milliseconds: 300));
       await productProvider.fetchTrendingProducts();
       _loadUnreadNotificationCount();
-      // Register callback to refresh count when new notification arrives
+      context.read<CartProvider>().loadCart(); // ← ADD THIS LINE
       NotificationService.onNotificationReceived = _loadUnreadNotificationCount;
     //  _loadAllRecipesForSearch();
     });
@@ -311,7 +317,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
     await recipeProvider.fetchRecipes();
     await categoryProvider.fetchCategories();
     await productProvider.fetchTrendingProducts();
-    await _loadUnreadNotificationCount();
+   // await _loadUnreadNotificationCount();
   }
 
   @override
@@ -406,8 +412,13 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
                           context,
                           MaterialPageRoute(builder: (_) => const NotificationsScreen()),
                         ).then((_) {
-                          // Reload count when returning from notifications screen
-                          _loadUnreadNotificationCount();
+                          // Reset count immediately when returning from notifications screen
+                          setState(() {
+                            _unreadNotificationCount = 0;
+                            _hasViewedNotifications = true;
+                          });
+                          // Optionally reload from API to sync (but count should be 0 now)
+                         // _loadUnreadNotificationCount();
                         });
                       },
                       child: Stack(

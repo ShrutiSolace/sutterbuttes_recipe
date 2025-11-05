@@ -216,43 +216,49 @@ class _FavoriteCard extends StatelessWidget {
                     : Container(color: const Color(0xFFF0F1F2)),
               ),
             ),
+            // --- Product Name & Price ---
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child:
-              Container(
-                height: 40, // ensures all titles take same space
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                alignment: Alignment.center,
-                child: Text(
-                  cleanHtmlText(title),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                    color: Color(0xFF4A3D4D),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    height: 36, // fixed height to keep grid alignment consistent
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Center(
+                        child: Text(
+                          cleanHtmlText(title),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF4A3D4D),
+                            height: 1.2, // line spacing
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                ),
+
+                  const SizedBox(height: 4),
+                  if (subtitle != null)
+                    Center(
+                      child: Text(
+                        subtitle!,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF7B8B57),
+                        ),
+                      ),
+                    ),
+                ],
               ),
-
-
-
             ),
-            if (subtitle != null) ...[
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8.0, left: 8.0, right: 8.0),
-                child: Text(
-                  subtitle!,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.black54,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ],
           ],
         ),
       ),

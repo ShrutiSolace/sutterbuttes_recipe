@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sutterbuttes_recipe/screens/category_recipe_screen.dart';
 import 'package:sutterbuttes_recipe/screens/favorites_screen.dart';
 import 'package:sutterbuttes_recipe/screens/recipedetailscreen.dart';
 import 'package:sutterbuttes_recipe/screens/shop_screen.dart';
+import 'package:sutterbuttes_recipe/screens/state/cart_provider.dart';
 import 'home_screen.dart';
 import 'recipes_screen.dart';
 import 'profile_screen.dart';
@@ -81,7 +83,16 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
             _currentIndex = index;
           });
 
-          // If we have a custom screen, navigate to the corresponding screen
+          // Reload cart when switching to Home tab
+          if (index == 0) {
+            context.read<CartProvider>().loadCart();
+          }
+
+
+
+
+
+
           if (widget.customScreen != null) {
             switch (index) {
               case 0:

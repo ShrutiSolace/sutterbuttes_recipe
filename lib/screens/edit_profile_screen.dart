@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -202,24 +203,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             Text("Personal Information", style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
             const SizedBox(height: 6),
 
-            _buildTextField(label: "First Name", hint: "", controller: _firstNameController),
-            _buildTextField(label: "Last Name", hint: "", controller: _lastNameController),
+            _buildTextField(label: "First Name", hint: "", controller: _firstNameController, inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z ]'))]),
+            _buildTextField(label: "Last Name", hint: "", controller: _lastNameController, inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z ]'))],),
             _buildTextField(label: "Username", hint: '',controller: _usernameController,enabled : false),
             _buildTextField(label: "Email Address", hint: "", icon: Icons.email_outlined, controller: _emailController, enabled : false),
-            _buildTextField(label: "Phone Number", hint: "", icon: Icons.phone_outlined, controller: _phoneController),
+            _buildTextField(label: "Phone Number", hint: "", icon: Icons.phone_outlined, controller: _phoneController,inputFormatters: [FilteringTextInputFormatter.digitsOnly]),
 
             const SizedBox(height: 10),
             Text("Address Information", style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
             const SizedBox(height: 6),
-
-            _buildTextField(label: "Street Address", hint: "", icon: Icons.location_on_outlined, controller: _streetController),
+            _buildTextField(label: "Street Address", hint: "", icon: Icons.location_on_outlined, controller: _streetController, inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z ]'))]),
             Row(
               children: [
-                Expanded(child: _buildTextField(label: "City", hint: "", controller: _cityController)),
+                Expanded(child: _buildTextField(label: "City", hint: "", controller: _cityController, inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z ]'))])),
                 const SizedBox(width: 8),
-                Expanded(child: _buildTextField(label: "State", hint: " ", controller: _stateController)),
+                Expanded(child: _buildTextField(label: "State", hint: " ", controller: _stateController,inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z ]'))])),
                 const SizedBox(width: 8),
-                Expanded(child: _buildTextField(label: "ZIP Code", hint: "", controller: _zipController)),
+                Expanded(child: _buildTextField(label: "ZIP Code", hint: "", controller: _zipController,inputFormatters: [FilteringTextInputFormatter.digitsOnly])),
               ],
             ),
 
@@ -286,6 +286,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     int maxLines = 1,
     TextEditingController? controller,
     bool enabled = true,
+    TextInputType keyboardType = TextInputType.text,
+    List<TextInputFormatter>? inputFormatters,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
@@ -294,6 +296,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         obscureText: obscure,
         maxLines: maxLines,
         controller: controller,
+        keyboardType: keyboardType,
+        inputFormatters: inputFormatters,
         decoration: InputDecoration(
           labelText: label,
           hintText: hint,
