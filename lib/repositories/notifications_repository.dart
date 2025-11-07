@@ -76,4 +76,46 @@ class DeviceRegistrationRepository {
       throw Exception('Failed to fetch notifications: ${response.statusCode}');
     }
   }
+
+
+  Future<String> markAsRead(int notificationId) async {
+    print("Mark as read called for notification ID: $notificationId");
+    final String? token = await SecureStorage.getLoginToken();
+    final uri = Uri.parse(ApiConstants.markAsReadUrl);
+
+    final body = jsonEncode({
+      "notification_id": notificationId,
+    });
+
+    final response = await http.post(
+      uri,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: body,
+    );
+
+    print("Mark as read API:");
+    print("URI: $uri");
+    print("Request body: $body");
+    print("Status code: ${response.statusCode}");
+    print("Response body: ${response.body}");
+
+    final Map<String, dynamic> data = json.decode(response.body);
+
+    if (response.statusCode == 200) {
+      return data['message']?.toString() ??
+          'Notifications marked as read successfully';
+    } else if (response.statusCode == 401) {
+      throw Exception(
+          'Unauthorized (401). Token may be expired/invalid. Please log in again.');
+    } else {
+      throw Exception(
+          data['message']?.toString() ??
+              'Failed to mark notifications as read: ${response.statusCode}');
+    }
+  }
+
 }

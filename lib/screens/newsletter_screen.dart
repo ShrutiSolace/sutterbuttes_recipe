@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sutterbuttes_recipe/screens/state/newsletter_provider.dart';
 import 'newsletter_confirmation_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 
 class NewsletterScreen extends StatefulWidget {
   const NewsletterScreen({super.key});
@@ -385,8 +387,17 @@ class _NewsletterScreenState extends State<NewsletterScreen> {
                 const TextSpan(text: 'I agree to receive email newsletters from Sutter Buttes Olive Oil. I understand that I can unsubscribe at any time. '),
                 WidgetSpan(
                   child: GestureDetector(
-                    onTap: () {
-                      // TODO: Navigate to privacy policy
+                    onTap: () async {
+                      final uri = Uri.parse('https://sutterbuttesoliveoil.com/privacy-policy/');
+                      if (await canLaunchUrl(uri)) {
+                        await launchUrl(uri, mode: LaunchMode.externalApplication);
+                      } else {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Could not open privacy policy')),
+                          );
+                        }
+                      }
                     },
                     child: const Text(
                       'View Privacy Policy',

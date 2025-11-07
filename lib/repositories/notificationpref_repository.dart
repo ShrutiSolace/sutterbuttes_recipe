@@ -19,6 +19,11 @@ class NotificationRepository {
         'Content-Type': 'application/json',
       },
     );
+     print("notificatins pref get method called");
+     print("url: $uri");
+     print("Response body: ${response.body}");
+     print("Request body: ${response.request}");
+     print("status code: ${response.statusCode}");
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = json.decode(response.body);
@@ -43,6 +48,11 @@ class NotificationRepository {
       },
       body: json.encode(payload),
     );
+    print("uri: $uri");
+    print("Response body: ${response.body}");
+    print("Request body: ${response.request}");
+
+    print("status code: ${response.statusCode}");
 
     final Map<String, dynamic> data = json.decode(response.body);
     if (response.statusCode == 200) {
@@ -76,6 +86,50 @@ class NotificationRepository {
       throw Exception(data['message']?.toString() ?? 'Failed to reset preferences: ${response.statusCode}');
     }
   }
+
+
+ /* Future<String> markAsRead(int notificationId) async {
+    final String? token = await SecureStorage.getLoginToken();
+    final uri = Uri.parse(ApiConstants.markAsReadUrl);
+
+    final body = jsonEncode({
+      "notification_id": notificationId,
+    });
+
+    final response = await http.post(
+      uri,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: body,
+    );
+
+    print("Mark as read API:");
+    print("URI: $uri");
+    print("Request body: $body");
+    print("Status code: ${response.statusCode}");
+    print("Response body: ${response.body}");
+
+    final Map<String, dynamic> data = json.decode(response.body);
+
+    if (response.statusCode == 200) {
+      return data['message']?.toString() ??
+          'Notifications marked as read successfully';
+    } else if (response.statusCode == 401) {
+      throw Exception(
+          'Unauthorized (401). Token may be expired/invalid. Please log in again.');
+    } else {
+      throw Exception(
+          data['message']?.toString() ??
+              'Failed to mark notifications as read: ${response.statusCode}');
+    }
+  }
+*/
+
+
+
 }
 
 

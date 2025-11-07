@@ -1,7 +1,9 @@
 // lib/screens/recipe_detail_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
+import '../modal/rating_model.dart';
 import '../modal/recipe_model.dart';
+import '../repositories/rating_repository.dart';
 
 class RecipeDetailScreen extends StatelessWidget {
   final RecipeItem recipe;
@@ -63,21 +65,32 @@ class RecipeDetailScreen extends StatelessWidget {
 
                   const SizedBox(height: 8),
 
-
                   // Rating
-                  Row(
-                    children: const [
-                      Icon(Icons.star, color: Colors.amber, size: 24),
-                      SizedBox(width: 8),
-                      Text(
-                        '0.0',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF4A3D4D),
-                        ),
-                      ),
-                    ],
+                  FutureBuilder<RatingsModel>(
+                    future: RatingsRepository().getRecipeRatings(recipe.id),
+                    builder: (context, snapshot) {
+                      String ratingText = '0.0';
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        ratingText = 'Loading...';
+                      } else if (snapshot.hasData) {
+                        ratingText = snapshot.data!.average.toStringAsFixed(1);
+                      }
+
+                      return Row(
+                        children: [
+                          const Icon(Icons.star, color: Colors.amber, size: 24),
+                          const SizedBox(width: 8),
+                          Text(
+                            ratingText,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF4A3D4D),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                   const SizedBox(height: 24),
 

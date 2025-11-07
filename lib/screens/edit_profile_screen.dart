@@ -212,14 +212,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             const SizedBox(height: 10),
             Text("Address Information", style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
             const SizedBox(height: 6),
-            _buildTextField(label: "Street Address", hint: "", icon: Icons.location_on_outlined, controller: _streetController, inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z ]'))]),
+            _buildTextField(label: "Street Address", hint: "", icon: Icons.location_on_outlined, controller: _streetController, inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9 ]'))]),
             Row(
               children: [
                 Expanded(child: _buildTextField(label: "City", hint: "", controller: _cityController, inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z ]'))])),
                 const SizedBox(width: 8),
                 Expanded(child: _buildTextField(label: "State", hint: " ", controller: _stateController,inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z ]'))])),
                 const SizedBox(width: 8),
-                Expanded(child: _buildTextField(label: "ZIP Code", hint: "", controller: _zipController,inputFormatters: [FilteringTextInputFormatter.digitsOnly])),
+                Expanded(child: Expanded(child: _buildTextField(label: "ZIP Code", hint: "", controller: _zipController, keyboardType: TextInputType.number, inputFormatters: [FilteringTextInputFormatter.digitsOnly])),),
               ],
             ),
 

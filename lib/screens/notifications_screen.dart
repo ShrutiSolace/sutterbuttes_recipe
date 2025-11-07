@@ -15,6 +15,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   bool _isLoading = false;
   String? _error;
 
+  final Set<int> _markedAsReadIds = {}; // Track marked as read notification IDs
   @override
   void initState() {
     super.initState();
@@ -31,6 +32,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       final response = await _notificationsRepository.getNotifications();
       setState(() {
         _notifications = response.notifications ?? [];
+        // Apply marked as read state from our local tracking
+        for (var notification in _notifications) {
+          if (notification.id != null && _markedAsReadIds.contains(notification.id)) {
+            notification.markedAsRead = true;
+            notification.status = 'read';
+          }
+        }
         _isLoading = false;
       });
     } catch (e) {
@@ -40,6 +48,41 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       });
     }
   }
+
+
+  Future<void> _markAsRead(int notificationId, int index) async {
+    try {
+      await _notificationsRepository.markAsRead(notificationId);
+      _markedAsReadIds.add(notificationId);
+      setState(() {
+        _notifications[index].markedAsRead = true;
+        _notifications[index].status = 'read';
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            backgroundColor: Colors.green,
+            content: Text('Marked as read'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+
+
 
   String _formatDate(String? dateString) {
     if (dateString == null || dateString.isEmpty) return '';
@@ -133,9 +176,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: _notifications.length,
-        itemBuilder: (context, index) {
+      /*  itemBuilder: (context, index) {
           final notification = _notifications[index];
           return _NotificationCard(notification: notification);
+        },*/
+        itemBuilder: (context, index) {
+          final notification = _notifications[index];
+          return _NotificationCard(
+            notification: notification,
+            onMarkAsRead: () => _markAsRead(notification.id!, index),
+          );
         },
       ),
     );
@@ -144,8 +194,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
 class _NotificationCard extends StatelessWidget {
   final NotificationItem notification;
+  final VoidCallback onMarkAsRead;
 
-  const _NotificationCard({required this.notification});
+  const _NotificationCard({
+    required this.notification,
+    required this.onMarkAsRead,
+  });
 
   String _formatDate(String? dateString) {
     if (dateString == null || dateString.isEmpty) return '';
@@ -187,13 +241,36 @@ class _NotificationCard extends StatelessWidget {
       child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          notification.topic ?? 'No Topic',
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF4A3D4D),
-          ),
+        // Add Row for topic and mark as read button
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                notification.topic ?? 'No Topic',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF4A3D4D),
+                ),
+              ),
+            ),
+            // Mark as Read button - only show if not already read
+            if (notification.markedAsRead != true)
+              TextButton.icon(
+                onPressed: onMarkAsRead,
+                icon: const Icon(Icons.check_circle_outline, size: 18),
+                label: const Text(
+                  'Mark as Read',
+                  style: TextStyle(fontSize: 12),
+                ),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+              ),
+          ],
         ),
         const SizedBox(height: 8),
         Text(

@@ -203,7 +203,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+                          MaterialPageRoute(builder: (_) =>  NotificationsScreen()),
                         ).then((_) {
                           setState(() {
                             _unreadNotificationCount = 0;

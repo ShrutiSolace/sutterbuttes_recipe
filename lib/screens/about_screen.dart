@@ -168,22 +168,22 @@ class _AboutScreenState extends State<AboutScreen> {
           ),
           const SizedBox(height: 8),
           value != null
-              ? Html(data: value.toString(),
-            style: {
-              "img": Style(
-                width: Width(200), // Set image width
-                height: Height(150), // Set image height
-                margin: Margins.symmetric(horizontal: 20, vertical: 10),
-                alignment: Alignment.center, // Center the image
-              ),
-              "body": Style(
-                margin: Margins.zero,
-                padding: HtmlPaddings.zero,
-              ),
-            },
-
-
-          ) // <-- Render HTML content
+              ? Center(
+            child: Html(data: value.toString(),
+              style: {
+                "img": Style(
+                  width: Width(300), // Set image width
+                  height: Height(150), // Set image height
+                  margin: Margins.symmetric( vertical: 10),
+                  alignment: Alignment.center, // Center the image
+                ),
+                "body": Style(
+                  margin: Margins.zero,
+                  padding: HtmlPaddings.zero,
+                ),
+              },
+            ), // <-- Render HTML content
+          )
               : const Text('N/A', style: TextStyle(fontSize: 14, color: Colors.black54)),
         ],
       ),

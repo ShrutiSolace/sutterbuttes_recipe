@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:sutterbuttes_recipe/screens/trending_recipe_detail_screen.dart';
 
+import '../modal/rating_model.dart';
 import '../modal/trending_recipes_model.dart';
+import '../repositories/rating_repository.dart';
 import '../repositories/recipe_list_repository.dart';
 
 
@@ -49,6 +51,7 @@ class AllTrendingRecipesScreen extends StatelessWidget {
                     ? double.tryParse(r.rating!) ?? 0.0
                     : 0.0,
                 imageUrl: r.image ?? '',
+                recipeId: r.id,
               );
             },
           );
@@ -64,12 +67,14 @@ class _TrendingRecipeListItem extends StatelessWidget {
   final String description;
   final double rating;
   final String imageUrl;
+  final int? recipeId;
 
   const _TrendingRecipeListItem({
     required this.title,
     required this.description,
     required this.rating,
     required this.imageUrl,
+    this.recipeId,
   });
 
   @override
@@ -85,6 +90,7 @@ class _TrendingRecipeListItem extends StatelessWidget {
               description: description,
               rating: rating,
               imageUrl: imageUrl,
+              recipeId: recipeId,
             ),
           ),
         );
@@ -147,7 +153,36 @@ class _TrendingRecipeListItem extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 8),
-                    Row(
+                    const SizedBox(height: 8),
+                    // Rating - Dynamic from API if recipeId is available
+                    recipeId != null
+                        ? FutureBuilder<RatingsModel>(
+                      future: RatingsRepository().getRecipeRatings(recipeId!),
+                      builder: (context, snapshot) {
+                        String ratingText = rating.toString();
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          ratingText = 'Loading...';
+                        } else if (snapshot.hasData) {
+                          ratingText = snapshot.data!.average.toStringAsFixed(1);
+                        }
+
+                        return Row(
+                          children: [
+                            const Icon(Icons.star, color: Colors.amber, size: 16),
+                            const SizedBox(width: 4),
+                            Text(
+                              ratingText,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    )
+                        : Row(
                       children: [
                         const Icon(Icons.star, color: Colors.amber, size: 16),
                         const SizedBox(width: 4),

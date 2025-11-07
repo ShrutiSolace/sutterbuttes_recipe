@@ -49,6 +49,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     super.initState();
     _loadBillingInfo();
 
+
+    // Refresh cart data when checkout screen opens
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<CartProvider>().loadCart();
+    });
+
+
     // Listen to billing changes
     _bFirst.addListener(_syncShippingWithBilling);
     _bLast.addListener(_syncShippingWithBilling);
@@ -68,6 +75,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
 
   bool _submitting = false;
+  bool _paymentSuccessful = false;
   Map<String, dynamic>? paymentIntentData;
  // String _selectedPaymentMethod = 'cod';
   String _selectedPaymentMethod = 'stripe';
@@ -169,9 +177,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     // Convert subtotal to double for calculations
     final subtotalDouble = double.tryParse(subtotal.toString()) ?? 0.0;
-
-    // Update default shipping if subtotal < 100
-    // Use addPostFrameCallback to avoid calling setState during build
     if (subtotalDouble > 0) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
@@ -218,7 +223,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     LengthLimitingTextInputFormatter(10),
                   ],
                 ),
-                _field('Address *', _bAddress, maxLines: 2, inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z ]'))]
+                _field('Address *', _bAddress, maxLines: 2, inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9 ]'))]
                 ),
                 _field('City *', _bCity, inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z ]'))]),
                 _field('State *', _bState, inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z ]'))]),
@@ -395,15 +400,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   }).toList();
                 }
 
-
-
-
-
-
-
-
-
-
                       final method = _selectedPaymentMethod;
                       final resp = await _placeOrder(paymentMethod: method);
                       if (resp == null) return;
@@ -421,6 +417,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
+
+
   Widget _sectionTitle(String t) => Text(t, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF4A3D4D)));
 
   Widget _grid(List<Widget> fields) {
@@ -433,6 +431,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       ),
     );
   }
+
+
 
   Widget _verticalGrid(List<Widget> fields) {
     return Padding(
@@ -447,6 +447,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       ),
     );
   }
+
 
   Widget _field(
       String label,
@@ -550,12 +551,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           }
         }
 
-        return null; // Valid
+        return null;
       },
     );
   }
 
-  // ADD THIS METHOD HERE (between line 164 and 166)
+
   void _onSameAsBillingChanged(bool? value) {
     setState(() {
       _sameAsBilling = value ?? false;
@@ -608,23 +609,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               state: _bState.text,
               postalCode: _bZip.text,
             ),
-
-
-              // 👈 Sets default country to US
-            ),
+          ),
           ),
         );
 
 
       print("====== Show the payment sheet");
 
-
       try {
+
         await Stripe.instance.presentPaymentSheet();
 
         print("====== Payment sheet closed successfully");
-
-
         print("====== Notify your backend to confirm payment");
 
         setState(() => _submitting = true);
@@ -635,11 +631,26 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           if (mounted) setState(() => _submitting = false);
         }
 
-        if (value) {
+      /*  if (value) {
           await context.read<CartProvider>().loadCart();  // <— ADD HERE
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Payment successful'),
              ),
+          );
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const OrderSuccessScreen()),
+          );
+        }
+*/
+        if (value) {
+          setState(() {
+            _paymentSuccessful = true;  // Add this line
+          });
+          await context.read<CartProvider>().loadCart();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Payment successful'),
+            ),
           );
           Navigator.pushReplacement(
             context,
@@ -658,20 +669,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         );
         await _restoreCartItems();
         if (mounted) {
-          Navigator.pop(context); // Go back to cart screen
+          Navigator.pop(context);
         }
-
 
       } catch (e) {
         print("====== Unexpected payment error: $e");
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Payment failed: $e')),
         );
+
         await _restoreCartItems();
         if (mounted) {
-          Navigator.pop(context); // Go back to cart screen
+          Navigator.pop(context);
         }
-
       }
     } catch (e) {
       print("====== makePayment() exception: $e");

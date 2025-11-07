@@ -53,7 +53,7 @@ class RecipeListRepository {
     print(response.body.length > 1000
         ? response.body.substring(0, 1000) + '... [truncated]'
         : response.body);
-    print('⬅️ Response Body End <<<');
+    print('Response Body End ');
     print('======================================');
 
     if (response.statusCode == 200) {

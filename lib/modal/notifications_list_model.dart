@@ -15,6 +15,8 @@ class NotificationsListModel {
       });
     }
   }
+
+
   bool? success;
   int? count;
   List<NotificationItem>? notifications;
@@ -32,29 +34,38 @@ class NotificationsListModel {
 
 class NotificationItem {
   NotificationItem({
+    this.id,
     this.topic,
     this.message,
     this.date,
     this.status,
+    this.markedAsRead,
   });
 
   NotificationItem.fromJson(dynamic json) {
+    id = json['id'];
     topic = json['topic'];
     message = json['message'];
     date = json['date'];
     status = json['status'];
+    markedAsRead = json['mark_as_read'] ?? json['marked_as_read'] ?? false;
+
   }
+  int? id;
   String? topic;
   String? message;
   String? date;
   String? status;
+  bool? markedAsRead;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
+    map['id'] = id;
     map['topic'] = topic;
     map['message'] = message;
     map['date'] = date;
     map['status'] = status;
+    map['marked_as_read'] = markedAsRead;
     return map;
   }
 }

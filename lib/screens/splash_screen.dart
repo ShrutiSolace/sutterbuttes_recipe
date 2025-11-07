@@ -24,13 +24,13 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Future<void>.delayed(const Duration(seconds: 2), () async {
+    Future<void>.delayed(const Duration(seconds: 1), () async {
       if (!mounted) return;
 
       // Get AuthProvider instance
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-      // Wait for auth state to be restored
+      // Wait for auth state to be restoreds
       await authProvider.restoreAuthState();
 
       if (!mounted) return; // Check again after async operation

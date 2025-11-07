@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../repositories/notification_repository.dart';
+import '../repositories/notificationpref_repository.dart';
 import '../modal/notification_pref_model.dart';
 
 class NotificationSettingsPage extends StatefulWidget {
@@ -93,7 +93,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _buildSectionTitle('Email Notifications'),
+              /*_buildSectionTitle('Email Notifications'),
               _buildSettingRow(
                 'New Recipes',
                 'Get notified when new recipes are added',
@@ -133,8 +133,8 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                     _emailNewsletter = value;
                   });
                 },
-              ),
-              const Divider(),
+              ),*/
+             // const Divider(),
               _buildSectionTitle('Push Notifications'),
               _buildSettingRow(
                 'New Recipes',
@@ -176,7 +176,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                   });
                 },
               ),
-              const Divider(),
+              /*const Divider(),
               _buildSectionTitle('SMS Notifications'),
               _buildSettingRow(
                 'Order Updates',
@@ -229,7 +229,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                     _appSocialFeatures = value;
                   });
                 },
-              ),
+              ),*/
               const SizedBox(height: 24),
               ElevatedButton.icon(
                 onPressed: () async {
@@ -289,7 +289,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                 child: const Text('Reset to Defaults'),
               ),
               const SizedBox(height: 24),
-              const Text(
+              /*const Text(
                 'About Notifications',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
@@ -297,7 +297,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
               const Text(
                 'You can change these settings at any time. Some notifications are essential for order tracking and account security. We respect your privacy and will never share your information with third parties.',
                 style: TextStyle(color: Colors.black54),
-              ),
+              ),*/
             ],
           ),
         ),

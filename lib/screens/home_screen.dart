@@ -12,8 +12,10 @@ import 'package:sutterbuttes_recipe/screens/trending_product_detail_screen.dart'
 import 'package:sutterbuttes_recipe/screens/trending_recipe_detail_screen.dart';
 import 'package:sutterbuttes_recipe/screens/trending_screen.dart';
 import '../modal/product_model.dart';
+import '../modal/rating_model.dart';
 import '../modal/search_model.dart';
 import '../repositories/notifications_repository.dart';
+import '../repositories/rating_repository.dart';
 import '../services/notification_service.dart';
 import 'all_trending_products_screen.dart';
 import 'bottom_navigation.dart';
@@ -1211,6 +1213,7 @@ class _TrendingThisWeekSection extends StatelessWidget {
                         ? double.tryParse(r.rating!) ?? 0.0
                         : 0.0,
                     imageUrl: r.image ?? '',
+                    recipeId: r.id,
               );
             },
           ),
@@ -1228,12 +1231,14 @@ class _TrendingRecipeCard extends StatelessWidget {
   final String description;
   final double rating;
   final String imageUrl;
+  final int? recipeId;
 
   const _TrendingRecipeCard({
     required this.title,
     required this.description,
     required this.rating,
     required this.imageUrl,
+    this.recipeId,
   });
 
   @override
@@ -1249,16 +1254,16 @@ class _TrendingRecipeCard extends StatelessWidget {
                 description: description,
                 rating: rating,
                 imageUrl: imageUrl,
+                recipeId: recipeId,
+
+
+
               ),
             ),
           );
         },
 
-
-
-
-
-    child:  Container(
+        child:  Container(
       width: 200,
       margin: const EdgeInsets.only(right: 16),
       decoration: BoxDecoration(
@@ -1324,7 +1329,43 @@ class _TrendingRecipeCard extends StatelessWidget {
                 const SizedBox(height: 12),
                 
                 // Rating
-                Row(
+                // Rating - Dynamic from API if recipeId is available
+                recipeId != null
+                    ? FutureBuilder<RatingsModel>(
+                  future: RatingsRepository().getRecipeRatings(recipeId!),
+                  builder: (context, snapshot) {
+                    String ratingText = rating.toString();
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      ratingText = 'Loading...';
+                    } else if (snapshot.hasData) {
+                      ratingText = snapshot.data!.average.toStringAsFixed(1);
+                    } else if (snapshot.hasError) {
+                      // If error, show the static rating as fallback
+                      print('Error loading rating: ${snapshot.error}');
+                      ratingText = rating.toString();
+                    }
+
+                    return Row(
+                      children: [
+                        const Icon(
+                          Icons.star,
+                          color: Colors.amber,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          ratingText,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                )
+                    : Row(
                   children: [
                     const Icon(
                       Icons.star,

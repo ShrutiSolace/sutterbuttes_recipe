@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:html_unescape/html_unescape.dart';
+
+import '../modal/rating_model.dart';
+import '../repositories/rating_repository.dart';
 class TrendingRecipeDetailsScreen extends StatelessWidget {
   final String title;
   final String description;
   final double rating;
   final String imageUrl;
+  final int? recipeId; // Add this line
 
   const TrendingRecipeDetailsScreen({
     super.key,
@@ -12,6 +16,7 @@ class TrendingRecipeDetailsScreen extends StatelessWidget {
     required this.description,
     required this.rating,
     required this.imageUrl,
+    this.recipeId, // Add this line (optional)
   });
 
   @override
@@ -60,7 +65,35 @@ class TrendingRecipeDetailsScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Row(
+                  const SizedBox(height: 8),
+                  // Rating - Dynamic from API if recipeId is available
+                  recipeId != null
+                      ? FutureBuilder<RatingsModel>(
+                    future: RatingsRepository().getRecipeRatings(recipeId!),
+                    builder: (context, snapshot) {
+                      String ratingText = rating.toString();
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        ratingText = 'Loading...';
+                      } else if (snapshot.hasData) {
+                        ratingText = snapshot.data!.average.toStringAsFixed(1);
+                      }
+
+                      return Row(
+                        children: [
+                          const Icon(Icons.star, color: Colors.amber),
+                          const SizedBox(width: 4),
+                          Text(
+                            ratingText,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  )
+                      : Row(
                     children: [
                       const Icon(Icons.star, color: Colors.amber),
                       const SizedBox(width: 4),
