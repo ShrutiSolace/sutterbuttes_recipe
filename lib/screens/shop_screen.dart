@@ -59,7 +59,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
 
 
   Future<void> _loadUnreadNotificationCount() async {
-    if (_hasViewedNotifications) return;
+   // if (_hasViewedNotifications) return;
     try {
       final notificationsRepository = DeviceRegistrationRepository();
       final response = await notificationsRepository.getNotifications();
@@ -204,11 +204,10 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (_) =>  NotificationsScreen()),
-                        ).then((_) {
-                          setState(() {
-                            _unreadNotificationCount = 0;
-                            _hasViewedNotifications = true;   // Reset local count
-                          });
+                        )..then((_) {
+                          // Always reload from API to get accurate count after marking as read
+                          _hasViewedNotifications = false; // Reset flag to allow reload
+                          _loadUnreadNotificationCount(); // Reload actual count from API
                         });
                       },
                       child: Stack(

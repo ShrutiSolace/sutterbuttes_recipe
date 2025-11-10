@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../repositories/notifications_repository.dart';
 import '../modal/notifications_list_model.dart';
 
@@ -15,11 +16,29 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   bool _isLoading = false;
   String? _error;
 
-  final Set<int> _markedAsReadIds = {}; // Track marked as read notification IDs
+  final Set<int> _markedAsReadIds = {}; // Track read IDs
+
   @override
   void initState() {
     super.initState();
+    _loadReadIds(); // Load previously marked-as-read notifications
+  }
+
+  // 🔹 Load saved read notification IDs from SharedPreferences
+  Future<void> _loadReadIds() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedIds = prefs.getStringList('readNotificationIds') ?? [];
+    _markedAsReadIds.addAll(savedIds.map(int.parse));
     _loadNotifications();
+  }
+
+  // 🔹 Save read notification IDs to SharedPreferences
+  Future<void> _saveReadIds() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(
+      'readNotificationIds',
+      _markedAsReadIds.map((id) => id.toString()).toList(),
+    );
   }
 
   Future<void> _loadNotifications() async {
@@ -30,15 +49,27 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
     try {
       final response = await _notificationsRepository.getNotifications();
-      setState(() {
-        _notifications = response.notifications ?? [];
-        // Apply marked as read state from our local tracking
-        for (var notification in _notifications) {
-          if (notification.id != null && _markedAsReadIds.contains(notification.id)) {
-            notification.markedAsRead = true;
-            notification.status = 'read';
-          }
+      final fetched = response.notifications ?? [];
+
+      for (var notification in fetched) {
+        final status = notification.status?.toLowerCase();
+
+        // If API or local saved data indicates it's read
+        if (notification.markedAsRead == true ||
+            notification.markedAsRead == true ||
+            status == 'read' ||
+            status == 'success' ||
+            (notification.id != null && _markedAsReadIds.contains(notification.id))) {
+          notification.markedAsRead = true;
+          notification.status = 'read';
+          if (notification.id != null) _markedAsReadIds.add(notification.id!);
         }
+      }
+
+      await _saveReadIds(); // Save again in case new ones got marked from API
+
+      setState(() {
+        _notifications = fetched;
         _isLoading = false;
       });
     } catch (e) {
@@ -49,11 +80,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
-
   Future<void> _markAsRead(int notificationId, int index) async {
     try {
       await _notificationsRepository.markAsRead(notificationId);
+
       _markedAsReadIds.add(notificationId);
+      await _saveReadIds();
+
       setState(() {
         _notifications[index].markedAsRead = true;
         _notifications[index].status = 'read';
@@ -81,13 +114,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
-
-
-
   String _formatDate(String? dateString) {
     if (dateString == null || dateString.isEmpty) return '';
     try {
-      // Parse "2025-10-31 07:25:04" format
       final dateTime = DateTime.parse(dateString);
       return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
     } catch (e) {
@@ -104,9 +133,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
+          onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
           'Notifications',
@@ -153,18 +180,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.notifications_none,
-              size: 64,
-              color: Colors.grey[400],
-            ),
+            Icon(Icons.notifications_none, size: 64, color: Colors.grey[400]),
             const SizedBox(height: 16),
             Text(
               'No notifications available',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
             ),
           ],
         ),
@@ -176,10 +196,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: _notifications.length,
-      /*  itemBuilder: (context, index) {
-          final notification = _notifications[index];
-          return _NotificationCard(notification: notification);
-        },*/
         itemBuilder: (context, index) {
           final notification = _notifications[index];
           return _NotificationCard(
@@ -215,7 +231,6 @@ class _NotificationCard extends StatelessWidget {
     if (notification.status == null || notification.status!.isEmpty) {
       return false;
     }
-    // Check if status indicates it's new (unread, new, etc.)
     final status = notification.status!.toLowerCase();
     return status == 'new' || status == 'unread' || status == '0';
   }
@@ -239,57 +254,52 @@ class _NotificationCard extends StatelessWidget {
         ],
       ),
       child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Add Row for topic and mark as read button
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Text(
-                notification.topic ?? 'No Topic',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF4A3D4D),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Topic and button row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  notification.topic ?? 'No Topic',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF4A3D4D),
+                  ),
                 ),
               ),
-            ),
-            // Mark as Read button - only show if not already read
-            if (notification.markedAsRead != true)
-              TextButton.icon(
-                onPressed: onMarkAsRead,
-                icon: const Icon(Icons.check_circle_outline, size: 18),
-                label: const Text(
-                  'Mark as Read',
-                  style: TextStyle(fontSize: 12),
+              if (notification.markedAsRead != true &&
+                  notification.status?.toLowerCase() != 'read' &&
+                  notification.status?.toLowerCase() != 'success')
+                TextButton.icon(
+                  onPressed: onMarkAsRead,
+                  icon: const Icon(Icons.check_circle_outline, size: 18),
+                  label: const Text(
+                    'Mark as Read',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
                 ),
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-              ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Text(
-          notification.message ?? 'No Message',
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey[700],
+            ],
           ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          _formatDate(notification.date),
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[500],
+          const SizedBox(height: 8),
+          Text(
+            notification.message ?? 'No Message',
+            style: TextStyle(fontSize: 14, color: Colors.grey[700]),
           ),
-        ),
-      ],
-    ),
+          const SizedBox(height: 8),
+          Text(
+            _formatDate(notification.date),
+            style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+          ),
+        ],
+      ),
     );
   }
 }

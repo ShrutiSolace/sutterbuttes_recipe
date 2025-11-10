@@ -116,7 +116,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
 
-
   Future<void> _loadBillingInfo() async {
     print("Fetching the billing info");
     try {
@@ -188,7 +187,25 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     const brandGreen = Color(0xFF7B8B57);
 
-    return Scaffold(
+    return WillPopScope(
+        onWillPop: () async {
+          // Only prevent back navigation if payment is processing
+          if (_submitting) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Please wait until your payment is processing.\n''Do not exit or close this screen'),
+                backgroundColor: Color(0xFF7B8B57),
+                duration: Duration(seconds: 3),
+                behavior: SnackBarBehavior.fixed,
+              ),
+            );
+            return false; // Prevent back navigation
+          }
+          return true; // Allow normal back navigation
+        },
+
+
+    child:  Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFF4A3D4D),
         elevation: 0,
@@ -261,8 +278,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               const SizedBox(height: 8),
               _sectionTitle('Shipping Information'),
               _verticalGrid([
-                _field('First Name *', _sFirst , enabled: !_sameAsBilling),
-                _field('Last Name *', _sLast, enabled: !_sameAsBilling),
+                _field('First Name *', _sFirst , enabled: !_sameAsBilling,inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z ]'))]),
+                _field('Last Name *', _sLast, enabled: !_sameAsBilling, inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z ]'))]),
                 _field('Phone *', _sPhone,
                   enabled: !_sameAsBilling,
                   keyboardType: TextInputType.phone,
@@ -272,9 +289,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     LengthLimitingTextInputFormatter(10),
                   ],
                 ),
-                _field('Address *', _sAddress, maxLines: 2,enabled: !_sameAsBilling),
-                _field('City *', _sCity,enabled: !_sameAsBilling),
-                _field('State *', _sState,enabled: !_sameAsBilling),
+                _field('Address *', _sAddress, maxLines: 2,enabled: !_sameAsBilling, inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9 ]'))]),
+                _field('City *', _sCity,enabled: !_sameAsBilling,inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z ]'))]),
+                _field('State *', _sState,enabled: !_sameAsBilling,inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z ]'))]),
                 _field('ZIP Code *', _sZip, keyboardType: TextInputType.number,enabled: !_sameAsBilling,
                   inputFormatters: [
                     FilteringTextInputFormatter.digitsOnly,
@@ -344,7 +361,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
 
             // Shipping Row (only show if shipping > 0)
-            if (_shippingTotal != null && _shippingTotal! > 0)
+            // Shipping Row - Show cost or Free Shipping
+            if (subtotalDouble >= 100)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Shipping:', style: const TextStyle(fontWeight: FontWeight.w600)),
+                    Text('Free Shipping', style: const TextStyle(fontWeight: FontWeight.w500, color: Color(0xFF7B8B57))),
+                  ],
+                ),
+              )
+            else if (_shippingTotal != null && _shippingTotal! > 0)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Row(
@@ -414,6 +443,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ],
         ),
       ),
+    ),
     );
   }
 
@@ -650,6 +680,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           await context.read<CartProvider>().loadCart();
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Payment successful'),
+              backgroundColor: Color(0xFF7B8B57),
             ),
           );
           Navigator.pushReplacement(
@@ -668,9 +699,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           SnackBar(content: Text('Payment cancelled: ${e.error.localizedMessage}')),
         );
         await _restoreCartItems();
-        if (mounted) {
+       /* if (mounted) {
           Navigator.pop(context);
-        }
+        }*/
 
       } catch (e) {
         print("====== Unexpected payment error: $e");
@@ -679,9 +710,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         );
 
         await _restoreCartItems();
-        if (mounted) {
+       /* if (mounted) {
           Navigator.pop(context);
-        }
+        }*/
       }
     } catch (e) {
       print("====== makePayment() exception: $e");
@@ -690,9 +721,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       );
 
       await _restoreCartItems();
-      if (mounted) {
+      /*if (mounted) {
         Navigator.pop(context); // Go back to cart screen
-      }
+      }*/
     }
   }
 
@@ -740,6 +771,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     });
     try {
       final repo = CartRepository();
+      print("=========== SHIPPING FIELDS TEST ===========");
+      print("--- Billing Address ---");
+      print("Billing City: ${_bCity.text.trim()}");
+      print("Billing State: ${_bState.text.trim()}");
+      print("Billing Zip: ${_bZip.text.trim()}");
+      print("--- Shipping Address (Will be sent to API) ---");
+      print("Shipping City: ${_sCity.text.trim()}");
+      print("Shipping State: ${_sState.text.trim()}");
+      print("Shipping Zip: ${_sZip.text.trim()}");
+      print("Shipping Address: ${_sAddress.text.trim()}");
+
+
+
       final resp = await repo.checkout(
         billing: {
           'first_name': _bFirst.text.trim(),

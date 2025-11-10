@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../api_constant.dart';
 import '../modal/cart_model.dart';
+import '../modal/shipping_cost_model.dart';
 import '../services/secure_storage.dart';
 
 
@@ -169,6 +170,58 @@ class CartRepository {
       throw Exception('Checkout failed: ${response.statusCode}');
     }
   }
+
+
+  /*Future<ShippingCostModel> getShippingCost({
+    required String address,
+    required String city,
+    required String state,
+    required String postcode,
+    required String country,
+  }) async {
+    final String? token = await SecureStorage.getLoginToken();
+    final uri = Uri.parse(ApiConstants.shippingUrl);
+
+    final payload = json.encode({
+      'shipping': {
+        'address_1': address,
+        'city': city,
+        'state': state,
+        'postcode': postcode,
+        'country': country,
+      }
+    });
+
+    final response = await http.post(
+      uri,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: payload,
+    );
+
+    print("======== Shipping Cost API ========");
+    print("url: $uri");
+    print("payload: $payload");
+    print("Response: ${response.statusCode} ${response.body}");
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = json.decode(response.body);
+      return ShippingCostModel.fromJson(data);
+    } else if (response.statusCode == 401) {
+      throw Exception('Unauthorized (401). Token may be expired/invalid.');
+    } else {
+      throw Exception('Failed to get shipping cost: ${response.statusCode}');
+    }
+  }
+
+
+
+
+*/
+
 }
 
 

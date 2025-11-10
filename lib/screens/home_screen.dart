@@ -210,9 +210,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
     super.didChangeDependencies();
     // Refresh notification count when screen is visible
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!_hasViewedNotifications) {
-        _loadUnreadNotificationCount();
-      }
+      _loadUnreadNotificationCount(); // Always reload when screen becomes visible
       context.read<CartProvider>().loadCart();
     });
   }
@@ -240,7 +238,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
 
 
   Future<void> _loadUnreadNotificationCount() async {
-    if (_hasViewedNotifications) return;
+    //if (_hasViewedNotifications) return;
     try {
       final notificationsRepository = DeviceRegistrationRepository();
       final response = await notificationsRepository.getNotifications();
@@ -413,14 +411,10 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (_) => const NotificationsScreen()),
-                        ).then((_) {
-                          // Reset count immediately when returning from notifications screen
-                          setState(() {
-                            _unreadNotificationCount = 0;
-                            _hasViewedNotifications = true;
-                          });
-                          // Optionally reload from API to sync (but count should be 0 now)
-                         // _loadUnreadNotificationCount();
+                        )..then((_) {
+
+                          _hasViewedNotifications = false;
+                          _loadUnreadNotificationCount();
                         });
                       },
                       child: Stack(
