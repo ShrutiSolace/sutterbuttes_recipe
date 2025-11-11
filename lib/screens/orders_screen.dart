@@ -11,7 +11,6 @@ class OrdersScreen extends StatefulWidget {
   State<OrdersScreen> createState() => _OrdersScreenState();
 }
 
-
 class _OrdersScreenState extends State<OrdersScreen> {
   final ScrollController _scrollController = ScrollController();
   List<OrderSummary> _orders = [];
@@ -43,7 +42,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
     }
   }
 
-
   Future<void> _loadOrders() async {
     setState(() {
       _isLoading = true;
@@ -67,8 +65,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
     }
   }
 
-
-
   Future<void> _loadMoreOrders() async {
     if (_isLoadingMore || !_hasMoreData) return;
 
@@ -88,7 +84,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
       });
 
 
-
+      // Add this line here:
       print("======++++Has more data: $_hasMoreData, Current orders: ${_orders.length}");
     } catch (e) {
       setState(() {
@@ -96,7 +92,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
       });
     }
   }
-
 
   Future<void> _refreshOrders() async {
     await _loadOrders();
@@ -164,6 +159,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
           final order = _orders[index];
           final created = _formatDateString(order.date);
+
           return GestureDetector(
             onTap: () {
               Navigator.push(
@@ -231,6 +227,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
 
 
+//order detail screen for single order
 class OrderDetailScreen extends StatefulWidget {
   final int orderId;
   const OrderDetailScreen({super.key, required this.orderId});
@@ -464,37 +461,25 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     );
   }
 
- /* String _formatDate(String? dateString) {
-    if (dateString == null || dateString.isEmpty) return '';
-    try {
-      final date = DateTime.parse(dateString);
-      const months = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
-      ];
-      return '${months[date.month - 1]} ${date.day}, ${date.year}';
-    } catch (e) {
-      return dateString ?? '';
-    }
-  }*/
-
-
   String _formatDate(String? dateString) {
     if (dateString == null || dateString.isEmpty) return '';
     try {
-      // Parse the date (assuming it's in UTC)
-      final utcDate = DateTime.parse(dateString);
-      final utcDateTime = utcDate.isUtc ? utcDate : utcDate.toUtc();
 
-      // Convert to PST (UTC-8)
-      final pstDate = utcDateTime.subtract(const Duration(hours: 8));
+        print("API DATE format");
+        print('Current PST time: ${DateTime.now().toUtc().subtract(Duration(hours: 8))}');
+
+      final date = DateTime.parse(dateString);
 
       const months = [
         'January', 'February', 'March', 'April', 'May', 'June',
         'July', 'August', 'September', 'October', 'November', 'December'
       ];
 
-      return '${months[pstDate.month - 1]} ${pstDate.day}, ${pstDate.year} ${pstDate.hour.toString().padLeft(2, '0')}:${pstDate.minute.toString().padLeft(2, '0')} PST';
+
+        int hour12 = date.hour == 0 ? 12 : (date.hour > 12 ? date.hour - 12 : date.hour);
+        String amPm = date.hour < 12 ? 'AM' : 'PM';
+
+        return '${months[date.month - 1]} ${date.day}, ${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')} $amPm PST';
     } catch (e) {
       return dateString ?? '';
     }
@@ -556,36 +541,24 @@ Widget _statusChip(String status) {
   );
 }
 
-/*
-String _formatDateString(String? dateString) {
-  if (dateString == null || dateString.isEmpty) return '';
-  try {
-    final dt = DateTime.tryParse(dateString);
-    if (dt == null) return '';
-    const months = [
-      'January','February','March','April','May','June',
-      'July','August','September','October','November','December'
-    ];
-    final m = months[dt.month - 1];
-    return '$m ${dt.day}, ${dt.year}';
-  } catch (_) {
-    return '';
-  }
-}
-*/
 String _formatDateString(String? dateString) {
   if (dateString == null || dateString.isEmpty) return '';
   try {
 
-    final utcDate = DateTime.parse(dateString);
-    final utcDateTime = utcDate.isUtc ? utcDate : utcDate.toUtc();
-    final pstDate = utcDateTime.subtract(const Duration(hours: 8));
+    print("API DATE format");
+    print('Current PST time: ${DateTime.now().toUtc().subtract(Duration(hours: 8))}');
+
+    final date = DateTime.parse(dateString);
+
     const months = [
       'January', 'February', 'March', 'April', 'May', 'June',
       'July', 'August', 'September', 'October', 'November', 'December'
     ];
 
-    return '${months[pstDate.month - 1]} ${pstDate.day}, ${pstDate.year} ${pstDate.hour.toString().padLeft(2, '0')}:${pstDate.minute.toString().padLeft(2, '0')} PST';
+  int hour12 = date.hour == 0 ? 12 : (date.hour > 12 ? date.hour - 12 : date.hour);
+  String amPm = date.hour < 12 ? 'AM' : 'PM';
+
+  return '${months[date.month - 1]} ${date.day}, ${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')} $amPm PST';
   } catch (e) {
     return dateString ?? '';
   }
