@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sutterbuttes_recipe/repositories/favourites_repository.dart';
 import 'package:sutterbuttes_recipe/screens/product_detailscreen.dart';
 import 'package:sutterbuttes_recipe/screens/recipedetailscreen.dart';
@@ -224,12 +225,12 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
     _debounceTimer = Timer(const Duration(milliseconds: 500), () {
       if (query.isNotEmpty) {
         if (!_isSearching) {
-          setState(() => _isSearching = true); // only once when typing starts
+          setState(() => _isSearching = true);
         }
         context.read<SearchProvider>().searchItems(query);
       } else {
         if (_isSearching) {
-          setState(() => _isSearching = false); // only once when cleared
+          setState(() => _isSearching = false);
         }
         context.read<SearchProvider>().clearSearch();
       }
@@ -238,28 +239,43 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
 
 
   Future<void> _loadUnreadNotificationCount() async {
-    //if (_hasViewedNotifications) return;
+
     try {
       final notificationsRepository = DeviceRegistrationRepository();
       final response = await notificationsRepository.getNotifications();
       final notifications = response.notifications ?? [];
+
       print("+++++++");
       print('=== NOTIFICATION COUNT DEBUG ===');
       print('API Count field: ${response.count}');
       print('Total notifications: ${response.notifications?.length ?? 0}');
 
-      int count = response.count ?? 0;
-      print('Using API count: $count');
+
+      final prefs = await SharedPreferences.getInstance();
+      final savedReadIds = prefs.getStringList('readNotificationIds') ?? [];
+      final readIdsSet = savedReadIds.map((id) => int.tryParse(id)).whereType<int>().toSet();
 
 
-     /* for (var notification in notifications) {
-        if (notification.status != null && notification.status!.isNotEmpty) {
-          final status = notification.status!.toLowerCase();
-          if (status == 'new' || status == 'unread' || status == '0') {
-            count++;
-          }
+      int count = 0;
+      for (var notification in notifications) {
+        if (notification.id != null && readIdsSet.contains(notification.id)) {
+          continue;
         }
-      }*/
+        if (notification.markedAsRead != true) {
+          count++;
+        }
+      }
+
+
+      if (count == 0 && response.count != null && response.count! > 0) {
+        count = response.count!;
+      }
+
+      print('Calculated: $count (Local read: ${readIdsSet.length}), API count: ${response.count}');
+
+
+
+
 
       if (mounted) {
         setState(() {
@@ -299,11 +315,15 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
 
       await recipeProvider.fetchRecipes();
       await Future.delayed(const Duration(milliseconds: 500));
+
       await categoryProvider.fetchCategories();
       await Future.delayed(const Duration(milliseconds: 300));
+
       await productProvider.fetchTrendingProducts();
       _loadUnreadNotificationCount();
-      context.read<CartProvider>().loadCart(); // ← ADD THIS LINE
+
+      context.read<CartProvider>().loadCart();
+
       NotificationService.onNotificationReceived = _loadUnreadNotificationCount;
     //  _loadAllRecipesForSearch();
     });
@@ -313,7 +333,8 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
     final categoryProvider = context.read<RecipeCategoryProvider>();
     final productProvider = context.read<ProductProvider>();
 
-    // Refresh all data
+
+
     await recipeProvider.fetchRecipes();
     await categoryProvider.fetchCategories();
     await productProvider.fetchTrendingProducts();
