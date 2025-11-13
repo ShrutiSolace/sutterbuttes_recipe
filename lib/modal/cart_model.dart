@@ -53,9 +53,9 @@ class Totals {
   });
 
   Totals.fromJson(dynamic json) {
-    subtotal = json['subtotal'];
+    subtotal = (json['subtotal'] as num?)?.toDouble();
   }
-  int? subtotal;
+  double? subtotal;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -82,8 +82,8 @@ class CartItems {
     variationId = json['variation_id'];
     name = json['name'];
     quantity = json['quantity'];
-    price = json['price'];
-    lineTotal = json['line_total'];
+    price = (json['price'] as num?)?.toDouble();  // ✅ FIXED
+    lineTotal = (json['line_total'] as num?)?.toDouble();
     image = json['image'];
     permalink = json['permalink'];
     stockStatus = json['stock_status'];
@@ -92,8 +92,8 @@ class CartItems {
   int? variationId;
   String? name;
   int? quantity;
-  int? price;
-  int? lineTotal;
+  double? price;
+  double? lineTotal;
   String? image;
   String? permalink;
   String? stockStatus;

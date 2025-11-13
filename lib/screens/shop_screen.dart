@@ -6,6 +6,7 @@ import '../repositories/product_repository.dart';
 import '../modal/product_model.dart';
 import '../repositories/favourites_repository.dart';
 import 'package:provider/provider.dart';
+import '../services/notification_service.dart';
 import 'notifications_screen.dart';
 import 'state/cart_provider.dart';
 import 'cart_screen.dart';
@@ -59,6 +60,14 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
   bool _hasViewedNotifications = false;
 
 
+
+  int _currentPage = 1;
+  final int _perPage = 30;
+  bool _isLoadingMore = false;
+  bool _hasMoreData = true;
+  final ScrollController _scrollController = ScrollController();
+
+
   Future<void> _loadUnreadNotificationCount() async {
 
     try {
@@ -78,18 +87,31 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
       final savedReadIds = prefs.getStringList('readNotificationIds') ?? [];
       final readIdsSet = savedReadIds.map((id) => int.tryParse(id)).whereType<int>().toSet();
 
-
       int count = 0;
       for (var notification in notifications) {
+        // Skip if already in local read list
         if (notification.id != null && readIdsSet.contains(notification.id)) {
           continue;
         }
-        if (notification.markedAsRead != true) {
+
+        // Check if API says it's read
+        bool isRead = false;
+
+        // Check API's mark_as_read field
+        if (notification.markedAsRead == true) {
+          isRead = true;
+        }
+
+        // Check API's status field (only 'read' means read, not 'success')
+        final status = notification.status?.toLowerCase();
+        if (status == 'read') {
+          isRead = true;
+        }
+
+        // Only count if NOT read
+        if (!isRead) {
           count++;
         }
-      }
-      if (count == 0 && response.count != null && response.count! > 0) {
-        count = response.count!;
       }
       print('Calculated: $count (Local read: ${readIdsSet.length}), API count: ${response.count}');
 
@@ -109,16 +131,21 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
     }
   }
 
-
-
-
-
   @override
   void initState() {
     super.initState();
     _loadProducts();
     _loadUnreadNotificationCount();
+    _loadUnreadNotificationCount();
+    NotificationService.onNotificationReceived = _loadUnreadNotificationCount;  // ADD THIS
 
+
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 200) {
+        _loadMoreProducts();
+      }
+    });
   }
 
   @override
@@ -132,9 +159,18 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
+    NotificationService.onNotificationReceived = null;
     super.dispose();
   }
+
   Future<void> _refreshProducts() async {
+
+    setState(() {
+      _currentPage = 1;
+      _hasMoreData = true;
+      _products = [];
+    });
     await _loadProducts();
   }
 
@@ -142,13 +178,19 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
     setState(() {
       _isLoadingProducts = true;
       _productError = null;
+      _currentPage = 1;
+      _hasMoreData = true;
     });
 
     try {
-      final products = await _productRepository.getProducts();
+      final products = await _productRepository.getProducts(
+        page: _currentPage,
+        perPage: _perPage,
+      );
       setState(() {
         _products = products;
         _isLoadingProducts = false;
+        _hasMoreData = products.length >= _perPage;
       });
     } catch (e) {
       setState(() {
@@ -158,12 +200,44 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
     }
   }
 
+
+
+  Future<void> _loadMoreProducts() async {
+    if (_isLoadingMore || !_hasMoreData || _isLoadingProducts) return;
+
+    setState(() {
+      _isLoadingMore = true;
+    });
+
+    try {
+      final nextPage = _currentPage + 1;
+      final products = await _productRepository.getProducts(
+        page: nextPage,
+        perPage: _perPage,
+      );
+
+      setState(() {
+        _products.addAll(products);
+        _currentPage = nextPage;
+        _isLoadingMore = false;
+        _hasMoreData = products.length >= _perPage;
+      });
+    } catch (e) {
+      setState(() {
+        _productError = e.toString();
+        _isLoadingMore = false;
+      });
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     const Color brandGreen = Color(0xFF7B8B57);
     final TextTheme textTheme = Theme.of(context).textTheme;
 
     return SingleChildScrollView(
+      controller: _scrollController,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -330,23 +404,40 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
       return const Center(child: Text('No matching products'));
     }
 
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,      // 2 per row (same as recipes)
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        childAspectRatio: 0.65, // adjust height vs width
-      ),
-      padding: const EdgeInsets.all(8),
-      itemCount: data.length,
-      itemBuilder: (context, index) {
-        final product = data[index];
-        return _buildProductCard(product);
-      },
+    return Column(
+      children: [
+        GridView.builder(
+          shrinkWrap: true,  // Add this line
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,      // 2 per row (same as recipes)
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 0.65, // adjust height vs width
+          ),
+          padding: const EdgeInsets.all(8),
+          itemCount: data.length,
+          itemBuilder: (context, index) {
+            final product = data[index];
+            return _buildProductCard(product);
+          },
+        ),
+        // Add loading indicator at bottom
+        if (_isLoadingMore)
+          const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Center(
+              child: CircularProgressIndicator(
+                color: Color(0xFF7B8B57),
+              ),
+            ),
+          ),
+      ],
     );
   }
+
+
+
 
   List<Product> _applyFilters(List<Product> products) {
     Iterable<Product> result = products;

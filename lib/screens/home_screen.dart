@@ -255,20 +255,25 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
       final savedReadIds = prefs.getStringList('readNotificationIds') ?? [];
       final readIdsSet = savedReadIds.map((id) => int.tryParse(id)).whereType<int>().toSet();
 
-
       int count = 0;
       for (var notification in notifications) {
         if (notification.id != null && readIdsSet.contains(notification.id)) {
           continue;
         }
-        if (notification.markedAsRead != true) {
+        bool isRead = false;
+        if (notification.markedAsRead == true) {
+          isRead = true;
+        }
+
+        final status = notification.status?.toLowerCase();
+        if (status == 'read') {
+          isRead = true;
+        }
+
+
+        if (!isRead) {
           count++;
         }
-      }
-
-
-      if (count == 0 && response.count != null && response.count! > 0) {
-        count = response.count!;
       }
 
       print('Calculated: $count (Local read: ${readIdsSet.length}), API count: ${response.count}');

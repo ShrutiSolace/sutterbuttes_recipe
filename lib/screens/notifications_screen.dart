@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../repositories/notifications_repository.dart';
 import '../modal/notifications_list_model.dart';
+import '../services/notification_service.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -18,10 +19,21 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   final Set<int> _markedAsReadIds = {}; // Track read IDs
 
+
   @override
   void initState() {
     super.initState();
     _loadReadIds(); // Load previously marked-as-read notifications
+  }
+
+// Reload notifications when screen becomes visible
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Reload notifications to get latest data
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadNotifications();
+    });
   }
 
   // 🔹 Load saved read notification IDs from SharedPreferences
@@ -54,15 +66,33 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       for (var notification in fetched) {
         final status = notification.status?.toLowerCase();
 
-        // If API or local saved data indicates it's read
-        if (notification.markedAsRead == true ||
-            notification.markedAsRead == true ||
-            status == 'read' ||
-            status == 'success' ||
-            (notification.id != null && _markedAsReadIds.contains(notification.id))) {
+        // Check if notification is already marked as read
+        bool isRead = false;
+
+        // 1. Check API response - markedAsRead field
+        if (notification.markedAsRead == true) {
+          isRead = true;
+        }
+// 2. Check status field from API (only 'read' means read, 'success' is delivery status)
+        if (status == 'read') {  // ✅ FIXED - Only check for 'read'
+          isRead = true;
+        }
+        // 3. Check local saved IDs (only if API doesn't say it's read)
+        if (!isRead && notification.id != null && _markedAsReadIds.contains(notification.id)) {
+          isRead = true;
+        }
+
+        // Only mark as read if confirmed from API or local storage
+        if (isRead) {
           notification.markedAsRead = true;
           notification.status = 'read';
-          if (notification.id != null) _markedAsReadIds.add(notification.id!);
+          if (notification.id != null && !_markedAsReadIds.contains(notification.id!)) {
+            _markedAsReadIds.add(notification.id!);
+          }
+        } else {
+          // Ensure new notifications are explicitly marked as unread
+          notification.markedAsRead = false;
+          // Don't change status if it's null or empty - let it stay as is
         }
       }
 
@@ -92,6 +122,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         _notifications[index].status = 'read';
       });
 
+      // Trigger notification count refresh in bell icon
+      if (NotificationService.onNotificationReceived != null) {
+        NotificationService.onNotificationReceived!();
+      }
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -117,10 +152,22 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   String _formatDate(String? dateString) {
     if (dateString == null || dateString.isEmpty) return '';
     try {
-      final dateTime = DateTime.parse(dateString);
-      return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
+      print("API DATE format");
+      print('Current PST time: ${DateTime.now().toUtc().subtract(Duration(hours: 8))}');
+
+      final date = DateTime.parse(dateString);
+
+      const months = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+      ];
+
+      int hour12 = date.hour == 0 ? 12 : (date.hour > 12 ? date.hour - 12 : date.hour);
+      String amPm = date.hour < 12 ? 'AM' : 'PM';
+
+      return '${months[date.month - 1]} ${date.day}, ${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')} $amPm PST';
     } catch (e) {
-      return dateString;
+      return dateString ?? '';
     }
   }
 
@@ -220,10 +267,24 @@ class _NotificationCard extends StatelessWidget {
   String _formatDate(String? dateString) {
     if (dateString == null || dateString.isEmpty) return '';
     try {
-      final dateTime = DateTime.parse(dateString);
-      return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
+
+      print("API DATE format");
+      print('Current PST time: ${DateTime.now().toUtc().subtract(Duration(hours: 8))}');
+
+      final date = DateTime.parse(dateString);
+
+      const months = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+      ];
+
+
+      int hour12 = date.hour == 0 ? 12 : (date.hour > 12 ? date.hour - 12 : date.hour);
+      String amPm = date.hour < 12 ? 'AM' : 'PM';
+
+      return '${months[date.month - 1]} ${date.day}, ${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')} $amPm PST';
     } catch (e) {
-      return dateString;
+      return dateString ?? '';
     }
   }
 
@@ -271,8 +332,7 @@ class _NotificationCard extends StatelessWidget {
                 ),
               ),
               if (notification.markedAsRead != true &&
-                  notification.status?.toLowerCase() != 'read' &&
-                  notification.status?.toLowerCase() != 'success')
+                  notification.status?.toLowerCase() != 'read')
                 TextButton.icon(
                   onPressed: onMarkAsRead,
                   icon: const Icon(Icons.check_circle_outline, size: 18),

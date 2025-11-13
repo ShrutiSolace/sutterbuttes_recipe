@@ -47,6 +47,7 @@ void main() async {
   try {
     await Firebase.initializeApp();
     await NotificationService.requestPermission();
+    await NotificationService.initializeLocalNotifications();
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
     await NotificationService.getToken();
     NotificationService.listenToForegroundMessages();

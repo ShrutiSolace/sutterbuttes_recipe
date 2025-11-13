@@ -14,7 +14,6 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
   bool _isSearching = false;
   List<Map<String, dynamic>> _filteredResults = [];
 
-
   final TextEditingController _searchController = TextEditingController();
   final Map<String, bool> _expandedItems = {};
 
@@ -34,11 +33,11 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
       'answer': 'On the login page, tap the "Forgot Password?" link. Enter your email address and follow the instructions sent to your email to reset your password.',
       'expanded': false,
     },
-    {
+    /*{
       'question': 'How do I manage my notification preferences?',
       'answer': 'Go to your profile settings and select "Notification Preferences". Here you can choose which types of notifications you want to receive and how often.',
       'expanded': false,
-    },
+    },*/
   ];
 
   final List<Map<String, dynamic>> _recipeQuestions = [
@@ -47,21 +46,21 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
       'answer': 'When viewing a recipe, tap the heart icon in the top right corner to save it to your favorites. You can access all your saved recipes from the Favorites tab.',
       'expanded': false,
     },
-    {
+    /*{
       'question': 'Can I print recipes?',
       'answer': 'Yes! When viewing a recipe, tap the share icon and select "Print" to print the recipe or save it as a PDF.',
       'expanded': false,
-    },
+    },*/
     {
       'question': 'How do I search for specific recipes?',
-      'answer': 'Use the search bar at the top of the recipes page. You can search by ingredients, recipe name, or dietary preferences.',
+      'answer': 'Use the search bar at the top of the recipes page. You can search by ingredients, recipe name.',
       'expanded': false,
     },
-    {
+    /*{
       'question': 'Are the recipes suitable for different dietary restrictions?',
       'answer': 'Yes, our recipes include various dietary options. Use the filter button to find recipes that are vegetarian, vegan, gluten-free, or meet other dietary requirements.',
       'expanded': false,
-    },
+    },*/
   ];
 
   final List<Map<String, dynamic>> _shoppingQuestions = [
@@ -70,72 +69,77 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
       'answer': 'Browse our products and tap the "Add to Cart" button on any item you want to purchase. You can adjust quantities in your cart before checkout.',
       'expanded': false,
     },
-    {
+    /*{
       'question': 'What payment methods do you accept?',
       'answer': 'We accept all major credit cards (Visa, MasterCard, American Express), PayPal, and Apple Pay for secure and convenient payments.',
       'expanded': false,
-    },
-    {
+    },*/
+    /*{
       'question': 'How long does shipping take?',
       'answer': 'Standard shipping takes 3-5 business days. Express shipping (1-2 business days) is available for an additional fee. International shipping may take 7-14 days.',
       'expanded': false,
-    },
-    {
+    },*/
+    /*{
       'question': 'Can I track my order?',
       'answer': 'Yes! Once your order ships, you\'ll receive a tracking number via email. You can also track your order status in your account dashboard.',
       'expanded': false,
-    },
-    {
+    },*/
+   /* {
       'question': 'What is your return policy?',
       'answer': 'We offer a 30-day return policy for unused items in original packaging. Contact our customer service team to initiate a return.',
       'expanded': false,
-    },
+    },*/
   ];
 
   final List<Map<String, dynamic>> _productsQuestions = [
-    {
+    /*{
       'question': 'Where are your olive oils sourced from?',
       'answer': 'Our olive oils are sourced from premium olive groves in California\'s Central Valley, specifically from family-owned farms that have been producing high-quality olives for generations.',
       'expanded': false,
-    },
-    {
+    },*/
+    /*{
       'question': 'Are your products organic?',
       'answer': 'Yes, all our products are certified organic. We work exclusively with organic farmers and use sustainable farming practices to ensure the highest quality and environmental responsibility.',
       'expanded': false,
-    },
-    {
+    },*/
+    /*{
       'question': 'How should I store olive oil?',
       'answer': 'Store olive oil in a cool, dark place away from direct sunlight and heat sources. Keep it tightly sealed and use within 18 months of opening for best flavor and quality.',
       'expanded': false,
-    },
-    {
+    },*/
+    /*{
       'question': 'Do you offer gift cards?',
       'answer': 'Yes, we offer gift cards in various denominations. They can be purchased online and are perfect for food lovers who appreciate high-quality, artisanal products.',
       'expanded': false,
-    },
+    },*/
   ];
 
   final List<Map<String, dynamic>> _contactQuestions = [
+
     {
       'question': 'How can I contact customer service?',
-      'answer': 'You can reach our customer service team by phone at (555) 123-4567, email at support@sutterbuttes.com, or through the contact form on our website. We typically respond within 24 hours.',
+      'answer': 'You can reach our customer service team by phone at 530.763.7921, email at Sales@Sutterbuttesoliveoil.com, or through the contact form on our website. We typically respond within 48 hours.',
       'expanded': false,
     },
-    {
+
+  /*  {
       'question': 'What are your customer service hours?',
       'answer': 'Our customer service team is available Monday through Friday, 9:00 AM to 6:00 PM PST. For urgent matters outside these hours, please email us and we\'ll respond as soon as possible.',
       'expanded': false,
-    },
+    },*/
+
     {
       'question': 'Do you have a physical store?',
-      'answer': 'Yes, we have a flagship store located in downtown Sacramento where you can browse our full product line, sample our olive oils, and speak with our knowledgeable staff.',
+      'answer': 'Yes, we have a physical store Sutter Buttes Natural and Artisan Foods, 1670 Poole Blvd, Yuba City, CA 95993.',
       'expanded': false,
     },
-    {
+
+
+    /*{
       'question': 'Can I schedule a tasting appointment?',
       'answer': 'Absolutely! We offer guided tastings at our store by appointment. Contact us to schedule a tasting session where you can sample our various olive oils and learn about their unique characteristics.',
       'expanded': false,
-    },
+    },*/
   ];
 
   @override
@@ -320,8 +324,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
               _buildFAQSection('Recipes & Cooking', Icons.restaurant, _recipeQuestions, 'recipe'),
               const SizedBox(height: 30),
               _buildFAQSection('Shopping & Orders', Icons.shopping_cart, _shoppingQuestions, 'shopping'),
-              const SizedBox(height: 30),
-              _buildFAQSection('Products & Quality', Icons.inventory, _productsQuestions, 'products'),
+              //_buildFAQSection('Products & Quality', Icons.inventory, _productsQuestions, 'products'),
               const SizedBox(height: 30),
               _buildFAQSection('Contact & Support', Icons.email, _contactQuestions, 'contact'),
             ],

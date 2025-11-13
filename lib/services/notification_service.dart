@@ -2,17 +2,22 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../repositories/notifications_repository.dart';
+
+
 
 class NotificationService {
   static const String _fcmTokenKey = 'fcm_token';
 
 
   static final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
+  static final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
 
-  // Callback to refresh notification count when new notification arrives
+
+
   static VoidCallback? onNotificationReceived;
 
 
@@ -40,12 +45,42 @@ class NotificationService {
     });
   }
 
+  static Future<void> initializeLocalNotifications() async {
+    const AndroidInitializationSettings androidSettings =
+    AndroidInitializationSettings('@mipmap/ic_launcher');
+    const DarwinInitializationSettings iosSettings = DarwinInitializationSettings();
+
+    const InitializationSettings initSettings = InitializationSettings(
+      android: androidSettings,
+      iOS: iosSettings,
+    );
+
+    await _localNotifications.initialize(
+      initSettings,
+      onDidReceiveNotificationResponse: (NotificationResponse response) {
+        // Handle notification tap
+        if (onNotificationReceived != null) {
+          onNotificationReceived!();
+        }
+      },
+    );
+
+    // Request permission for Android 13+
+    if (Platform.isAndroid) {
+      await _localNotifications
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+          ?.requestNotificationsPermission();
+    }
+  }
+
   static void listenToForegroundMessages() {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       print("Foreground message received:");
       print("Title: ${message.notification?.title}");
       print("Body: ${message.notification?.body}");
 
+      // Show local notification
+      _showLocalNotification(message);  // ← ADD THIS LINE HERE
 
 
       // Trigger notification count refresh
@@ -65,7 +100,6 @@ class NotificationService {
       print("Title: ${message.notification?.title}");
       print("Body: ${message.notification?.body}");
 
-
       // Trigger notification count refresh
       if (onNotificationReceived != null) {
         onNotificationReceived!();
@@ -74,6 +108,57 @@ class NotificationService {
 
     });
   }
+
+
+  static Future<void> _showLocalNotification(RemoteMessage message) async {
+    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      'channel_id',
+      'channel_name',
+      channelDescription: 'Notifications channel',
+      importance: Importance.high,
+      priority: Priority.high,
+      showWhen: true,
+    );
+
+    const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    const NotificationDetails details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    await _localNotifications.show(
+      message.hashCode,
+      message.notification?.title ?? 'New Notification',
+      message.notification?.body ?? '',
+      details,
+    );
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   static Future<void> saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();

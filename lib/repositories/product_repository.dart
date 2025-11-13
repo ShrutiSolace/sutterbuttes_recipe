@@ -7,20 +7,23 @@ import '../services/secure_storage.dart';
 
 
 class ProductRepository {
-  Future<List<Product>> getProducts() async {
+
+
+  Future<List<Product>> getProducts({int page = 1, int perPage = 30}) async {
     print("Fetching products from API...");
 
     try {
 
-      // Build URI with only essential parameters
       Uri uri = Uri.parse(ApiConstants.productListUrl).replace(
         queryParameters: {
           'consumer_key': ApiConstants.consumerKey,
           'consumer_secret': ApiConstants.consumerSecret,
+          'per_page': perPage.toString(),
+          'page': page.toString(),
         },
       );
 
-      // Make HTTP GET request
+
       final response = await http.get(
         uri,
         headers: {
@@ -37,11 +40,17 @@ class ProductRepository {
       if (response.statusCode == 200) {
         final List<dynamic> jsonData = json.decode(response.body);
 
+
+
         List<Product> products = jsonData
             .map((productJson) => Product.fromJson(productJson))
             .toList();
 
+        // ADD THIS LINE HERE to see the count:
+        print("=== TOTAL PRODUCTS FROM API: ${products.length} ===");
         return products;
+
+
       } else {
         // Handle error response
         throw Exception('Failed to load products: ${response.statusCode}');

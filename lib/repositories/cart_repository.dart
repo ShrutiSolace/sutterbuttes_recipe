@@ -8,6 +8,8 @@ import '../services/secure_storage.dart';
 
 class CartRepository {
   Future<CartModel> addToCart({required int productId, required int quantity}) async {
+    print("Adding to cart: productId=$productId, quantity=$quantity");
+
     final String? token = await SecureStorage.getLoginToken();
     final uri = Uri.parse(ApiConstants.cartAddUrl);
 
@@ -24,6 +26,7 @@ class CartRepository {
       }),
     );
     print("===ADD to cart ");
+    print("Staus code: ${response.statusCode}");
     print("url: $uri");
     print("Response body: ${response.body}");
     print("Request body: ${response.request}");
@@ -39,6 +42,7 @@ class CartRepository {
   }
 
   Future<CartModel> getCart() async {
+    print("===GET CART ");
     final String? token = await SecureStorage.getLoginToken();
     final uri = Uri.parse(ApiConstants.cartUrl);
 
@@ -50,7 +54,7 @@ class CartRepository {
         'Content-Type': 'application/json',
       },
     );
-
+    print("Staus code: ${response.statusCode}");
     print("url: $uri");
     print("Response body: ${response.body}");
     print("Request body: ${response.request}");

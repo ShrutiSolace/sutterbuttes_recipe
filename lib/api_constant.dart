@@ -1,7 +1,6 @@
 class ApiConstants
 
 {
-
   ///--Base URL --///
   static  String baseUrl = 'https://staging.sutterbuttesoliveoil.com/wp-json';
 
@@ -13,7 +12,7 @@ class ApiConstants
   static String loginUrl = '$baseUrl/jwt-auth/v1/token';
   static String signUpUrl = '$baseUrl/sbo/v1/signup';
   static String refreshTokenUrl = '$baseUrl/jwt-auth/v1/token/refresh';
-  static String validateTokenUrl = '$baseUrl/jwt-auth/v1/token/validate';
+  static String validateTokenUrl = '$baseUrl/jwt-auth/v1/toksen/validate';
   static String forgotPasswordUrl = '$baseUrl/sbo/v1/forgot-password';
   static String googleLoginUrl = "$baseUrl/sbo/v1/google-login";
 
