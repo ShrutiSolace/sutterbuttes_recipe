@@ -69,6 +69,7 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
     const Color unselectedColor = Color(0xFF5F6368); // grey for inactive items
 
     return Scaffold(
+      backgroundColor: Colors.white,
       body: widget.customScreen ?? _pages[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,

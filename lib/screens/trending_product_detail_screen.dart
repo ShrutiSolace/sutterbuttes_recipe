@@ -48,6 +48,7 @@ class _TrendingProductDetailScreenState extends State<TrendingProductDetailScree
   Widget build(BuildContext context) {
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: const Color(0xFF4A3D4D),
         centerTitle: true,

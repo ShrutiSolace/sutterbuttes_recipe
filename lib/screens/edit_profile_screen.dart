@@ -94,6 +94,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text(
           "Personal Information",

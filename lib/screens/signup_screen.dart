@@ -406,8 +406,8 @@ class _SignupScreenState extends State<SignupScreen> {
   Widget _buildBrandHeader() {
     return Center(
       child: Image.asset(
-        'assets/images/Sutter Buttes Logo.png',
-        height: 80,
+        'assets/images/artisan foods logo.jpg',
+        height: 90,
         fit: BoxFit.contain,
         errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
           return const Text(

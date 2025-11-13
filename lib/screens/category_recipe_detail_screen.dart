@@ -20,7 +20,7 @@ class CategoryRecipeDetailScreen extends StatelessWidget {
     final cleanSubtitle = unescape.convert(subtitle);
     return Scaffold(
 
-
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: const Color(0xFF4A3D4D),
         elevation: 0,

@@ -26,6 +26,7 @@ class TrendingRecipeDetailsScreen extends StatelessWidget {
     final description = unescape.convert(this.description);
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         //title: Text(title),
 

@@ -112,7 +112,7 @@ class _AboutScreenState extends State<AboutScreen> {
                 Container(
                   margin: const EdgeInsets.only(bottom: 24),
                   child: Image.asset(
-                    'assets/images/Sutter Buttes Logo.png', // replace with your logo path
+                    'assets/images/artisan foods logo.jpg', // replace with your logo path
                     height: 150,
                     fit: BoxFit.contain,
                   ),
@@ -169,6 +169,7 @@ class _AboutScreenState extends State<AboutScreen> {
           const SizedBox(height: 8),
           value != null
               ? Center(
+
             child: Html(data: value.toString(),
               style: {
                 "img": Style(
@@ -225,7 +226,7 @@ class _AboutScreenState extends State<AboutScreen> {
             children: [
               Expanded(
                 child: SizedBox(
-                  height: 50, // consistent button height
+                  height: 50, // Same height for both
                   child: ElevatedButton(
                     onPressed: () {
                       Navigator.push(
@@ -240,11 +241,13 @@ class _AboutScreenState extends State<AboutScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: const Text(
-                      'Shop Our Products',
-                      style: TextStyle(
-                        fontSize: 15, // same font size for consistency
-                        fontWeight: FontWeight.w600,
+                    child: Center(
+                      child: const Text(
+                        'Shop Our Products',
+                        style: TextStyle(
+                          fontSize: 15, // Same font size for both
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),
@@ -253,7 +256,7 @@ class _AboutScreenState extends State<AboutScreen> {
               const SizedBox(width: 16),
               Expanded(
                 child: SizedBox(
-                  height: 48, // consistent button height
+                  height: 50, // Same height for both
                   child: ElevatedButton(
                     onPressed: () {
                       Navigator.push(
@@ -268,11 +271,13 @@ class _AboutScreenState extends State<AboutScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: const Text(
-                      'Explore Recipes',
-                      style: TextStyle(
-                        fontSize: 14, // same font size
-                        fontWeight: FontWeight.w600,
+                    child: Center(
+                      child: const Text(
+                        'Explore Recipes',
+                        style: TextStyle(
+                          fontSize: 15, // Same font size for both
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),

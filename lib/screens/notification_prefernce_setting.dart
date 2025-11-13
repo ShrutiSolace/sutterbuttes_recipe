@@ -74,6 +74,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text(
           "Notification Settings",
@@ -166,7 +167,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                   });
                 },
               ),
-              _buildSettingRow(
+             /* _buildSettingRow(
                 'Cooking Reminders',
                 'Reminders for saved recipes',
                 _pushCookingReminders,
@@ -175,7 +176,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                     _pushCookingReminders = value;
                   });
                 },
-              ),
+              ),*/
               /*const Divider(),
               _buildSectionTitle('SMS Notifications'),
               _buildSettingRow(

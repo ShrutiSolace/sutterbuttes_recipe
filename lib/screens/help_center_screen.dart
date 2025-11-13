@@ -1,4 +1,6 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HelpCenterScreen extends StatefulWidget {
   const HelpCenterScreen({super.key});
@@ -223,6 +225,118 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
     });
   }
 
+  Widget _buildClickableAnswer(String answer) {
+    // Phone number pattern: 530.763.7921
+    final phonePattern = RegExp(r'\b\d{3}\.\d{3}\.\d{4}\b');
+    // Email pattern
+    final emailPattern = RegExp(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b');
+
+    List<TextSpan> spans = [];
+    int lastIndex = 0;
+
+    // Find all matches
+    final phoneMatch = phonePattern.firstMatch(answer);
+    final emailMatch = emailPattern.firstMatch(answer);
+
+    // Create a list of matches with their positions
+    List<({int start, int end, String text, String type})> matches = [];
+
+    if (phoneMatch != null) {
+      matches.add((
+      start: phoneMatch.start,
+      end: phoneMatch.end,
+      text: phoneMatch.group(0)!,
+      type: 'phone'
+      ));
+    }
+
+    if (emailMatch != null) {
+      matches.add((
+      start: emailMatch.start,
+      end: emailMatch.end,
+      text: emailMatch.group(0)!,
+      type: 'email'
+      ));
+    }
+
+    // Sort matches by position
+    matches.sort((a, b) => a.start.compareTo(b.start));
+
+    // Build text spans
+    for (var match in matches) {
+      // Add text before match
+      if (match.start > lastIndex) {
+        spans.add(TextSpan(
+          text: answer.substring(lastIndex, match.start),
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.grey[700],
+            height: 1.5,
+          ),
+        ));
+      }
+
+      // Add clickable match
+      spans.add(TextSpan(
+        text: match.text,
+        style: TextStyle(
+          fontSize: 14,
+          color: Colors.lightBlue,
+          height: 1.5,
+          decoration: TextDecoration.underline,
+          fontWeight: FontWeight.w500,
+        ),
+        recognizer: TapGestureRecognizer()
+          ..onTap = () async {
+            if (match.type == 'phone') {
+              final phoneNumber = match.text.replaceAll('.', '');
+              final uri = Uri.parse('tel:$phoneNumber');
+              if (await canLaunchUrl(uri)) {
+                await launchUrl(uri);
+              }
+            } else if (match.type == 'email') {
+              final uri = Uri.parse('mailto:${match.text}');
+              if (await canLaunchUrl(uri)) {
+                await launchUrl(uri);
+              }
+            }
+          },
+      ));
+
+      lastIndex = match.end;
+    }
+
+    // Add remaining text
+    if (lastIndex < answer.length) {
+      spans.add(TextSpan(
+        text: answer.substring(lastIndex),
+        style: TextStyle(
+          fontSize: 14,
+          color: Colors.grey[700],
+          height: 1.5,
+        ),
+      ));
+    }
+
+    // If no matches found, return regular text
+    if (spans.isEmpty) {
+      return Text(
+        answer,
+        style: TextStyle(
+          fontSize: 14,
+          color: Colors.grey[700],
+          height: 1.5,
+        ),
+      );
+    }
+
+    return RichText(
+      text: TextSpan(children: spans),
+    );
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -304,14 +418,15 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                         Container(
                           width: double.infinity,
                           padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                          child: Text(
+                          /*child: Text(
                             question['answer'],
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.grey[700],
                               height: 1.5,
                             ),
-                          ),
+                          ),*/
+                          child: _buildClickableAnswer(question['answer']),
                         ),
                       ],
                     ),
@@ -390,14 +505,15 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  child: Text(
+                  /*child: Text(
                     question['answer'],
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey[700],
                       height: 1.5,
                     ),
-                  ),
+                  ),*/
+                  child: _buildClickableAnswer(question['answer']),
                 ),
               ],
             ),

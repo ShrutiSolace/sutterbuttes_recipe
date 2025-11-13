@@ -36,6 +36,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     const Color brandGreen = Color(0xFF7B8B57);
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: const Color(0xFF4A3D4D),
         elevation: 0,

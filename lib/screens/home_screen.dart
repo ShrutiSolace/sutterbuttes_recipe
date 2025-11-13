@@ -43,6 +43,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: const Color(0xFF4A3D4D),
         centerTitle: true,
@@ -312,6 +313,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
   @override
   void initState() {
     super.initState();
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final recipeProvider = context.read<RecipeProvider>();
       final categoryProvider = context.read<RecipeCategoryProvider>();
@@ -319,9 +321,11 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
 
 
       await recipeProvider.fetchRecipes();
+
       await Future.delayed(const Duration(milliseconds: 500));
 
       await categoryProvider.fetchCategories();
+
       await Future.delayed(const Duration(milliseconds: 300));
 
       await productProvider.fetchTrendingProducts();
@@ -353,7 +357,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
     const Color brandGreen = Color(0xFF7B8B57);
     final TextTheme textTheme = Theme.of(context).textTheme;
 
-    // Show search results if searching
+
     if (_isSearching) {
       return Column(
         children: [
@@ -386,7 +390,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
               // Centered logo
               Center(
                 child: Image.asset(
-                  'assets/images/homescreen logo.png',
+                  'assets/images/artisan foods logo.jpg',
                   height: 130,
                   fit: BoxFit.cover,
                 ),
@@ -514,26 +518,62 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
     );
   }
 }
-
-class _SearchBar extends StatelessWidget {
+class _SearchBar extends StatefulWidget {
   final String hint;
   final TextEditingController? controller;
   final ValueChanged<String>? onChanged;
   const _SearchBar({required this.hint, this.controller, this.onChanged});
 
   @override
+  State<_SearchBar> createState() => _SearchBarState();
+}
+
+class _SearchBarState extends State<_SearchBar> {
+  String _currentText = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _currentText = widget.controller?.text ?? '';
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Container(
       height: 48,
       child: TextField(
-        controller: controller,
-        onChanged: onChanged,
-
+        controller: widget.controller,
+        onChanged: (value) {
+          if (mounted) {
+            setState(() {
+              _currentText = value;
+            });
+          }
+          if (widget.onChanged != null) {
+            widget.onChanged!(value);
+          }
+        },
         decoration: InputDecoration(
-          hintText: hint,
+          hintText: widget.hint,
           filled: true,
           fillColor: Colors.white,
           prefixIcon: const Icon(Icons.search, size: 20),
+          suffixIcon: _currentText.isNotEmpty
+              ? IconButton(
+            icon: const Icon(Icons.clear, size: 20),
+            onPressed: () {
+              if (!mounted) return;
+
+              widget.controller?.clear();
+              setState(() {
+                _currentText = '';
+              });
+              if (widget.onChanged != null) {
+                widget.onChanged!('');
+              }
+            },
+          )
+              : null,
           contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
@@ -552,7 +592,6 @@ class _SearchBar extends StatelessWidget {
     );
   }
 }
-
 class _ChipsRow extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int> onSelected;
@@ -600,10 +639,53 @@ class FeaturedRecipesSection extends StatelessWidget {
         if (provider.isLoading) {
           return const Center(child: CircularProgressIndicator());
         }
-
+/*
         if (provider.errorMessage != null) {
           return Center(child: Text(provider.errorMessage!));
+        }*/
+
+        if (provider.errorMessage != null) {
+          String message = 'Please try again.';
+          if (provider.errorMessage!.contains('503')) {
+            message = '';
+          } else if (provider.errorMessage!.contains('507')) {
+            message = '';
+          } else if (provider.errorMessage!.contains('timeout') || provider.errorMessage!.contains('network')) {
+            message = 'No internet connection. Please check your network.';
+          }
+
+
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    message,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: () => provider.fetchRecipes(),
+                    child: const Text('Retry'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF7B8B57),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
         }
+
 
         if (provider.recipes.isEmpty) {
           return const Center(child: Text("No recipes available"));
@@ -612,7 +694,6 @@ class FeaturedRecipesSection extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // --- Section Title ---
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -651,15 +732,16 @@ class FeaturedRecipesSection extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
+
             // --- Grid of Recipes ---//
             GridView.builder(
               shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(), // join parent scroll
+              physics: const NeverScrollableScrollPhysics(),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,           // 2 recipes per row
-                crossAxisSpacing: 15,        // Space between columns
-                mainAxisSpacing: 15,         // Space between rows
-                childAspectRatio: 0.75,  // adjust height vs width
+                crossAxisCount: 2,
+                crossAxisSpacing: 15,
+                mainAxisSpacing: 15,
+                childAspectRatio: 0.75,
               ),
               padding: const EdgeInsets.all(2),
              // itemCount: provider.recipes.length,
@@ -780,9 +862,55 @@ class TrendingProductSection extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
 
-        if (provider.trendingErrorMessage != null) {
+       /* if (provider.trendingErrorMessage != null) {
           return Center(child: Text(provider.trendingErrorMessage!));
+        }*/
+
+
+        if (provider.trendingErrorMessage != null) {
+          String message = 'Please try again.';
+          if (provider.trendingErrorMessage!.contains('503')) {
+            message = '';
+          } else if (provider.trendingErrorMessage!.contains('507')) {
+            message = '';
+          } else if (provider.trendingErrorMessage!.contains('timeout') || provider.trendingErrorMessage!.contains('network')) {
+            message = 'No internet connection. Please check your network.';
+          }
+
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    message,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: () => provider.fetchTrendingProducts(),
+                    child: const Text('Retry'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF7B8B57),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
         }
+
+
+
+
         final products = provider.trendingProducts?.products ?? [];
 
         if (products.isEmpty) {
@@ -1007,9 +1135,52 @@ class _RecipeCategoriesSection extends StatelessWidget {
         if (provider.isLoading) {
           return const Center(child: CircularProgressIndicator());
         }
-        if (provider.errorMessage.isNotEmpty) {
+       /* if (provider.errorMessage.isNotEmpty) {
           return Center(child: Text(provider.errorMessage));
+        }*/
+
+
+        if (provider.errorMessage.isNotEmpty) {
+          String message = 'Please try again.';
+          if (provider.errorMessage.contains('503')) {
+            message = '';
+          } else if (provider.errorMessage.contains('507')) {
+            message = '';
+          } else if (provider.errorMessage.contains('timeout') || provider.errorMessage.contains('network')) {
+            message = 'No internet connection. Please check your network.';
+          }
+
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    message,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: () => provider.fetchCategories(),
+                    child: const Text('Retry'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF7B8B57),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
         }
+
         final items = provider.categories;
         if (items.isEmpty) {
           return const SizedBox.shrink();
@@ -1212,9 +1383,56 @@ class _TrendingThisWeekSection extends StatelessWidget {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
             }
-            if (snapshot.hasError) {
+            /*if (snapshot.hasError) {
               return Center(child: Text('Failed to load trending recipes'));
+            }*/
+
+
+
+            if (snapshot.hasError) {
+              String errorMsg = snapshot.error.toString();
+              String message = 'Please try again.';
+              if (errorMsg.contains('503')) {
+                message = '';
+              } else if (errorMsg.contains('507')) {
+                message = '';
+              } else if (errorMsg.contains('timeout') || errorMsg.contains('network')) {
+                message = 'No internet connection. Please check your network.';
+              }
+
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        message,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton(
+                        onPressed: () {
+                          (context as Element).markNeedsBuild();
+                        },
+                        child: const Text('Retry'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF7B8B57),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
             }
+
             final items = snapshot.data?.recipes ?? <Recipes>[];
             if (items.isEmpty) {
               return const SizedBox.shrink();

@@ -27,6 +27,7 @@ class _CartScreenState extends State<CartScreen> {
     final cart = cartProvider.cart;
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: const Color(0xFF4A3D4D),
         centerTitle: true,

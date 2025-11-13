@@ -206,6 +206,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
 
     child:  Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: const Color(0xFF4A3D4D),
         elevation: 0,

@@ -355,7 +355,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildBrandHeader() {
     return Center(
       child: Image.asset(
-        'assets/images/Sutter Buttes Logo.png',
+        'assets/images/artisan foods logo.jpg',
         height: 120, // 🔹 Increased logo size for better visibility
         fit: BoxFit.contain,
         errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {

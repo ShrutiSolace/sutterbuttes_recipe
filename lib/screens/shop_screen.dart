@@ -18,6 +18,7 @@ class ShopScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: const Color(0xFF4A3D4D),
         centerTitle: true,
@@ -247,7 +248,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
               // Centered logo
               Center(
                 child: Image.asset(
-                  'assets/images/homescreen logo.png',
+                  'assets/images/artisan foods logo.jpg',
                   height: 130,
                   fit: BoxFit.contain,
                 ),
@@ -376,7 +377,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
       );
     }
 
-    if (_productError != null) {
+    /*if (_productError != null) {
       return Center(
         child: Column(
           children: [
@@ -388,6 +389,37 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
               child: const Text('Retry'),
             ),
           ],
+        ),
+      );
+    }*/
+    if (_productError != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Please try again.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey[700],
+                ),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: _loadProducts,
+                child: const Text('Retry'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF7B8B57),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -490,6 +522,8 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.black.withOpacity(0.1), width: 1),  // Add this line
+
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.08),
@@ -700,25 +734,61 @@ class _ProductFavouriteButtonState extends State<_ProductFavouriteButton> {
 }
 
 
-
-class _SearchBar extends StatelessWidget {
+class _SearchBar extends StatefulWidget {
   final String hint;
   final TextEditingController? controller;
   final ValueChanged<String>? onChanged;
   const _SearchBar({required this.hint, this.controller, this.onChanged});
 
   @override
+  State<_SearchBar> createState() => _SearchBarState();
+}
+
+class _SearchBarState extends State<_SearchBar> {
+  String _currentText = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _currentText = widget.controller?.text ?? '';
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Container(
       height: 48,
       child: TextField(
-        controller: controller,
-        onChanged: onChanged,
+        controller: widget.controller,
+        onChanged: (value) {
+          if (mounted) {
+            setState(() {
+              _currentText = value;
+            });
+          }
+          if (widget.onChanged != null) {
+            widget.onChanged!(value);
+          }
+        },
         decoration: InputDecoration(
-          hintText: hint,
+          hintText: widget.hint,
           filled: true,
           fillColor: Colors.white,
           prefixIcon: const Icon(Icons.search, size: 20),
+          suffixIcon: _currentText.isNotEmpty
+              ? IconButton(
+            icon: const Icon(Icons.clear, size: 20),
+            onPressed: () {
+              if (!mounted) return;
+              widget.controller?.clear();
+              setState(() {
+                _currentText = '';
+              });
+              if (widget.onChanged != null) {
+                widget.onChanged!('');
+              }
+            },
+          )
+              : null,
           contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
@@ -738,6 +808,7 @@ class _SearchBar extends StatelessWidget {
   }
 }
 
+
 class _ChipsRow extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int> onSelected;
@@ -747,7 +818,7 @@ class _ChipsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<String> labels = <String>['All Products', 'Out of Stock', 'In Stock', 'On Sale'];
+    final List<String> labels = <String>[];
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
