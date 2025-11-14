@@ -42,6 +42,22 @@ class _SignupScreenState extends State<SignupScreen> {
     }
   }
 
+  void _handleAppleSignIn(BuildContext context, AuthProvider authProvider) async {
+    final success = await authProvider.signInWithApple();
+
+    if (success) {
+      await NotificationService.getToken();
+      Navigator.of(context).pushReplacementNamed('/home');
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(authProvider.errorMessage ?? 'Apple sign-in failed'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -327,6 +343,20 @@ class _SignupScreenState extends State<SignupScreen> {
                             ),
 
                             const SizedBox(height: 8),
+                            Consumer<AuthProvider>(
+                              builder: (context, authProvider, child) {
+                                return _SocialButton(
+                                  label: 'Continue with Apple',
+                                  icon: const _AppleIcon(),
+                                  onPressed: authProvider.isLoading
+                                      ? null
+                                      : () {
+                                    _handleAppleSignIn(context, authProvider);
+                                  },
+                                );
+                              },
+                            ),
+                           //facebook sign in
                             /*_SocialButton(
                               label: 'Continue with Facebook',
                               icon: const Icon(Icons.facebook, color: Color(0xFF1877F2)),
@@ -348,8 +378,6 @@ class _SignupScreenState extends State<SignupScreen> {
                               },
                             ),
 */
-
-
 
                             const SizedBox(height: 12),
                             Center(
@@ -445,7 +473,7 @@ class _OrDivider extends StatelessWidget {
 class _SocialButton extends StatelessWidget {
   final String label;
   final Widget icon;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
   const _SocialButton({required this.label, required this.icon, required this.onPressed});
 
@@ -470,15 +498,16 @@ class _SocialButton extends StatelessWidget {
   }
 }
 
+
 class _GoogleIcon extends StatelessWidget {
   const _GoogleIcon();
 
   @override
   Widget build(BuildContext context) {
     return Image.asset(
-      'assets/images/google_logo.png',
-      width: 18,
-      height: 18,
+      'assets/images/google icon.png',
+      width: 20,
+      height: 20,
       errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
         return const CircleAvatar(
           radius: 10,
@@ -492,6 +521,18 @@ class _GoogleIcon extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+class _AppleIcon extends StatelessWidget {
+  const _AppleIcon();
+
+  @override
+  Widget build(BuildContext context) {
+    return Icon(
+      Icons.apple,
+      size: 24,
+      color: Colors.black87,
     );
   }
 }

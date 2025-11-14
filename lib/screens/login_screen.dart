@@ -41,6 +41,30 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  void _handleAppleSignIn(BuildContext context, AuthProvider authProvider) async {
+    final success = await authProvider.signInWithApple();
+
+    if (success) {
+      await NotificationService.getToken();
+      Navigator.of(context).pushReplacementNamed('/home');
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(authProvider.errorMessage ?? 'Apple sign-in failed'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+
+
+
+
+
+
+
+
   static const Color _brandGreen = Color(0xFF7B8B57);
   static const Color _textGrey = Color(0xFF5F6368);
 
@@ -263,7 +287,20 @@ class _LoginScreenState extends State<LoginScreen> {
 
                         const SizedBox(height: 8),
 
-                        // Facebook
+                        Consumer<AuthProvider>(
+                          builder: (context, authProvider, child) {
+                            return _SocialButton(
+                              label: 'Continue with Apple',
+                              icon: const _AppleIcon(),
+                              onPressed: authProvider.isLoading
+                                  ? null
+                                  : () {
+                                _handleAppleSignIn(context, authProvider);
+                              },
+                            );
+                          },
+                        ),
+
                         // Facebook
                      /*  _SocialButton(
                           label: 'Continue with Facebook',
@@ -285,8 +322,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             }
                           },
                         ),*/
-
-
                         const SizedBox(height: 12),
 
                         // Signup link
@@ -425,15 +460,15 @@ class _GoogleIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Image.asset(
-      'assets/images/google_logo.png',
-      width: 100,
-      height: 25,
+      'assets/images/google icon.png',
+      width: 20,
+      height: 20,
       errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
         return const CircleAvatar(
           radius: 9,
           backgroundColor: Colors.white,
           child: Text(
-            'G',
+            '',
             style: TextStyle(
               color: Colors.black87,
               fontWeight: FontWeight.w700,
@@ -442,6 +477,19 @@ class _GoogleIcon extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _AppleIcon extends StatelessWidget {
+  const _AppleIcon();
+
+  @override
+  Widget build(BuildContext context) {
+    return Icon(
+      Icons.apple,
+      size: 24,
+      color: Colors.black87,
     );
   }
 }

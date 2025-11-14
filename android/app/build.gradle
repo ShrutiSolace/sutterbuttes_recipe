@@ -38,9 +38,11 @@ android {
             minifyEnabled false
             shrinkResources false
             signingConfig = signingConfigs.debug
+
         }
     }
 }
+
 
 flutter {
     source = "../.."

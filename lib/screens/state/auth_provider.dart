@@ -125,21 +125,15 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Trigger Google sign-in service (this also posts idToken to your backend and saves app JWT)
+
       final result = await GoogleSignInService.signInWithGoogle();
 
       if (result.success && result.user != null) {
-        // Read the app JWT saved by GoogleSignInService
         final savedToken = await SecureStorage.getLoginToken();
-
         if (savedToken != null && savedToken.isNotEmpty) {
-          // Set in-memory token so the app is no longer "Guest"
+
           _token = savedToken;
-
-          // Fetch profile so UI can display the real user info
           await fetchCurrentUser();
-
-          // Register device with backend now that we have a valid JWT
           await NotificationService.registerDeviceWithBackend();
 
           _isLoading = false;
@@ -224,18 +218,17 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Get saved token from secure storage
+
       final savedToken = await SecureStorage.getLoginToken();
 
       if (savedToken != null && savedToken.isNotEmpty) {
         _token = savedToken;
-        // Try to fetch user profile to validate token
-        final profileFetched = await fetchCurrentUser();
 
+        final profileFetched = await fetchCurrentUser();
         if (profileFetched) {
           print("Auth state restored successfully");
         } else {
-          // Token is invalid, clear it
+
           _token = null;
           await SecureStorage.deleteToken();
           print("Invalid token, cleared auth state");
@@ -252,6 +245,46 @@ class AuthProvider extends ChangeNotifier {
     _isLoading = false;
     notifyListeners();
   }
+
+
+
+  //sign in with apple method
+  Future<bool> signInWithApple() async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _errorMessage = 'Apple sign-in failed: ${e.toString()}';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /*
 // Google Sign-In method

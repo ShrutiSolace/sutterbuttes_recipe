@@ -185,6 +185,7 @@ class _FavoriteCard extends StatelessWidget {
             featuredMediaId: 0,
             imageUrl: recipe!.image ?? '',
           );
+
             /*Navigator.push(
             context,
             MaterialPageRoute(

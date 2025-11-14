@@ -150,7 +150,36 @@ class AuthService {
   }
 
 
+  Future<bool> deleteAccount() async {
+    print("Initiating account deletion...");
 
+    String? token = await SecureStorage.getLoginToken();
+    print("Deleting account with token: $token");
+
+    final uri = Uri.parse(ApiConstants.deleteAccountUrl);
+    final response = await http.delete(
+      uri,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    print("URL: $uri");
+    print("Response Status: ${response.statusCode}");
+    print("Response Body: ${response.body}");
+
+    final Map<String, dynamic> data = json.decode(response.body);
+
+    if (response.statusCode == 200 && data['success'] == true) {
+      return true;
+    } else if (response.statusCode == 401) {
+      throw Exception('Unauthorized (401). Token may be expired/invalid.');
+    } else {
+      throw Exception(data['message'] ?? 'Failed to delete account: ${response.statusCode}');
+    }
+  }
 
 
 
