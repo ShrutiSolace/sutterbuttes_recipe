@@ -62,7 +62,8 @@ class Products {
       this.title, 
       this.price, 
       this.link, 
-      this.image,});
+      this.image,
+        this.description, });
 
   Products.fromJson(dynamic json) {
     id = json['id'];
@@ -70,11 +71,13 @@ class Products {
     price = json['price'];
     link = json['link'];
     image = json['image'];
+    description = json['description'];
   }
   int? id;
   String? title;
   String? price;
   String? link;
+  String? description;
   String? image;
 
   Map<String, dynamic> toJson() {
@@ -83,6 +86,7 @@ class Products {
     map['title'] = title;
     map['price'] = price;
     map['link'] = link;
+    map['description'] = description;
     map['image'] = image;
     return map;
   }
@@ -94,18 +98,21 @@ class Recipes {
       this.id, 
       this.title, 
       this.link, 
-      this.image,});
+      this.image,
+    this.description, });
 
   Recipes.fromJson(dynamic json) {
     id = json['id'];
     title = json['title'];
     link = json['link'];
     image = json['image'];
+    description = json['description'];
   }
   int? id;
   String? title;
   String? link;
   String? image;
+  String? description;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -113,6 +120,7 @@ class Recipes {
     map['title'] = title;
     map['link'] = link;
     map['image'] = image;
+    map['description'] = description;
     return map;
   }
 

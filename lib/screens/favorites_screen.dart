@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:sutterbuttes_recipe/screens/product_detailscreen.dart';
 import 'package:sutterbuttes_recipe/screens/recipedetailscreen.dart';
+import '../modal/product_model.dart';
 import '../modal/recipe_model.dart';
 import '../repositories/favourites_repository.dart';
 import '../modal/favourites_model.dart';
@@ -174,6 +176,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
                       title: p.title ?? '',
                       imageUrl: p.image ?? '',
                       subtitle: p.price != null ? '\$${double.tryParse(p.price!)?.toStringAsFixed(2) ?? p.price}' : null,
+                      product: p,
                     );
                   },
                 ),
@@ -192,8 +195,9 @@ class _FavoriteCard extends StatelessWidget {
   final String imageUrl;
   final String? subtitle;
   final Recipes? recipe;
+  final Products? product;
 
-  const _FavoriteCard({required this.title, required this.imageUrl, this.subtitle, this.recipe});
+  const _FavoriteCard({required this.title, required this.imageUrl, this.subtitle, this.recipe, this.product});
 
    String cleanHtmlText(String text) {
      final document = html_parser.parse(text);
@@ -214,16 +218,74 @@ class _FavoriteCard extends StatelessWidget {
             title: recipe!.title ?? '',
             link: recipe!.link ?? '',
             date: '',
-            contentHtml: '<p>${cleanHtmlText(recipe!.title ?? '')}</p>',
-
+            contentHtml: recipe!.description ?? '<p>${cleanHtmlText(recipe!.title ?? '')}</p>',
             featuredMediaId: 0,
             imageUrl: recipe!.image ?? '',
           );
 
-            Navigator.push(
+          Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => RecipeDetailScreen(recipe: recipeItem),
+            ),
+          );
+        }
+
+
+
+        else if (product != null) {
+          final productItem = Product(
+            id: product!.id ?? 0,
+            name: product!.title ?? '',
+            slug: '',
+            permalink: product!.link ?? '',
+            type: 'simple',
+            status: 'publish',
+            featured: false,
+            description: product!.description ?? '',
+            shortDescription: '',
+            sku: '',
+            price: product!.price ?? '',
+            regularPrice: product!.price ?? '',
+            salePrice: '',
+            onSale: false,
+            purchasable: true,
+            totalSales: 0,
+            virtual: false,
+            downloadable: false,
+            taxStatus: 'taxable',
+            manageStock: false,
+            stockQuantity: null,
+            stockStatus: 'instock',
+            soldIndividually: false,
+            weight: '',
+            dimensions: Dimensions(length: '', width: '', height: ''),
+            shippingRequired: true,
+            shippingTaxable: true,
+            reviewsAllowed: true,
+            averageRating: '0.00',
+            ratingCount: 0,
+            categories: [],
+            images: [
+              ProductImage(
+                id: 0,
+                dateCreated: '',
+                dateCreatedGmt: '',
+                dateModified: '',
+                dateModifiedGmt: '',
+                src: product!.image ?? '',
+                name: product!.title ?? '',
+                alt: product!.title ?? '',
+              ),
+            ],
+            tags: [],
+            priceHtml: '',
+          );
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ProductDetailScreen(product: productItem),
             ),
           );
         }
