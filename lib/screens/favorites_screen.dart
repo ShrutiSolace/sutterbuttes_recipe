@@ -59,8 +59,42 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
-        if (snapshot.hasError) {
+        /*if (snapshot.hasError) {
           return Center(child: Text('Failed to load favourites'));
+        }*/
+
+        if (snapshot.hasError) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Please try again.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {});
+                    },
+                    child: const Text('Retry'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF7B8B57),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
         }
         final favourites = snapshot.data;
         final recipeItems = favourites?.favorites?.recipes ?? <Recipes>[];

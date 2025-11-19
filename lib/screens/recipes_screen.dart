@@ -1,10 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sutterbuttes_recipe/screens/home_screen.dart';
 import '../repositories/recipe_list_repository.dart';
 import '../modal/recipe_model.dart';
 import '../repositories/favourites_repository.dart';
+import '../repositories/search_repository.dart';
 import 'recipedetailscreen.dart';
+
+import '../modal/search_model.dart';
 
 class RecipesScreen extends StatefulWidget {
 
@@ -16,6 +21,7 @@ class RecipesScreen extends StatefulWidget {
 
 class _RecipesScreenState extends State<RecipesScreen> {
   final RecipeListRepository _recipeRepository = RecipeListRepository();
+  final SearchRepository _searchRepository = SearchRepository();
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
 
@@ -29,6 +35,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
   final int _perPage = 10;
   bool _hasMoreData = true;
   bool _isAllItemsLoaded = false;
+  Timer? _searchDebounceTimer;
 
   @override
   void initState() {
@@ -39,6 +46,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
 
   @override
   void dispose() {
+    _searchDebounceTimer?.cancel();
     _scrollController.dispose();
     _searchController.dispose();
     super.dispose();
@@ -90,13 +98,14 @@ class _RecipesScreenState extends State<RecipesScreen> {
 
       setState(() {
         _allRecipes.addAll(newRecipes);
-        _filteredRecipes = _allRecipes.where((recipe) {
-          return recipe.title.toLowerCase().contains(_searchQuery.toLowerCase());
-        }).toList();
+        // Only update filtered recipes if not searching
+        if (_searchQuery.isEmpty) {
+          _filteredRecipes = _allRecipes;
+        }
+        // If searching, don't update _filteredRecipes here - search API handles it
         _currentPage = nextPage;
         _isLoadingMore = false;
         _hasMoreData = newRecipes.length == _perPage;
-        //_isAllItemsLoaded = !_hasMoreData;  // <-- ADD THIS LINE
       });
     } catch (e) {
       setState(() {
@@ -108,9 +117,58 @@ class _RecipesScreenState extends State<RecipesScreen> {
   void _onSearchChanged(String query) {
     setState(() {
       _searchQuery = query;
-      _filteredRecipes = _allRecipes.where((recipe) {
-        return recipe.title.toLowerCase().contains(query.toLowerCase());
-      }).toList();
+    });
+
+    // Cancel previous timer if user is still typing
+    _searchDebounceTimer?.cancel();
+
+    // If query is empty, show all loaded recipes immediately
+    if (query.trim().isEmpty) {
+      setState(() {
+        _filteredRecipes = _allRecipes;
+      });
+      return;
+    }
+
+
+    _searchDebounceTimer = Timer(const Duration(milliseconds: 500), () async {
+      if (_searchQuery.trim().isEmpty) {
+        setState(() {
+          _filteredRecipes = _allRecipes;
+        });
+        return;
+      }
+
+      try {
+        final searchResult = await _searchRepository.searchItems(_searchQuery.trim());
+
+
+        final List<RecipeItem> searchResults = searchResult.results.recipes.map((searchRecipe) {
+          return RecipeItem(
+            id: searchRecipe.id,
+            slug: '',
+            title: searchRecipe.title,
+            link: searchRecipe.link,
+            date: '',
+            contentHtml: searchRecipe.excerpt,
+            featuredMediaId: 0,
+            imageUrl: searchRecipe.image,
+          );
+        }).toList();
+
+        if (mounted) {
+          setState(() {
+            _filteredRecipes = searchResults;
+          });
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() {
+            _filteredRecipes = [];
+            _error = 'Search failed: $e';
+          });
+        }
+      }
     });
   }
 
@@ -160,6 +218,15 @@ class _RecipesScreenState extends State<RecipesScreen> {
                 filled: true,
                 fillColor: Colors.white,
                 prefixIcon: const Icon(Icons.search, size: 20),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                  icon: const Icon(Icons.clear, size: 20),
+                  onPressed: () {
+                    _searchController.clear();
+                    _onSearchChanged(''); // This will clear the search and show all recipes
+                  },
+                )
+                    : null,
                 contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),

@@ -315,7 +315,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final messenger = ScaffoldMessenger.of(context);
     FocusScope.of(context).unfocus();
 
-    // ✅ Validation before proceeding
+
     final errors = [
       _firstNameController.text.trim().isEmpty ? 'First Name is required' : null,
       _lastNameController.text.trim().isEmpty ? 'Last Name is required' : null,
@@ -335,12 +335,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           : null),
     ].where((e) => e != null).toList();
 
-    if (errors.isNotEmpty) {
+    /*if (errors.isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errors.first!)));
       return; // Stop saving if validation fails
     }
-
-
+*/
+    if (errors.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errors.first ?? 'Validation error')),
+      );
+      return;
+    }
 
     setState(() {
       _isSaving = true;
@@ -363,14 +368,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       final repo = UserRepository();
       final result = await repo.updateUserProfile(userData: userData, profileImagePath: _pickedImageFile?.path,);
 
-      // Show profile update success first
-      // Check if the update was actually successful
+
       if (result.success == true) {
         messenger.showSnackBar(
           SnackBar(content: Text(result.message ?? 'Profile updated successfully')),
         );
         await context.read<AuthProvider>().fetchCurrentUser();
-        // Navigate back to previous screen on success
+
         Navigator.pop(context);
       } else {
         messenger.showSnackBar(

@@ -75,16 +75,16 @@ class UserData {
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};  // ✅ ADD THIS LINE
-    map['first_name'] = firstName;
-    map['last_name'] = lastName;
-    map['username'] = username;
-    map['email'] = email;
-    map['phone'] = phone;
-    map['street_address'] = streetAddress;
-    map['city'] = city;
-    map['state'] = state;
-    map['zipcode'] = zipcode;
-    map['bio'] = bio;
+    map['first_name'] = firstName  ?? '';
+    map['last_name'] = lastName  ?? '';
+    map['username'] = username ?? '';
+    map['email'] = email ?? '';
+    map['phone'] = phone ?? '';
+    map['street_address'] = streetAddress ?? '';
+    map['city'] = city ?? '';
+    map['state'] = state ?? '';
+    map['zipcode'] = zipcode ?? '';
+    map['bio'] = bio ?? '';
     map['profile_image'] = profileImage ?? '';
     return map;
   }

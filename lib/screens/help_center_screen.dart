@@ -120,7 +120,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
 
     {
       'question': 'How can I contact customer service?',
-      'answer': 'You can reach our customer service team by phone at 530.763.7921, email at Sales@Sutterbuttesoliveoil.com, or through the contact form on our website. We typically respond within 48 hours.',
+      'answer': 'You can reach our customer service team by phone at (530).763.7921, email at Sales@Sutterbuttesoliveoil.com, or through the contact form on our website. We typically respond within 48 hours.',
       'expanded': false,
     },
 
@@ -226,9 +226,8 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
   }
 
   Widget _buildClickableAnswer(String answer) {
-    // Phone number pattern: 530.763.7921
-    final phonePattern = RegExp(r'\b\d{3}\.\d{3}\.\d{4}\b');
-    // Email pattern
+
+    final phonePattern = RegExp(r'\(\d{3}\)\.\d{3}\.\d{4}');
     final emailPattern = RegExp(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b');
 
     List<TextSpan> spans = [];
@@ -289,7 +288,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
         recognizer: TapGestureRecognizer()
           ..onTap = () async {
             if (match.type == 'phone') {
-              final phoneNumber = match.text.replaceAll('.', '');
+              final phoneNumber = match.text.replaceAll(RegExp(r'[^\d]'), ''); // Remove all non-digits (parentheses, dots, etc.)
               final uri = Uri.parse('tel:$phoneNumber');
               if (await canLaunchUrl(uri)) {
                 await launchUrl(uri);

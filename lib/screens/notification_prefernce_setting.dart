@@ -34,6 +34,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
 
   bool _loading = true;
   String? _error;
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -73,16 +74,31 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+
+    return WillPopScope(
+        onWillPop: () async {
+          if (_isSaving) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Please wait, saving preferences'),
+                duration: Duration(seconds: 3),
+              ),
+            );
+            return false; // Prevent navigation
+          }
+          return true; // Allow navigation
+        },
+
+    child: Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text(
           "Notification Settings",
-          style: TextStyle(color: Colors.white), // ✅ white title text
+          style: TextStyle(color: Colors.white),
         ),
         backgroundColor: const Color(0xFF4A3D4D),
         centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.white), // ✅ makes back arrow white
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
@@ -234,7 +250,11 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
               const SizedBox(height: 24),
               ElevatedButton.icon(
                 onPressed: () async {
-                  try {
+                  setState(() {
+                    _isSaving = true;
+                  });
+
+                    try {
                     final payload = {
                       'email': {
                         'new_recipes': _emailNewRecipes,
@@ -258,9 +278,15 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                         'social_features': _appSocialFeatures,
                       }
                     };
+
                     final msg = await NotificationRepository().updatePreferences(payload: payload);
                     if (!mounted) return; 
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+
+                    // Step 2.2: Set saving to false after success
+                    setState(() {
+                      _isSaving = false;
+                    });
                   } catch (e) {
                     if (!mounted) return; 
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
@@ -303,6 +329,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
           ),
         ),
       ),
+    )
     );
   }
 

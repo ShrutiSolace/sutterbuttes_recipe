@@ -348,7 +348,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
               });
             },
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 2),
           _ChipsRow(
             selectedIndex: _selectedChip,
             onSelected: (int i) {
@@ -443,8 +443,8 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,      // 2 per row (same as recipes)
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 10,
             childAspectRatio: 0.65, // adjust height vs width
           ),
           padding: const EdgeInsets.all(8),

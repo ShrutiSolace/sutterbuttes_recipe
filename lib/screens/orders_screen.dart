@@ -384,7 +384,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               const Text('Items', style: TextStyle(fontWeight: FontWeight.w700)),
               Text(
                 orderDetail!.items != null && orderDetail!.items!.isNotEmpty
-                    ? ' - QTY ${orderDetail!.items!.first.quantity ?? 0}'
+                    ? ' - QTY ${orderDetail!.items!.fold<int>(0, (sum, item) => sum + (item.quantity ?? 0))}'
                     : ' - QTY 0',
                 style: const TextStyle(fontWeight: FontWeight.w700),
               ),
@@ -424,11 +424,31 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Expanded(child: Text(item.name ?? '')),
-                      Text('\$${(double.tryParse(item.total ?? '0') ?? 0.0).toStringAsFixed(2)}', style: const TextStyle(fontSize:15.3,fontWeight: FontWeight.w700)),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            /*Text(
+                              '${item.name ?? ''}',
+                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                            ),*/
+                            Text(
+                              '${item.unit_price ?? ''} * ${item.quantity ?? 0}',
+                              style: const TextStyle(fontSize:15, fontWeight: FontWeight.w700),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Text(
+                        '\$${(double.tryParse(item.total ?? '0') ?? 0.0).toStringAsFixed(2)}',
+                        style: const TextStyle(fontSize: 15.3, fontWeight: FontWeight.w700),
+                      ),
                     ],
                   ),
                 ),
+
+
                /* Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
@@ -468,8 +488,25 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         children: [
           const Text('Order Summary', style: TextStyle(fontWeight: FontWeight.w700)),
           const SizedBox(height: 8),
-          _row('Subtotal:', itemsSubtotal.toStringAsFixed(2)),
-          if (shipping > 0) _row('Shipping:', shipping.toStringAsFixed(2)),
+          _row('Subtotal:', itemsSubtotal.toStringAsFixed(2),bold: true),
+        //  if (shipping > 0) _row('Shipping:', shipping.toStringAsFixed(2)),
+
+          if (itemsSubtotal >= 100)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Shipping:', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text('Free Shipping', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF7B8B57))),
+                ],
+              ),
+            )
+          else if (shipping > 0)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: _row('Shipping:', shipping.toStringAsFixed(2),bold: true),
+            ),
           const Divider(),
           _row('Total:', orderDetail!.total ?? '0.00', bold: true),
         ],
@@ -505,7 +542,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label),
+        Text(label, style: TextStyle(fontWeight: bold ? FontWeight.bold : FontWeight.normal)),
         Text('\$$value', style: TextStyle(fontWeight: bold ? FontWeight.bold : FontWeight.w500)),
       ],
     );

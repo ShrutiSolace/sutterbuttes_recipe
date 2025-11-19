@@ -8,6 +8,8 @@ import '../../services/google_signin_service.dart';
 import '../../services/notification_service.dart';
 import '../../services/secure_storage.dart';
 
+
+
 class AuthProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
@@ -268,6 +270,40 @@ class AuthProvider extends ChangeNotifier {
 
 
 
+   Future<bool> deleteAccount() async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final response = await AuthService.deleteAccount();
+
+      if (response.success) {
+        _userData = null;
+        _token = null;
+        _errorMessage = null;
+        _me = null;
+
+
+        await NotificationService.clearToken();
+        await SecureStorage.deleteToken();
+
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        _errorMessage = 'Failed to delete account';
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _errorMessage = 'Delete account failed: ${e.toString()}';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
 
 
 

@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
+
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
@@ -28,6 +29,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void _handleGoogleSignIn(BuildContext context, AuthProvider authProvider) async {
     final success = await authProvider.signInWithGoogle();
 
+
     if (success) {
       await NotificationService.getToken();
       Navigator.of(context).pushReplacementNamed('/home');
@@ -40,6 +42,8 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     }
   }
+
+
 
   void _handleAppleSignIn(BuildContext context, AuthProvider authProvider) async {
     final success = await authProvider.signInWithApple();
@@ -136,13 +140,45 @@ class _LoginScreenState extends State<LoginScreen> {
                               _usernameOrEmailError = null;
                             });
                           },
-                          validator: (value) {
+                         /* validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Username or email is required';
                             }
                             // Remove email validation - allow both username and email
                             return null;
                           },
+                          */
+
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Username or email is required';
+                            }
+
+                            if (value.contains('@')) {
+                              if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                                return 'Please enter a valid email address';
+                              }
+
+                              final parts = value.split('@');
+                              if (parts.length != 2) return 'Please enter a valid email address';
+                              final domain = parts[1];
+                              if (!domain.contains('.') || domain.startsWith('.') || domain.endsWith('.') || domain.contains('..')) {
+                                return 'Please enter a valid email domain';
+                              }
+                              final tld = domain.split('.').last;
+                              if (tld.length < 2 || tld.length > 4) {
+                                return 'Please enter a valid email domain';
+                              }
+                            }
+                            else{
+                              if (value.trim().length < 3) {
+                                return 'Username must be at least 3 characters';
+                              }
+                            }
+                            return null;
+                          },
+
+
                           decoration: _inputDecoration(
                             hint: 'Enter your email',
                             context: context,
@@ -232,7 +268,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       await Future.delayed(const Duration(milliseconds: 100));
                                       Navigator.of(context).pushReplacementNamed('/home');
                                     }
-                                    else {
+                                   /* else {
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(
                                           content: Text('Invalid credentials.Please try again',
@@ -243,6 +279,19 @@ class _LoginScreenState extends State<LoginScreen> {
                                            margin : const EdgeInsets.all(0),
 
 
+                                        ),
+                                      );
+                                    }*/
+                                    else {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                              authProvider.errorMessage ?? 'Invalid credentials. Please try again.'
+                                          ),
+                                          backgroundColor: Colors.red,
+                                          duration: const Duration(seconds: 3),
+                                          behavior: SnackBarBehavior.floating,
+                                          margin: const EdgeInsets.all(0),
                                         ),
                                       );
                                     }
@@ -266,12 +315,12 @@ class _LoginScreenState extends State<LoginScreen> {
                           },
                         ),
 
-                        const SizedBox(height: 12),
+                       /* const SizedBox(height: 12),
                         _OrDivider(color: Colors.black.withOpacity(0.2)),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 12),*/
 
                         // Google sign in
-                        Consumer<AuthProvider>(
+                       /* Consumer<AuthProvider>(
                           builder: (context, authProvider, child) {
                             return _SocialButton(
                               label: 'Continue with Google',
@@ -283,8 +332,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                     },
                             );
                           },
-                        ),
-
+                        ),*/
+/*
                         const SizedBox(height: 8),
 
                         Consumer<AuthProvider>(
@@ -299,7 +348,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               },
                             );
                           },
-                        ),
+                        ),*/
 
                         // Facebook
                      /*  _SocialButton(

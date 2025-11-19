@@ -54,7 +54,7 @@ class NewsletterRepository {
     required String email,
     required String name,
     required bool newRecipes,
-    required bool cookingTips,
+
     required bool seasonalOffers,
     required bool productUpdates,
   })
@@ -68,7 +68,6 @@ class NewsletterRepository {
         email: email,
         name: name,
         newRecipes: newRecipes,
-        cookingTips: cookingTips,
         seasonalOffers: seasonalOffers,
         productUpdates: productUpdates,
       );

@@ -115,55 +115,50 @@ class _SignupScreenState extends State<SignupScreen> {
                               ),
                             ),
                             const SizedBox(height: 12),
-                            Row(
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: <Widget>[
-                                      Text('First Name', style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Colors.black87)),
-                                      const SizedBox(height: 4),
-                                      TextFormField(
-                                        controller: _firstNameController,
-                                        decoration: _inputDecoration(hint: 'First name'),
-                                        validator: (value) {
-                                          if (value == null || value.trim().isEmpty) {
-                                            return 'First name is required';
-                                          }
-                                          if (!RegExp(r'^[A-Za-z]{2,}$').hasMatch(value.trim())) {
-                                            return 'Please enter a valid first name';
-                                          }
-                                          return null;
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: <Widget>[
-                                      Text('Last Name', style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Colors.black87)),
-                                      const SizedBox(height: 4),
-                                      TextFormField(
-                                        controller: _lastNameController,
-                                        decoration: _inputDecoration(hint: 'Last name'),
-                                        validator: (value) {
-                                          if (value == null || value.trim().isEmpty) {
-                                            return 'Last name is required';
-                                          }
-                                          if (!RegExp(r'^[A-Za-z]{2,}$').hasMatch(value.trim())) {
-                                            return 'Please enter a valid Last name';
-                                          }
-                                          return null;
-                                        },
-                                      ),
-                                    ],
-                                  ),
+                                Text('First Name', style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Colors.black87)),
+                                const SizedBox(height: 4),
+                                TextFormField(
+                                  controller: _firstNameController,
+                                  decoration: _inputDecoration(hint: 'First name'),
+                                  validator: (value) {
+                                    if (value == null || value.trim().isEmpty) {
+                                      return 'First name is required';
+                                    }
+                                    if (!RegExp(r'^[A-Za-z]{2,}$').hasMatch(value.trim())) {
+                                      return 'Please enter a valid first name';
+                                    }
+                                    return null;
+                                  },
                                 ),
                               ],
                             ),
+                            const SizedBox(height: 12),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Text('Last Name', style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Colors.black87)),
+                                const SizedBox(height: 4),
+                                TextFormField(
+                                  controller: _lastNameController,
+                                  decoration: _inputDecoration(hint: 'Last name'),
+                                  validator: (value) {
+                                    if (value == null || value.trim().isEmpty) {
+                                      return 'Last name is required';
+                                    }
+                                    if (!RegExp(r'^[A-Za-z]{2,}$').hasMatch(value.trim())) {
+                                      return 'Please enter a valid Last name';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                              ],
+                            ),
+
+
+
                             const SizedBox(height: 12),
                             Text('Username', style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Colors.black87)),
                             const SizedBox(height: 4),
@@ -204,7 +199,8 @@ class _SignupScreenState extends State<SignupScreen> {
                                   _emailError = null;
                                 });
                               },
-                              validator: (value) {
+
+                              /*validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return 'Email is required';
                                 }
@@ -212,8 +208,39 @@ class _SignupScreenState extends State<SignupScreen> {
                                   return 'Please enter a valid email';
                                 }
                                 return null;
+                              },*/
+
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Username or email is required';
+                                }
+
+                                if (value.contains('@')) {
+                                  if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                                    return 'Please enter a valid email address';
+                                  }
+
+                                  final parts = value.split('@');
+                                  if (parts.length != 2) return 'Please enter a valid email address';
+                                  final domain = parts[1];
+                                  if (!domain.contains('.') || domain.startsWith('.') || domain.endsWith('.') || domain.contains('..')) {
+                                    return 'Please enter a valid email domain';
+                                  }
+                                  final tld = domain.split('.').last;
+                                  if (tld.length < 2 || tld.length > 4) {
+                                    return 'Please enter a valid email domain';
+                                  }
+                                }
+
+                                return null;
                               },
+
+
+
+
+
                             ),
+
                             const SizedBox(height: 12),
                             Text('Password', style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Colors.black87)),
                             const SizedBox(height: 4),
@@ -325,12 +352,12 @@ class _SignupScreenState extends State<SignupScreen> {
                               },
                             ),
                             const SizedBox(height: 12),
-                            _OrDivider(color: Colors.black.withOpacity(0.2)),
-                            const SizedBox(height: 12),
+                           // _OrDivider(color: Colors.black.withOpacity(0.2)),
+                           // const SizedBox(height: 12),
 
 
                             // Google sign in
-                            Consumer<AuthProvider>(
+                            /*Consumer<AuthProvider>(
                               builder: (context, authProvider, child) {
                                 return _SocialButton(
                                   label: 'Continue with Google',
@@ -340,9 +367,9 @@ class _SignupScreenState extends State<SignupScreen> {
                                   },
                                 );
                               },
-                            ),
+                            ),*/
 
-                            const SizedBox(height: 8),
+                           /* const SizedBox(height: 8),
                             Consumer<AuthProvider>(
                               builder: (context, authProvider, child) {
                                 return _SocialButton(
@@ -355,7 +382,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                   },
                                 );
                               },
-                            ),
+                            ),*/
                            //facebook sign in
                             /*_SocialButton(
                               label: 'Continue with Facebook',
@@ -379,7 +406,7 @@ class _SignupScreenState extends State<SignupScreen> {
                             ),
 */
 
-                            const SizedBox(height: 12),
+
                             Center(
                               child: RichText(
                                 text: TextSpan(
@@ -426,6 +453,18 @@ class _SignupScreenState extends State<SignupScreen> {
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
         borderSide: const BorderSide(color: _brandGreen, width: 1.2),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Colors.red, width: 1.2),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Colors.red, width: 1.2),
+      ),
+      errorStyle: const TextStyle(
+        color: Colors.red,
+        fontSize: 12,
       ),
       suffixIcon: suffix,
     );

@@ -317,8 +317,17 @@ class ProfileScreen extends StatelessWidget {
                       );
                     },
                   ),
+                  _Divider(),
+                  _SettingsTile(
+                    leading: Icons.delete_outline,
+                    title: 'Delete Account',
+                    subtitle: 'Permanently delete your account',
+                    onTap: () => _showDeleteAccountDialog(context),
+                  ),
                 ],
+
               ),
+
 
               const SizedBox(height: 16),
 
@@ -390,7 +399,128 @@ class ProfileScreen extends StatelessWidget {
       ),
     );
   }
+
+
+  void _showDeleteAccountDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text(
+            'Delete Account',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: const Text(
+            'Are you sure you want to delete your account? ',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                _handleDeleteAccount(context);
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.red,
+              ),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _handleDeleteAccount(BuildContext context) async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const Center(
+          child: CircularProgressIndicator(),
+        );
+      },
+    );
+
+    try {
+
+      final success = await authProvider.deleteAccount();
+
+
+      if (context.mounted) {
+        Navigator.of(context).pop();
+      }
+
+      if (success) {
+
+        await GoogleSignInService.signOut();
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Account deleted successfully'),
+              backgroundColor: Color(0xFF7B8B57),
+              duration: Duration(seconds: 2),
+            ),
+          );
+
+
+          Future.delayed(const Duration(milliseconds: 600), () {
+            if (context.mounted) {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => const LoginScreen()),
+                    (route) => false,
+              );
+            }
+          });
+        }
+      } else {
+        // Show error message
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                authProvider.errorMessage ?? 'Failed to delete account',
+              ),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+
+      if (context.mounted) {
+        Navigator.of(context).pop();
+      }
+
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+
 }
+
+
+
 
 class _StatCard extends StatelessWidget {
   final IconData icon;
@@ -483,6 +613,7 @@ class _SectionCard extends StatelessWidget {
     );
   }
 }
+
 
 class _SettingsTile extends StatelessWidget {
   final IconData leading;

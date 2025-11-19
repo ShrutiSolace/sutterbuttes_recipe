@@ -76,7 +76,7 @@ class NewsletterSubscribeRequest {
   final String email;
   final String name;
   final bool newRecipes;
-  final bool cookingTips;
+
   final bool seasonalOffers;
   final bool productUpdates;
 
@@ -84,7 +84,7 @@ class NewsletterSubscribeRequest {
     required this.email,
     required this.name,
     required this.newRecipes,
-    required this.cookingTips,
+
     required this.seasonalOffers,
     required this.productUpdates,
   });
@@ -94,7 +94,6 @@ class NewsletterSubscribeRequest {
       'email': email,
       'name': name,
       'new_recipes': newRecipes,
-      'cooking_tips': cookingTips,
       'seasonal_offers': seasonalOffers,
       'product_updates': productUpdates,
     };

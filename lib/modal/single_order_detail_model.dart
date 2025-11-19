@@ -72,6 +72,7 @@ class OrderItem {
   String? name;
   int? quantity;
   String? subtotal;
+  String? unit_price;
   String? total;
   String? image;
 
@@ -80,6 +81,7 @@ class OrderItem {
     this.name,
     this.quantity,
     this.subtotal,
+    this.unit_price,
     this.total,
     this.image,
   });
@@ -89,6 +91,7 @@ class OrderItem {
     name = json['name'];
     quantity = json['quantity'];
     subtotal = json['subtotal'];
+    unit_price = json['unit_price'];
     total = json['total'];
     image = json['image'];
   }
@@ -99,6 +102,7 @@ class OrderItem {
     map['name'] = name;
     map['quantity'] = quantity;
     map['subtotal'] = subtotal;
+    map['unit_price'] = unit_price;
     map['total'] = total;
     map['image'] = image;
     return map;

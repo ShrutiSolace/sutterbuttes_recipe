@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../api_constant.dart';
+import '../modal/delete_model.dart';
 import '../modal/login_model.dart';
 import '../services/notification_service.dart';
 import '../services/secure_storage.dart';
@@ -70,13 +71,14 @@ class AuthService {
           statusCode: response.statusCode,
         );
       } else if (response.statusCode == 403) {
-
-
+        // Parse the error response to get the actual message for deleted/inactive accounts
+        final Map<String, dynamic> errorData = json.decode(response.body);
         throw ApiError(
-          message: 'Access denied. Please contact support.',
+          message: errorData['message'] ?? 'Your account is inactive. Please contact support.',
           statusCode: response.statusCode,
         );
-      } else {
+      }
+      else {
 
         final Map<String, dynamic> errorData = json.decode(response.body);
         throw ApiError(
@@ -150,14 +152,14 @@ class AuthService {
   }
 
 
-  Future<bool> deleteAccount() async {
+  static Future<DeleteAccountResponse> deleteAccount() async {
     print("Initiating account deletion...");
 
     String? token = await SecureStorage.getLoginToken();
     print("Deleting account with token: $token");
 
     final uri = Uri.parse(ApiConstants.deleteAccountUrl);
-    final response = await http.delete(
+    final response = await http.post(
       uri,
       headers: {
         'Authorization': 'Bearer $token',
@@ -172,17 +174,14 @@ class AuthService {
 
     final Map<String, dynamic> data = json.decode(response.body);
 
-    if (response.statusCode == 200 && data['success'] == true) {
-      return true;
+    if (response.statusCode == 200) {
+      return DeleteAccountResponse.fromJson(data);
     } else if (response.statusCode == 401) {
       throw Exception('Unauthorized (401). Token may be expired/invalid.');
     } else {
       throw Exception(data['message'] ?? 'Failed to delete account: ${response.statusCode}');
     }
   }
-
-
-
 
 
 

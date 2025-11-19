@@ -67,7 +67,7 @@ class NewsletterProvider with ChangeNotifier {
     required String email,
     required String name,
     required bool newRecipes,
-    required bool cookingTips,
+
     required bool seasonalOffers,
     required bool productUpdates,
   }) async {
@@ -80,7 +80,7 @@ class NewsletterProvider with ChangeNotifier {
         email: email,
         name: name,
         newRecipes: newRecipes,
-        cookingTips: cookingTips,
+
         seasonalOffers: seasonalOffers,
         productUpdates: productUpdates,
       );

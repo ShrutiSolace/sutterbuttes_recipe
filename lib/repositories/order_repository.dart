@@ -50,20 +50,21 @@ class OrderRepository {
 */
 
   Future<int> getOrderCount() async {
-    // Get user's JWT token
+    print("=======Fetching order count...");
+
     String? token = await SecureStorage.getLoginToken();
 
     if (token == null) {
-      return 0; // No token means no orders
+      return 0;
     }
 
-    // Get current user's profile to get their ID
+
     try {
       final profileRepo = UserRepository();
       final profile = await profileRepo.getCurrentUser();
       final customerId = profile.id;
 
-      // Use JWT authentication with customer ID to get user-specific orders
+
       Uri uri = Uri.parse('${ApiConstants.ordersUrl}?per_page=1&page=1&customer=$customerId');
 
       final response = await http.get(
@@ -79,21 +80,19 @@ class OrderRepository {
       print("Order Count Response: ${response.statusCode} :: ${response.body}");
 
       if (response.statusCode == 200) {
-        // Get total count from response headers (user-specific)
         final totalCountHeader = response.headers['x-wp-total'];
         if (totalCountHeader != null) {
           return int.tryParse(totalCountHeader) ?? 0;
         }
 
-        // Fallback: count the items in response
         final List<dynamic> data = json.decode(response.body) as List<dynamic>;
         return data.length;
       } else if (response.statusCode == 401) {
-        return 0; // Token expired, return 0
+        return 0;
       } else if (response.statusCode == 403) {
-        return 0; // No permission, return 0
+        return 0;
       } else {
-        return 0; // Any other error, return 0
+        return 0;
       }
     } catch (e) {
       print("Error getting order count: $e");
@@ -103,7 +102,6 @@ class OrderRepository {
 
 
   Future<List<OrderSummary>> getOrdersList({int page = 1, int perPage = 10}) async {
-    // Get user's JWT token
     String? token = await SecureStorage.getLoginToken();
 
     if (token == null) {
@@ -115,7 +113,7 @@ class OrderRepository {
     final response = await http.get(
       uri,
       headers: {
-        'Authorization': 'Bearer $token',  // Add this line
+        'Authorization': 'Bearer $token',
         'Accept': 'application/json',
         'Content-Type': 'application/json',
       },
@@ -136,9 +134,8 @@ class OrderRepository {
   }
 
 
-  // Add this method to the OrderRepository class
   Future<OrderDetail> getOrderDetail(int orderId) async {
-    // Get user's JWT token
+
     String? token = await SecureStorage.getLoginToken();
 
     if (token == null) {
@@ -155,6 +152,7 @@ class OrderRepository {
         'Content-Type': 'application/json',
       },
     );
+
     print("====");
     print("Order Detail URL: $uri");
     print("Order Detail Response: ${response.statusCode} :: ${response.body}");

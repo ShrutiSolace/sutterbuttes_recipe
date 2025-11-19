@@ -98,22 +98,33 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                               .textTheme
                               .labelLarge
                               ?.copyWith(color: Colors.black87)),
-                      const SizedBox(height: 6),
-                                             TextFormField(
-                         controller: _emailController,
-                         keyboardType: TextInputType.emailAddress,
-                         validator: (value) {
-                           if (value == null || value.isEmpty) {
-                             return 'Email is required';
-                           }
-                           if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-                             return 'Please enter a valid email';
-                           }
-                           return null;
-                         },
-                         decoration: _inputDecoration(
-                           hint: 'Enter your email address',
-                           context: context,
+                                             const SizedBox(height: 6),
+                                             TextFormField(controller: _emailController, keyboardType: TextInputType.emailAddress,
+                                               validator: (value) {
+                                                 if (value == null || value.isEmpty) {
+                                                   return 'Email is required';
+                                                 }
+
+                                                 if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                                                   return 'Please enter a valid email address';
+                                                 }
+
+                                                 final parts = value.split('@');
+                                                 if (parts.length != 2) return 'Please enter a valid email address';
+                                                 final domain = parts[1];
+                                                 if (!domain.contains('.') || domain.startsWith('.') || domain.endsWith('.') || domain.contains('..')) {
+                                                   return 'Please enter a valid email domain';
+                                                 }
+                                                 final tld = domain.split('.').last;
+                                                 if (tld.length < 2 || tld.length > 4) {
+                                                   return 'Please enter a valid email domain';
+                                                 }
+
+                                                 return null;
+                                               },
+                                               decoration: _inputDecoration(
+                                               hint: 'Enter your email address',
+                                               context: context,
                          ),
                        ),
                       const SizedBox(height: 20),

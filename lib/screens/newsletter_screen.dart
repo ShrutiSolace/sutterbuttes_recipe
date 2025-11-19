@@ -22,6 +22,7 @@ class _NewsletterScreenState extends State<NewsletterScreen> {
   bool _seasonalOffers = false;
   bool _productUpdates = true;
   bool _consentAgreed = false;
+  bool _isSaving = false;
 
   static const Color _brandGreen = Color(0xFF7B8B57);
   static const Color _textGrey = Color(0xFF5F6368);
@@ -87,6 +88,28 @@ class _NewsletterScreenState extends State<NewsletterScreen> {
 
 
                 _buildNewsletterForm(),
+                if (newsletterProvider.newsletterData?.preferences.subscribed == true)
+                  Container(
+                    margin: const EdgeInsets.only(top: 16),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.lightGreen[50],  // or Colors.blue[50] for info style
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.lightGreen[200]!),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.info_outline, color: Colors.lightGreen[600], size: 20),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'You have already subscribed to our newsletter',
+                            style: TextStyle(color: Colors.lightGreen[700]),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
 
 
                 if (newsletterProvider.subscribeResponse != null)
@@ -214,6 +237,7 @@ class _NewsletterScreenState extends State<NewsletterScreen> {
                 return null;
               },
             ),
+
             const SizedBox(height: 16),
 
             // First Name Field
@@ -321,9 +345,9 @@ class _NewsletterScreenState extends State<NewsletterScreen> {
         _buildCheckboxOption('New Recipes', _newRecipes, (value) {
           setState(() => _newRecipes = value!);
         }),
-        _buildCheckboxOption('Cooking Tips & Techniques', _cookingTips, (value) {
+        /*_buildCheckboxOption('Cooking Tips & Techniques', _cookingTips, (value) {
           setState(() => _cookingTips = value!);
-        }),
+        }),*/
         _buildCheckboxOption('Seasonal Offers & Promotions', _seasonalOffers, (value) {
           setState(() => _seasonalOffers = value!);
         }),
@@ -531,7 +555,19 @@ class _NewsletterScreenState extends State<NewsletterScreen> {
   }
 
   void _handleSubscribe() {
+
+    bool hasAtLeastOnePreference = _newRecipes  || _seasonalOffers || _productUpdates;
+
     if (_formKey.currentState!.validate() && _consentAgreed) {
+      if (!hasAtLeastOnePreference) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please select at least one newsletter preference'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
       // Call the subscribe API
       _subscribeToNewsletter();
     } else if (!_consentAgreed) {
@@ -552,26 +588,25 @@ class _NewsletterScreenState extends State<NewsletterScreen> {
         barrierDismissible: false,
         builder: (context) => const Center(
           child: CircularProgressIndicator(),
+          // Call the provider to subscribe
         ),
       );
 
-      // Call the provider to subscribe
       await Provider.of<NewsletterProvider>(context, listen: false).subscribeToNewsletter(
         email: _emailController.text,
         name: _firstNameController.text,
         newRecipes: _newRecipes,
-        cookingTips: _cookingTips,
         seasonalOffers: _seasonalOffers,
         productUpdates: _productUpdates,
       );
 
-      // Hide loading indicator
+
       Navigator.pop(context);
 
-      // Check if subscription was successful
+
       final provider = Provider.of<NewsletterProvider>(context, listen: false);
       if (provider.subscribeResponse != null) {
-        // Show success message
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(provider.subscribeResponse!.message),
