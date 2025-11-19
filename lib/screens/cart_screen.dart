@@ -15,7 +15,6 @@ class _CartScreenState extends State<CartScreen> {
   @override
   void initState() {
     super.initState();
-    // Refresh cart data when screen opens
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<CartProvider>().loadCart();
     });
@@ -170,32 +169,27 @@ class _CartContent extends StatelessWidget {
                                 productId: item.productId ?? 0,
                                 variationId: item.variationId ?? 0,
                               );
-                              // Remove this next line to avoid flicker:
+
                               //await context.read<CartProvider>().loadCart(silent: true);
 
                             }
                           },
                         ),
 
-
-
-
-
-
-
                         Row(
                           children: [
                             _QtyButton(
                                 icon: Icons.remove,
                                 onTap: () async {
-                                 final current = item.quantity ?? 1;
-                                // Allow quantity to go to 0
-                                 final newQuantity = (current - 1) >= 0 ? (current - 1) : 0;
-                                 await context.read<CartProvider>().updateQuantityOptimistic(
+
+                                  final current = item.quantity ?? 1;
+                                  final newQuantity = (current - 1) >= 0 ? (current - 1) : 0;
+                                  await context.read<CartProvider>().updateQuantityOptimistic(
                                   productId: item.productId ?? 0,
                                   variationId: item.variationId ?? 0,
                                      quantity: newQuantity,
                                    );
+
                                   }
                                   ),
 
@@ -212,6 +206,7 @@ class _CartContent extends StatelessWidget {
                                         variationId: item.variationId ?? 0,
                                         quantity: current + 1,
                                       );
+
                                 }
                                 ),
                           ],

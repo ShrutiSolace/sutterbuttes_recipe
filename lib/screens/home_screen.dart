@@ -86,8 +86,8 @@ class _FavouriteButtonState extends State<_FavouriteButton> {
   }
 
   Future<void> _checkFavoriteStatus() async {
-    // slight delay to ensure context is ready
     await Future.delayed(const Duration(milliseconds: 100));
+
     try {
       final repo = FavouritesRepository();
       final favorites = await repo.getFavourites();
@@ -224,11 +224,20 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
   void _onSearchChanged(String query) {
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 500), () {
-      if (query.isNotEmpty) {
+
+      if (query.trim().isNotEmpty && query.trim().length < 3) {
+        if (_isSearching) {
+          setState(() => _isSearching = false);
+        }
+        context.read<SearchProvider>().clearSearch();
+        return;
+      }
+
+      if (query.trim().isNotEmpty && query.trim().length >= 3) {
         if (!_isSearching) {
           setState(() => _isSearching = true);
         }
-        context.read<SearchProvider>().searchItems(query);
+        context.read<SearchProvider>().searchItems(query.trim());
       } else {
         if (_isSearching) {
           setState(() => _isSearching = false);
@@ -907,11 +916,18 @@ class TrendingProductSection extends StatelessWidget {
             ),
           );
         }
-
-
-
-
+/*
         final products = provider.trendingProducts?.products ?? [];
+
+        if (products.isEmpty) {
+          return const Center(child: Text("No trending products available"));
+        }
+ */
+        if (provider.trendingProducts == null) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final products = provider.trendingProducts!.products ?? [];
 
         if (products.isEmpty) {
           return const Center(child: Text("No trending products available"));
@@ -1804,7 +1820,7 @@ class _SearchResultCard extends StatelessWidget {
               title: searchItem.title,
               link: searchItem.link,
               date: '',
-              contentHtml: '<p>${(searchItem as SearchRecipeItem).excerpt.replaceAll(RegExp(r'<[^>]*>'), '').replaceAll('&amp;', '&').replaceAll('&lt;', '<').replaceAll('&gt;', '>').replaceAll('&quot;', '"').replaceAll('&#038;', '&')}</p>', // Use excerpt
+              contentHtml: (searchItem as SearchRecipeItem).description ?? '',
               featuredMediaId: 0,
               imageUrl: searchItem.image,
             );
@@ -1824,7 +1840,7 @@ class _SearchResultCard extends StatelessWidget {
               type: 'simple',
               status: 'publish',
               featured: false,
-              description: '',
+              description: (searchItem as SearchProductItem).description ?? '',
               shortDescription: '',
               sku: '',
               price: (searchItem as SearchProductItem).price,

@@ -421,28 +421,32 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            /*Text(
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
                               '${item.name ?? ''}',
                               style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
-                            ),*/
-                            Text(
-                              '${item.unit_price ?? ''} * ${item.quantity ?? 0}',
-                              style: const TextStyle(fontSize:15, fontWeight: FontWeight.w700),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '\$${(double.tryParse(item.total ?? '0') ?? 0.0).toStringAsFixed(2)}',
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                          ),
+                        ],
                       ),
+                      const SizedBox(height: 4),
                       Text(
-                        '\$${(double.tryParse(item.total ?? '0') ?? 0.0).toStringAsFixed(2)}',
-                        style: const TextStyle(fontSize: 15.3, fontWeight: FontWeight.w700),
+                        '\$${item.unit_price ?? ''} * ${item.quantity ?? 0}',
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
                       ),
                     ],
                   ),

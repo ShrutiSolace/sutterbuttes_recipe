@@ -43,6 +43,7 @@ class SearchRecipe {
   final int id;
   final String title;
   final String excerpt;
+  final String description;
   final String link;
   final String image;
 
@@ -51,6 +52,7 @@ class SearchRecipe {
     required this.title,
     required this.excerpt,
     required this.link,
+    required this.description,
     required this.image,
   });
 
@@ -59,6 +61,7 @@ class SearchRecipe {
       id: json['id'] ?? 0,
       title: json['title'] ?? '',
       excerpt: json['excerpt'] ?? '',
+      description: json['description'] ?? '',
       link: json['link'] ?? '',
       image: json['image'] ?? '',
     );
@@ -70,6 +73,7 @@ class SearchProduct {
   final String title;
   final String price;
   final String link;
+  final String description;
   final String image;
 
   SearchProduct({
@@ -77,6 +81,7 @@ class SearchProduct {
     required this.title,
     required this.price,
     required this.link,
+    required this.description,
     required this.image,
   });
 
@@ -86,6 +91,7 @@ class SearchProduct {
       title: json['title'] ?? '',
       price: json['price'] ?? '',
       link: json['link'] ?? '',
+      description: json['description'] ?? '',
       image: json['image'] ?? '',
     );
   }
@@ -107,11 +113,13 @@ class SearchRecipeItem extends SearchRecipe implements SearchItem {
     required String excerpt,
     required String link,
     required String image,
+    required String description,
   }) : super(
     id: id,
     title: title,
     excerpt: excerpt,
     link: link,
+    description:description,
     image: image,
   );
 
@@ -124,6 +132,7 @@ class SearchRecipeItem extends SearchRecipe implements SearchItem {
       title: recipe.title,
       excerpt: recipe.excerpt,
       link: recipe.link,
+      description: recipe.description,
       image: recipe.image,
     );
   }
@@ -136,11 +145,13 @@ class SearchProductItem extends SearchProduct implements SearchItem {
     required String price,
     required String link,
     required String image,
+    required String description,
   }) : super(
     id: id,
     title: title,
     price: price,
     link: link,
+    description: description,
     image: image,
   );
 
@@ -153,6 +164,7 @@ class SearchProductItem extends SearchProduct implements SearchItem {
       title: product.title,
       price: product.price,
       link: product.link,
+      description: product.description,
       image: product.image,
     );
   }

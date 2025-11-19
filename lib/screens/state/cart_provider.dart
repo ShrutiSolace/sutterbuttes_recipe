@@ -15,6 +15,25 @@ class CartProvider extends ChangeNotifier {
   String? get error => _error;
   int get itemCount => _cart?.items?.fold<int>(0, (sum, it) => sum + (it.quantity ?? 0)) ?? 0;
 
+
+  // Step 1: Calculate subtotal locally from items
+  double _calculateLocalSubtotal() {
+    if (_cart?.items == null || _cart!.items!.isEmpty) return 0.0;
+
+    double subtotal = 0.0;
+    for (final item in _cart!.items!) {
+      final price = (item.price is num)
+          ? (item.price as num).toDouble()
+          : double.tryParse(item.price.toString()) ?? 0.0;
+      final quantity = item.quantity ?? 0;
+      subtotal += price * quantity;
+    }
+    return subtotal;
+  }
+
+
+
+
   Future<void> loadCart({bool silent = false}) async {
     if (!silent) {
       _loading = true;
@@ -59,12 +78,24 @@ class CartProvider extends ChangeNotifier {
           break;
         }
       }
+
+      final localSubtotal = _calculateLocalSubtotal();
+      if (_cart!.totals == null) {
+        _cart!.totals = Totals(subtotal: localSubtotal);
+      } else {
+        _cart!.totals!.subtotal = localSubtotal;
+      }
       notifyListeners();
+
     }
     try {
       await _repo.updateCart(productId: productId, variationId: variationId, quantity: quantity);
-    } catch (_) {}
-    await loadCart(silent: true);
+     // await loadCart(silent: true);
+
+    } catch (_) {
+      await loadCart(silent: true);
+    }
+
   }
 
   Future<void> removeItem({

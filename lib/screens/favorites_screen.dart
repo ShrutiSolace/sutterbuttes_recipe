@@ -220,12 +220,12 @@ class _FavoriteCard extends StatelessWidget {
             imageUrl: recipe!.image ?? '',
           );
 
-            /*Navigator.push(
+            Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => RecipeDetailScreen(recipe: recipeItem),
             ),
-          );*/
+          );
         }
       },
       child: Container(

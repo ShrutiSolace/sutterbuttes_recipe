@@ -48,6 +48,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   void initState() {
     super.initState();
     _loadBillingInfo();
+    _loadInitialData();
 
 
     // Refresh cart data when checkout screen opens
@@ -82,6 +83,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   double? _shippingTotal;
   double? _finalTotal;
   static const double _defaultShippingCost = 10.95;
+  bool _isLoadingInitialData = true;
 
   void _syncShippingWithBilling() {
     if (_sameAsBilling) {
@@ -139,6 +141,29 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
+  Future<void> _loadInitialData() async {
+    try {
+
+      await _loadBillingInfo();
+      await context.read<CartProvider>().loadCart();
+
+
+      if (mounted) {
+        setState(() {
+          _isLoadingInitialData = false;
+        });
+      }
+    } catch (e) {
+      print('Error loading initial data: $e');
+
+      if (mounted) {
+        setState(() {
+          _isLoadingInitialData = false;
+        });
+      }
+    }
+  }
+
   @override
   void dispose() {
     _bFirst.removeListener(_syncShippingWithBilling);
@@ -170,11 +195,33 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoadingInitialData) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          backgroundColor: const Color(0xFF4A3D4D),
+          elevation: 0,
+          iconTheme: const IconThemeData(color: Colors.white),
+          title: const Text(
+            "Checkout",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          centerTitle: true,
+        ),
+        body: const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+
     final cart = context.watch<CartProvider>().cart;
     final subtotal = cart?.totals?.subtotal ?? 0;
 
-
-    // Convert subtotal to double for calculations
     final subtotalDouble = double.tryParse(subtotal.toString()) ?? 0.0;
     if (subtotalDouble > 0) {
       WidgetsBinding.instance.addPostFrameCallback((_) {

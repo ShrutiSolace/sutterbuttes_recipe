@@ -119,10 +119,8 @@ class _RecipesScreenState extends State<RecipesScreen> {
       _searchQuery = query;
     });
 
-    // Cancel previous timer if user is still typing
-    _searchDebounceTimer?.cancel();
 
-    // If query is empty, show all loaded recipes immediately
+    _searchDebounceTimer?.cancel();
     if (query.trim().isEmpty) {
       setState(() {
         _filteredRecipes = _allRecipes;
@@ -130,6 +128,13 @@ class _RecipesScreenState extends State<RecipesScreen> {
       return;
     }
 
+
+    if (query.trim().length < 3) {
+      setState(() {
+        _filteredRecipes = _allRecipes;
+      });
+      return;
+    }
 
     _searchDebounceTimer = Timer(const Duration(milliseconds: 500), () async {
       if (_searchQuery.trim().isEmpty) {
@@ -139,9 +144,15 @@ class _RecipesScreenState extends State<RecipesScreen> {
         return;
       }
 
+      if (_searchQuery.trim().length < 3) {
+        setState(() {
+          _filteredRecipes = _allRecipes;
+        });
+        return;
+      }
+
       try {
         final searchResult = await _searchRepository.searchItems(_searchQuery.trim());
-
 
         final List<RecipeItem> searchResults = searchResult.results.recipes.map((searchRecipe) {
           return RecipeItem(
@@ -171,7 +182,6 @@ class _RecipesScreenState extends State<RecipesScreen> {
       }
     });
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
