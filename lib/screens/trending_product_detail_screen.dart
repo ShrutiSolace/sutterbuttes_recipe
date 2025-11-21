@@ -11,6 +11,7 @@ import 'package:html_unescape/html_unescape.dart';
 class TrendingProductDetailScreen extends StatefulWidget {
   final TrendingProduct product;
 
+
   const TrendingProductDetailScreen({
     Key? key,
     required this.product,
@@ -263,7 +264,7 @@ class _TrendingProductDetailScreenState extends State<TrendingProductDetailScree
                           );
 
 
-                          final cart = await CartRepository().addToCart(productId: widget.product.id!, quantity: _quantity);
+                          final cart = await CartRepository().addToCart(productId: widget.product.id!, quantity: _quantity,);
 
                           try {
                             await context.read<CartProvider>().loadCart();

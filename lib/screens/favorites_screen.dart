@@ -13,11 +13,11 @@ class FavoritesScreen extends StatelessWidget {
 
 
   String cleanHtmlText(String text) {
-    // Parse the HTML and extract text content (this handles all HTML entities)
+
     final document = html_parser.parse(text);
     final cleanText = document.body?.text ?? text;
 
-    // Remove any remaining HTML tags
+
     final RegExp htmlTagRegex = RegExp(r'<[^>]*>', multiLine: true, caseSensitive: true);
     return cleanText.replaceAll(htmlTagRegex, '').trim();
   }
@@ -280,6 +280,10 @@ class _FavoriteCard extends StatelessWidget {
             ],
             tags: [],
             priceHtml: '',
+            variation: false,
+            options: [],
+            variations: [],
+
           );
 
           Navigator.push(

@@ -610,12 +610,31 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         }
 
         // State validation
+        // State validation
         if (label.contains('State')) {
-          if (v.trim().length < 2) {
+          final stateValue = v.trim();
+
+          if (stateValue.length < 2) {
             return 'State must be at least 2 characters';
           }
-          if (v.trim().length > 50) {
+          if (stateValue.length > 50) {
             return 'State must be less than 50 characters';
+          }
+
+          // Check if it's a valid 2-letter state code (uppercase)
+          if (stateValue.length == 2) {
+            if (!RegExp(r'^[A-Z]{2}$').hasMatch(stateValue)) {
+              return 'State code must be 2 uppercase letters';
+            }
+          } else {
+            // For state names, check if it contains only letters and spaces
+            if (!RegExp(r'^[A-Za-z\s]+$').hasMatch(stateValue)) {
+              return 'State name must contain only letters and spaces';
+            }
+            // Check if it's a reasonable state name (not just repeated characters)
+            if (RegExp(r'^(.)\1+$').hasMatch(stateValue.replaceAll(' ', ''))) {
+              return 'Please enter a valid state name or 2-letter state code';
+            }
           }
         }
 
@@ -785,6 +804,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       for (var item in _savedCartItems!) {
         await cartRepo.addToCart(
           productId: item['product_id'] as int,
+
           quantity: item['quantity'] as int,
         );
       }
@@ -856,6 +876,48 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         },
         paymentMethod: paymentMethod,
       );
+
+      // Check if API returned an error
+      // Check if API returned an error
+      if (resp['success'] == false) {
+        String errorMessage = resp['message'] ?? 'Checkout failed';
+
+        // Format state-related errors to start with "Please"
+        if (errorMessage.toLowerCase().contains('state')) {
+          // Remove "Invalid state." prefix if present and ensure it starts with "Please"
+          if (errorMessage.startsWith('Invalid state')) {
+            // Extract the part after "Invalid state."
+            final parts = errorMessage.split('.');
+            if (parts.length > 1) {
+              errorMessage = parts[1].trim();
+              // Ensure it starts with "Please"
+              if (!errorMessage.toLowerCase().startsWith('please')) {
+                errorMessage = 'Please $errorMessage';
+              }
+            } else {
+              // If no period, just ensure it starts with "Please"
+              errorMessage = errorMessage.replaceFirst(RegExp(r'^Invalid state\s*[.,]?\s*', caseSensitive: false), '');
+              if (!errorMessage.toLowerCase().startsWith('please')) {
+                errorMessage = 'Please $errorMessage';
+              }
+            }
+          } else if (!errorMessage.toLowerCase().startsWith('please')) {
+            // If it doesn't start with "Please", add it
+            errorMessage = 'Please $errorMessage';
+          }
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Color(0xFF7B8B57),
+          ),
+        );
+        setState(() {
+          _submitting = false;
+        });
+        return null; // Stop the checkout process
+      }
       //calculate shipping and total
       final checkoutData = CheckOutModel.fromJson(resp);
       final shippingValue = checkoutData.shippingTotal ?? '0';

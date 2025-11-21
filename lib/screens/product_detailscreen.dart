@@ -19,6 +19,9 @@ class ProductDetailScreen extends StatefulWidget {
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
   int _quantity = 1;
   bool _isAdding = false;
+  // added for the variations
+  String? _selectedOptions;
+  int? _selectedVariationId;
 
   String cleanHtmlText(String text) {
     // Parse the HTML and extract text content (this handles all HTML entities)
@@ -34,6 +37,28 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   @override
   Widget build(BuildContext context) {
     const Color brandGreen = Color(0xFF7B8B57);
+
+    // ADD DEBUG PRINTS HERE (between line 39 and 41):
+    print("=== PRODUCT VARIATION DEBUG ===");
+    print("Product ID: ${widget.product.id}");
+    print("Product Name: ${widget.product.name}");
+    print("Variation field: ${widget.product.variation}");
+    print("Variation type: ${widget.product.variation.runtimeType}");
+    print("Options: ${widget.product.options}");
+    print("Options length: ${widget.product.options.length}");
+    print("Variations: ${widget.product.variations}");
+    print("Variations length: ${widget.product.variations.length}");
+    print("Should show dropdown: ${widget.product.variation == true && widget.product.options.isNotEmpty}");
+    print("Selected Option: $_selectedOptions");
+    print("Selected Variation ID: $_selectedVariationId");
+    print("================================");
+
+
+
+
+
+
+
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -78,6 +103,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             ),
 
             const SizedBox(height: 16),
+            Text(
+              widget.product.name,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF4A3D4D),
+              ),
+            ),
+            const SizedBox(height: 16),
 
             // Price + Quantity + Add Button UI (static, below In Stock)
             Container(
@@ -90,6 +124,69 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+
+                  // Variation Options Dropdown (moved to top)
+                  if (widget.product.variation == true && widget.product.options.isNotEmpty) ...[
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Choose an Option",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF4A3D4D),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+
+                        SizedBox(
+                          width: double.infinity,
+                         child:  DropdownButtonFormField<String>(
+                          value: _selectedOptions,
+                           isExpanded: true,
+                          decoration: InputDecoration(
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: Color(0xFFE8E6EA)),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: Color(0xFFE8E6EA)),
+                            ),
+                            filled: true,
+                            fillColor: Colors.white,
+                          ),
+                          hint: const Text("Select an option"),
+                          items: widget.product.options.map((String option) {
+                            return DropdownMenuItem<String>(
+                              value: option,
+                              child: Text(option),
+                            );
+                          }).toList(),
+                          onChanged: (String? newValue) {
+                            setState(() {
+                              _selectedOptions = newValue;
+                              // Find the corresponding variation ID
+                              if (newValue != null) {
+                                final index = widget.product.options.indexOf(newValue);
+                                if (index >= 0 && index < widget.product.variations.length) {
+                                  _selectedVariationId = widget.product.variations[index];
+                                }
+                              } else {
+                                _selectedVariationId = null;
+                              }
+                            });
+                          },
+                        ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16), // Add spacing after dropdown
+                  ],
+
+
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -245,15 +342,24 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      onPressed: _isAdding || widget.product.stockStatus != 'instock' || _quantity == 0
+                      onPressed: _isAdding || widget.product.stockStatus != 'instock' || _quantity == 0 || (widget.product.variation == true && _selectedVariationId == null)
+
 
                           ? null
                           : () async {
                               FocusScope.of(context).unfocus();
                               setState(() { _isAdding = true; });
+
+                              if (widget.product.variation == true && _selectedVariationId == null) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Please select an option before adding to cart'))
+                                );
+                                return;
+                              }
+
                               try {
                                 final repo = CartRepository();
-                                final result = await repo.addToCart(productId: widget.product.id, quantity: _quantity);
+                                final result = await repo.addToCart(productId: widget.product.id, quantity: _quantity, variationId: _selectedVariationId);
                                 final msg = result.message ?? 'Added to cart';
                                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)
                                 )
@@ -287,7 +393,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Product Name
+          /*  // Product Name
             Text(
               widget.product.name,
               style: const TextStyle(
@@ -296,10 +402,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 color: Color(0xFF4A3D4D),
               ),
             ),
+*/
 
-            const SizedBox(height: 8),
 
-            // Price
             // Price
           /*  if (widget.product.priceHtml.isNotEmpty)
               Html(
@@ -366,7 +471,64 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ],
             ),
 
-            const SizedBox(height: 16),
+
+            // Variation Options Dropdown
+              /* if (widget.product.variation == true && widget.product.options.isNotEmpty) ...[
+              const SizedBox(height: 16),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                         children: [
+                         const Text(
+                             "Choose Option",
+                               style: TextStyle(
+                               fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                 color: Color(0xFF4A3D4D),
+                               ),
+                                ),
+    const SizedBox(height: 8),
+    DropdownButtonFormField<String>(
+    value: _selectedOptions,
+    decoration: InputDecoration(
+    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+    border: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(12),
+    borderSide: const BorderSide(color: Color(0xFFE8E6EA)),
+    ),
+    enabledBorder: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(12),
+    borderSide: const BorderSide(color: Color(0xFFE8E6EA)),
+    ),
+    filled: true,
+    fillColor: Colors.white,
+    ),
+    hint: const Text("Select an option..."),
+    items: widget.product.options.map((String option) {
+    return DropdownMenuItem<String>(
+    value: option,
+    child: Text(option),
+    );
+    }).toList(),
+    onChanged: (String? newValue) {
+    setState(() {
+    _selectedOptions = newValue;
+    // Find the corresponding variation ID
+    if (newValue != null) {
+    final index = widget.product.options.indexOf(newValue);
+    if (index >= 0 && index < widget.product.variations.length) {
+    _selectedVariationId = widget.product.variations[index];
+    }
+    } else {
+    _selectedVariationId = null;
+    }
+    });
+    },
+    ),
+    ],
+    ),
+    ],
+*/
+    const SizedBox(height: 16),
 
             // Short Description
             if (widget.product.shortDescription.isNotEmpty)

@@ -76,7 +76,7 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Cook, Shop & Savor.',
+                'Shop, Cook & Savor.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 20,

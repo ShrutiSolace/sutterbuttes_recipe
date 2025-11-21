@@ -33,6 +33,9 @@ class Product {
   final List<ProductImage> images;
   final List<dynamic> tags;
   final String priceHtml;
+  final bool variation;
+  final List<String> options;
+  final List<int> variations;
 
   Product({
     required this.id,
@@ -69,6 +72,9 @@ class Product {
     required this.images,
     required this.tags,
     required this.priceHtml,
+    required this.variation,
+    required this.options,
+    required this.variations,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
@@ -111,7 +117,37 @@ class Product {
           .toList() ?? [],
       tags: json['tags'] ?? [],
       priceHtml: json['price_html'] ?? '',
+      variation: json['type'] == 'variable' || json['variation'] == true || json['variation'] == 'true',
+      options: _extractVariationOptions(json),
+      variations: (json['variations'] as List?)?.map((e) {
+        if (e is int) return e;
+        if (e is String) return int.tryParse(e) ?? 0;
+        return 0;
+      }).where((e) => e > 0).toList() ?? [],
+
     );
+  }
+
+  static List<String> _extractVariationOptions(Map<String, dynamic> json) {
+    if (json['attributes'] != null && json['attributes'] is List) {
+      final attributes = json['attributes'] as List;
+      for (var attr in attributes) {
+        if (attr is Map<String, dynamic>) {
+
+          if (attr['variation'] == true && attr['options'] != null) {
+            final options = attr['options'] as List?;
+            if (options != null && options.isNotEmpty) {
+              return options.map((e) => e.toString()).toList();
+            }
+          }
+        }
+      }
+    }
+
+    if (json['options'] != null && json['options'] is List) {
+      return (json['options'] as List).map((e) => e.toString()).toList();
+    }
+    return [];
   }
 
   Map<String, dynamic> toJson() {
@@ -150,6 +186,9 @@ class Product {
       'images': images.map((image) => image.toJson()).toList(),
       'tags': tags,
       'price_html': priceHtml,
+      'variation': variation,
+      'options': options,
+      'variations': variations,
     };
   }
 }

@@ -51,7 +51,7 @@ class CartProvider extends ChangeNotifier {
   }
 
   Future<void> addToCart({required int productId, required int quantity}) async {
-    await _repo.addToCart(productId: productId, quantity: quantity);
+    await _repo.addToCart(productId: productId, quantity: quantity );
     await loadCart();
   }
 

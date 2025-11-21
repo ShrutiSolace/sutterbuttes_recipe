@@ -8,7 +8,8 @@ class CheckOutModel {
       this.shippingTotal,
       this.currency, 
       this.payment, 
-      this.viewOrder,});
+      this.viewOrder,
+       this.message,});
 
   CheckOutModel.fromJson(dynamic json) {
     success = json['success'];
@@ -20,6 +21,7 @@ class CheckOutModel {
     currency = json['currency'];
     payment = json['payment'];
     viewOrder = json['view_order'];
+    message = json['message'];
   }
   bool? success;
   int? orderId;
@@ -30,6 +32,7 @@ class CheckOutModel {
   String? currency;
   String? payment;
   String? viewOrder;
+  String? message;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -42,6 +45,7 @@ class CheckOutModel {
     map['currency'] = currency;
     map['payment'] = payment;
     map['view_order'] = viewOrder;
+    map['message'] = message;
     return map;
   }
 

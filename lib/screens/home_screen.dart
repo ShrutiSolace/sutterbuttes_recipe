@@ -360,35 +360,42 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
-
-
     const Color brandGreen = Color(0xFF7B8B57);
     final TextTheme textTheme = Theme.of(context).textTheme;
 
-
-    if (_isSearching) {
-      return Column(
-        children: [
-          _SearchBar(
-            hint: 'Search recipes, ingredients, or products',
-            controller: _searchController,
-            onChanged: _onSearchChanged,
-          ),
-          const SizedBox(height: 16),
-          Expanded(
-            child: _SearchResultsSection(),
-          ),
-        ],
-      );
-    }
-
-
-
-
-    return RefreshIndicator(
-        onRefresh: _refreshHomeScreen,
-       child  : SingleChildScrollView(
+    return WillPopScope(
+        onWillPop: () async {
+      // If user is in search mode, exit search instead of going back
+      if (_isSearching) {
+        setState(() {
+          _isSearching = false;
+          _searchController.clear();
+        });
+        context.read<SearchProvider>().clearSearch();
+        return false; // Prevent default back navigation
+      }
+      // If not searching, allow normal back navigation
+      return true;
+    },
+    child: _isSearching
+    ? Column(
+    children: [
+    _SearchBar(
+    hint: 'Search recipes, ingredients, or products',
+    controller: _searchController,
+    onChanged: _onSearchChanged,
+    ),
+    const SizedBox(height: 16),
+    Expanded(
+    child: _SearchResultsSection(),
+    ),
+    ],
+    )
+        : RefreshIndicator(
+    onRefresh: _refreshHomeScreen,
+    child: SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       physics: const AlwaysScrollableScrollPhysics(),
       child: Column(
@@ -524,6 +531,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
         ],
       ),
     ),
+    )
     );
   }
 }
@@ -1878,6 +1886,11 @@ class _SearchResultCard extends StatelessWidget {
               ],
               tags: [],
               priceHtml: '',
+              variation: false,
+              options: [],
+              variations: [],
+
+
             );
 
             Navigator.push(

@@ -7,8 +7,8 @@ import '../services/secure_storage.dart';
 
 
 class CartRepository {
-  Future<CartModel> addToCart({required int productId, required int quantity}) async {
-    print("Adding to cart: productId=$productId, quantity=$quantity");
+  Future<CartModel> addToCart({required int productId, required int quantity , int? variationId}) async {
+    print("Adding to cart: productId=$productId, quantity=$quantity , variationId=$variationId");
 
     final String? token = await SecureStorage.getLoginToken();
     final uri = Uri.parse(ApiConstants.cartAddUrl);
@@ -20,8 +20,10 @@ class CartRepository {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
       },
+
       body: json.encode({
         'product_id': productId,
+        if (variationId!= null )'variation_id': variationId,
         'quantity': quantity,
       }),
     );
