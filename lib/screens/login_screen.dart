@@ -3,8 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sutterbuttes_recipe/screens/state/auth_provider.dart';
 import '../services/notification_service.dart';
+import 'bottom_navigation.dart';
+import 'cart_screen.dart';
 import 'forgot_password_screen.dart';
 import 'package:provider/provider.dart';
+
+import 'notifications_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -266,7 +270,68 @@ class _LoginScreenState extends State<LoginScreen> {
 
                                       // Navigate after a short delay to let user see the message
                                       await Future.delayed(const Duration(milliseconds: 100));
-                                      Navigator.of(context).pushReplacementNamed('/home');
+                                     // Navigator.of(context).pushReplacementNamed('/home');
+
+
+                                      //  Check if there's an attempted action
+                                      final attemptedAction = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+
+                                      if (attemptedAction != null) {
+                                        final action = attemptedAction['action'];
+
+                                        if (action == 'add_to_cart') {
+                                          // Return to product screen with pending action
+                                          Navigator.of(context).pop(attemptedAction);
+                                        }
+                                        else if (action == 'mark_favorite') {
+
+                                          Navigator.of(context).pop(attemptedAction);
+                                        }
+
+                                        else if (action == 'favorites') {
+                                          //  Navigate to Favorites screen
+                                          Navigator.of(context).pushReplacement(
+                                            MaterialPageRoute(
+                                              builder: (context) => const BottomNavigationScreen(initialIndex: 3),
+                                            ),
+                                          );
+                                        }
+                                        else if (action == 'view notifications') {
+
+                                          Navigator.of(context).pop();
+                                        }
+
+                                        else if (action == 'profile') {
+                                          // Navigate to Profile screen
+                                          Navigator.of(context).pushReplacement(
+                                            MaterialPageRoute(
+                                              builder: (context) => const BottomNavigationScreen(initialIndex: 4),
+                                            ),
+                                          );
+                                        }
+                                     else if (action == 'cart') {
+                                         Navigator.of(context).pop();
+                                         /*Navigator.of(context).pushReplacement(
+                                          MaterialPageRoute(
+                                          builder: (context) => const CartScreen(),
+                                            ),
+                                           );*/
+                                        }
+
+                                     else if (action == 'favorites') {
+                                          Navigator.of(context).pop();
+                                        }
+                                        else {
+
+                                          Navigator.of(context).pushReplacementNamed('/home');
+                                        }
+                                      } else {
+
+                                        Navigator.of(context).pushReplacementNamed('/home');
+                                      }
+
+
+
                                     }
                                    /* else {
                                       ScaffoldMessenger.of(context).showSnackBar(

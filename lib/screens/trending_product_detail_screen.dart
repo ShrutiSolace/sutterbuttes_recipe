@@ -5,6 +5,8 @@ import 'package:sutterbuttes_recipe/screens/home_screen.dart';
 import 'package:sutterbuttes_recipe/screens/state/cart_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../modal/trending_product_model.dart';
+import '../repositories/favourites_repository.dart';
+import '../utils/auth_helper.dart';
 import 'all_trending_products_screen.dart';
 import 'cart_screen.dart';
 import 'package:html_unescape/html_unescape.dart';
@@ -23,6 +25,160 @@ class TrendingProductDetailScreen extends StatefulWidget {
 
 class _TrendingProductDetailScreenState extends State<TrendingProductDetailScreen> {
   int _quantity = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAndExecutePendingAction();
+    });
+  }
+
+  Future<void> _checkAndExecutePendingAction() async {
+    final pendingAction = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+
+    if (pendingAction != null &&
+        pendingAction['action'] == 'add_to_cart' &&
+        pendingAction['productId'] == widget.product.id) {
+
+      if (mounted) {
+        setState(() {
+          _quantity = pendingAction['quantity'] ?? 1;
+        });
+        // Execute add to cart automatically
+        await _executeAddToCart();
+      }
+    }
+  }
+
+  // ✅ Extract add to cart logic into reusable method
+  Future<void> _executeAddToCart() async {
+    try {
+      // Show loading
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+
+      final cart = await CartRepository().addToCart(productId: widget.product.id!, quantity: _quantity,);
+
+      try {
+        await context.read<CartProvider>().loadCart();
+      } catch (_) {}
+
+      Navigator.pop(context);
+
+      // Show success dialog with both buttons styled the same
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          backgroundColor: Colors.white,
+          title: Text(
+            'Success!',
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Text(
+            '${widget.product.name} added to cart successfully!',
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 16,
+            ),
+          ),
+          actions: [
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => AllTrendingProductsScreen()),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFF7B8B57),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: Text(
+                      'Continue Shopping',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => CartScreen()),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFF7B8B57),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: Text(
+                      'View Cart',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+
+    } catch (e) {
+      Navigator.pop(context); // Hide loading if shown
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to add to cart: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   Future<void> _launchProductUrl(BuildContext context) async {
     if (widget.product.permalink != null && widget.product.permalink!.isNotEmpty) {
@@ -70,6 +226,12 @@ class _TrendingProductDetailScreenState extends State<TrendingProductDetailScree
             fontFamily: 'Roboto',
           ),
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: _FavouriteButton(type: 'product', id: widget.product.id!),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -253,6 +415,26 @@ class _TrendingProductDetailScreenState extends State<TrendingProductDetailScree
                     height: 50,
                     child: ElevatedButton(
                       onPressed: _quantity > 0 ? () async {
+                        // ✅ ADD: Check authentication first
+                        final isAuthenticated = await AuthHelper.checkAuthAndPromptLogin(
+                          context,
+                          productId: widget.product.id!,
+                          quantity: _quantity,
+                        );
+                        if (!isAuthenticated) {
+                          return; // User cancelled login, don't add to cart
+                        }
+                        // ✅ Use extracted method for add to cart
+                        await _executeAddToCart();
+                      } : null,
+                      /*onPressed: _quantity > 0 ? () async {
+
+
+
+
+
+
+
                         try {
                           // Show loading
                           showDialog(
@@ -368,7 +550,7 @@ class _TrendingProductDetailScreenState extends State<TrendingProductDetailScree
                             ),
                           );
                         }
-                      } : null,
+                      } : null,*/
 
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _quantity > 0 ? Color(0xFF7B8B57) : Colors.grey,// ✅ Light green background
@@ -397,6 +579,115 @@ class _TrendingProductDetailScreenState extends State<TrendingProductDetailScree
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FavouriteButton extends StatefulWidget {
+  final String type;
+  final int id;
+  const _FavouriteButton({required this.type, required this.id});
+
+  @override
+  State<_FavouriteButton> createState() => _FavouriteButtonState();
+}
+class _FavouriteButtonState extends State<_FavouriteButton> {
+  bool _isFavourite = false;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkFavoriteStatus();
+  }
+
+  Future<void> _checkFavoriteStatus() async {
+    try {
+      final repo = FavouritesRepository();
+      final favorites = await repo.getFavourites();
+
+      if (widget.type == 'product') {  // ✅ CORRECT - checking for product
+        final productIds = favorites.favorites?.products?.map((p) => p.id).toList() ?? [];
+        setState(() {
+          _isFavourite = productIds.contains(widget.id);
+        });
+      }
+    } catch (e) {
+      print('Error checking favorite status: $e');
+    }
+  }
+
+  Future<void> _toggle() async {
+
+    final isLoggedIn = await AuthHelper.checkAuthAndPromptLogin(
+      context,
+      attemptedAction: 'mark_favorite',
+        favoriteType: widget.type,  // ✅ ADD THIS
+        favoriteId: widget.id,
+    );
+
+    if (!isLoggedIn) {
+      return; // User cancelled login or not logged in
+    }
+
+
+
+
+    if (_isLoading) return;
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      final next = !_isFavourite;
+      setState(() {
+        _isFavourite = next;
+      });
+      final repo = FavouritesRepository();
+      final success = await repo.toggleFavourite(type: widget.type, id: widget.id);
+      if (!success) {
+        setState(() {
+          _isFavourite = !next;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isFavourite = !_isFavourite;
+      });
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.showSnackBar(
+        SnackBar(content: Text('Failed to update favourite')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: _toggle,
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.9),
+          shape: BoxShape.circle,
+        ),
+        child: _isLoading
+            ? const SizedBox(
+          height: 20,
+          width: 20,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        )
+            : Icon(
+          _isFavourite ? Icons.favorite : Icons.favorite_border,
+          size: 20,
+          color: _isFavourite ? Colors.red : const Color(0xFF4A3D4D),
         ),
       ),
     );

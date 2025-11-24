@@ -19,6 +19,7 @@ class NotificationRepository {
         'Content-Type': 'application/json',
       },
     );
+
      print("notificatins pref get method called");
      print("url: $uri");
      print("Response body: ${response.body}");
@@ -65,8 +66,10 @@ class NotificationRepository {
   }
 
   Future<String> resetPreferences() async {
+    print("Reset preferences called");
     final String? token = await SecureStorage.getLoginToken();
     final uri = Uri.parse(ApiConstants.notificationsResetUrl);
+    print("Full URL: ${uri.toString()}");
 
     final response = await http.post(
       uri,
@@ -76,6 +79,10 @@ class NotificationRepository {
         'Content-Type': 'application/json',
       },
     );
+   print("uri: $uri");
+    print("Response body: ${response.body}");
+    print("Request body: ${response.request}");
+    print("status code: ${response.statusCode}");
 
     final Map<String, dynamic> data = json.decode(response.body);
     if (response.statusCode == 200) {

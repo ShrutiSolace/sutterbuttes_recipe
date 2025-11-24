@@ -621,17 +621,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             return 'State must be less than 50 characters';
           }
 
-          // Check if it's a valid 2-letter state code (uppercase)
+
           if (stateValue.length == 2) {
             if (!RegExp(r'^[A-Z]{2}$').hasMatch(stateValue)) {
               return 'State code must be 2 uppercase letters';
             }
           } else {
-            // For state names, check if it contains only letters and spaces
+
             if (!RegExp(r'^[A-Za-z\s]+$').hasMatch(stateValue)) {
               return 'State name must contain only letters and spaces';
             }
-            // Check if it's a reasonable state name (not just repeated characters)
+
             if (RegExp(r'^(.)\1+$').hasMatch(stateValue.replaceAll(' ', ''))) {
               return 'Please enter a valid state name or 2-letter state code';
             }
@@ -656,6 +656,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   void _onSameAsBillingChanged(bool? value) {
     setState(() {
+
+      // After setState completes, re-validate to clear errors for disabled fields
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _formKey.currentState?.validate();
+      });
+
+
+
+
       _sameAsBilling = value ?? false;
       if (_sameAsBilling) {
         // Copy billing data to shipping

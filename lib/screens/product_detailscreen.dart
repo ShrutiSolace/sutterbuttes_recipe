@@ -3,6 +3,8 @@ import '../modal/product_model.dart';
 import 'package:flutter_html/flutter_html.dart';
 import '../repositories/cart_repository.dart';
 import 'package:provider/provider.dart';
+import '../repositories/favourites_repository.dart';
+import '../utils/auth_helper.dart';
 import 'state/cart_provider.dart';
 import 'package:html/parser.dart' as html_parser;
 
@@ -23,6 +25,23 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   String? _selectedOptions;
   int? _selectedVariationId;
 
+
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAndExecutePendingAction();
+    });
+  }
+
+
+
+
+
+
+
   String cleanHtmlText(String text) {
     // Parse the HTML and extract text content (this handles all HTML entities)
     final document = html_parser.parse(text);
@@ -33,6 +52,75 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     return cleanText.replaceAll(htmlTagRegex, '').trim();
   }
 
+
+
+
+  //  Check and execute pending add to cart action
+  Future<void> _checkAndExecutePendingAction() async {
+    final pendingAction = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+
+    if (pendingAction != null &&
+        pendingAction['action'] == 'add_to_cart' &&
+        pendingAction['productId'] == widget.product.id) {
+
+      if (mounted) {
+        setState(() {
+          _quantity = pendingAction['quantity'] ?? 1;
+          _selectedVariationId = pendingAction['variationId'] as int?;
+          // Restore variation option if variation was selected
+          if (_selectedVariationId != null && widget.product.variations.isNotEmpty) {
+            final variationIdValue = _selectedVariationId!;
+            final index = widget.product.variations.indexOf(variationIdValue);
+            if (index >= 0 && index < widget.product.options.length) {
+              _selectedOptions = widget.product.options[index];
+            }
+          }
+        });
+
+        // Execute add to cart automatically
+        await _executeAddToCart();
+      }
+    }
+  }
+
+  // ✅ Extract add to cart logic into reusable method
+  Future<void> _executeAddToCart() async {
+    FocusScope.of(context).unfocus();
+    setState(() { _isAdding = true; });
+
+    if (widget.product.variation == true && _selectedVariationId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select an option before adding to cart'))
+      );
+      setState(() { _isAdding = false; });
+      return;
+    }
+
+    try {
+      final repo = CartRepository();
+      final result = await repo.addToCart(
+          productId: widget.product.id,
+          quantity: _quantity,
+          variationId: _selectedVariationId
+      );
+      final msg = result.message ?? 'Added to cart';
+
+      if (mounted) setState(() { _isAdding = false; });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(msg))
+      );
+      try {
+        await context.read<CartProvider>().loadCart();
+      } catch (_) {}
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to add to cart: $e'))
+      );
+    } finally {
+      if (mounted) setState(() { _isAdding = false; });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +153,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF4A3D4D),
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white), // ✅ White back arrow
+        iconTheme: const IconThemeData(color: Colors.white),
         title: Text(
           widget.product.name,
           style: const TextStyle(
@@ -74,9 +162,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             fontWeight: FontWeight.w500,
           ),
           maxLines: 2,
-          overflow: TextOverflow.ellipsis, // ✅ truncate long names
+          overflow: TextOverflow.ellipsis,
         ),
-        centerTitle: true, // optional: centers the title nicely
+        centerTitle: true,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: _FavouriteButton(type: 'product', id: widget.product.id),
+          ),
+        ]
       ),
 
       body: SingleChildScrollView(
@@ -162,13 +256,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           items: widget.product.options.map((String option) {
                             return DropdownMenuItem<String>(
                               value: option,
-                              child: Text(option),
+                              child: Text(
+                                option,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             );
                           }).toList(),
                           onChanged: (String? newValue) {
                             setState(() {
                               _selectedOptions = newValue;
-                              // Find the corresponding variation ID
+
                               if (newValue != null) {
                                 final index = widget.product.options.indexOf(newValue);
                                 if (index >= 0 && index < widget.product.variations.length) {
@@ -216,7 +314,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   },
                                 )
                               : Text(
-                                  "\$${widget.product.price}",
+                            "\$${double.tryParse(widget.product.price)?.toStringAsFixed(2) ?? widget.product.price}",
                                   style: const TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
@@ -330,10 +428,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             ),
                           ),
 
-
-
-
-
                         ],
                       ),
                     ],
@@ -348,31 +442,21 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           ? null
                           : () async {
                               FocusScope.of(context).unfocus();
-                              setState(() { _isAdding = true; });
+                              // ADD: Check login before adding to cart
+                              final isLoggedIn = await AuthHelper.checkAuthAndPromptLogin(
+                                context,
+                                productId: widget.product.id,
+                                quantity: _quantity,
+                                variationId: _selectedVariationId,
+                              );
 
-                              if (widget.product.variation == true && _selectedVariationId == null) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Please select an option before adding to cart'))
-                                );
+                              if (!isLoggedIn) {
                                 return;
                               }
 
-                              try {
-                                final repo = CartRepository();
-                                final result = await repo.addToCart(productId: widget.product.id, quantity: _quantity, variationId: _selectedVariationId);
-                                final msg = result.message ?? 'Added to cart';
-                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)
-                                )
+                              //  Use extracted method for add to cart
+                              await _executeAddToCart();
 
-                                );
-                                try {
-                                  await context.read<CartProvider>().loadCart();
-                                } catch (_) {}
-                              } catch (e) {
-                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add to cart: $e')));
-                              } finally {
-                                if (mounted) setState(() { _isAdding = false; });
-                              }
                             },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _quantity > 0 ? brandGreen : Colors.grey,
@@ -393,16 +477,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             ),
             const SizedBox(height: 16),
 
-          /*  // Product Name
-            Text(
+            // Product Name
+          /*  Text(
               widget.product.name,
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF4A3D4D),
               ),
-            ),
-*/
+            ),*/
+
+            const SizedBox(height: 8),
 
 
             // Price
@@ -589,6 +674,115 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ),
             ),*/
           ],
+        ),
+      ),
+    );
+  }
+}
+class _FavouriteButton extends StatefulWidget {
+  final String type;
+  final int id;
+  const _FavouriteButton({required this.type, required this.id});
+
+  @override
+  State<_FavouriteButton> createState() => _FavouriteButtonState();
+}
+class _FavouriteButtonState extends State<_FavouriteButton> {
+  bool _isFavourite = false;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkFavoriteStatus();
+  }
+
+  Future<void> _checkFavoriteStatus() async {
+    try {
+      final repo = FavouritesRepository();
+      final favorites = await repo.getFavourites();
+
+      if (widget.type == 'product') {
+        final productIds = favorites.favorites?.products?.map((p) => p.id).toList() ?? [];
+        setState(() {
+          _isFavourite = productIds.contains(widget.id);
+        });
+      }
+    } catch (e) {
+      print('Error checking favorite status: $e');
+    }
+  }
+
+  Future<void> _toggle() async {
+
+    final isLoggedIn = await AuthHelper.checkAuthAndPromptLogin(
+      context,
+      attemptedAction: 'mark_favorite',
+        favoriteType: widget.type,  // ✅ ADD THIS
+        favoriteId: widget.id,
+    );
+
+    if (!isLoggedIn) {
+      return; // User cancelled login or not logged in
+    }
+
+
+
+
+
+    if (_isLoading) return;
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      final next = !_isFavourite;
+      setState(() {
+        _isFavourite = next;
+      });
+      final repo = FavouritesRepository();
+      final success = await repo.toggleFavourite(type: widget.type, id: widget.id);
+      if (!success) {
+        setState(() {
+          _isFavourite = !next;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isFavourite = !_isFavourite;
+      });
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.showSnackBar(
+        SnackBar(content: Text('Failed to update favourite')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: _toggle,
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.9),
+          shape: BoxShape.circle,
+        ),
+        child: _isLoading
+            ? const SizedBox(
+          height: 20,
+          width: 20,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        )
+            : Icon(
+          _isFavourite ? Icons.favorite : Icons.favorite_border,
+          size: 20,
+          color: _isFavourite ? Colors.red : const Color(0xFF4A3D4D),
         ),
       ),
     );

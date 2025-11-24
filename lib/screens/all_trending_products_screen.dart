@@ -9,6 +9,7 @@ import '../modal/trending_product_model.dart';
 import '../repositories/favourites_repository.dart';
 import 'dart:math' as math;
 
+import '../utils/auth_helper.dart';
 import 'favorites_screen.dart';
 
 class AllTrendingProductsScreen extends StatefulWidget {
@@ -383,7 +384,7 @@ class _ProductGridCard extends StatelessWidget {
 
                   // Product price
                   Text(
-                    product.price != null ? "\$${product.price}" : '',
+                    product.price != null ? "\$${double.tryParse(product.price!)?.toStringAsFixed(2) ?? product.price}" : '',
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontSize: 12,
@@ -438,6 +439,21 @@ class _FavouriteButtonState extends State<_FavouriteButton> {
   }
 
   Future<void> _toggle() async {
+    final isLoggedIn = await AuthHelper.checkAuthAndPromptLogin(
+      context,
+      attemptedAction: 'mark_favorite', favoriteType: widget.type, favoriteId: widget.id
+    );
+
+    if (!isLoggedIn) {
+      return; // User cancelled login or not logged in
+    }
+
+
+
+
+
+
+
     if (_isLoading) return;
     setState(() {
       _isLoading = true;

@@ -18,6 +18,7 @@ import '../modal/search_model.dart';
 import '../repositories/notifications_repository.dart';
 import '../repositories/rating_repository.dart';
 import '../services/notification_service.dart';
+import '../utils/auth_helper.dart';
 import 'all_trending_products_screen.dart';
 import 'bottom_navigation.dart';
 import 'category_recipe_screen.dart';
@@ -83,6 +84,7 @@ class _FavouriteButtonState extends State<_FavouriteButton> {
   void initState() {
     super.initState();
     _checkFavoriteStatus();
+
   }
 
   Future<void> _checkFavoriteStatus() async {
@@ -110,7 +112,24 @@ class _FavouriteButtonState extends State<_FavouriteButton> {
   }
 
 
-  Future<void> _toggle() async {
+/*
+  Future<void> _checkAndExecutePendingAction() async {
+    final route = ModalRoute.of(context);
+    if (route == null) return;
+
+    final pendingAction = route.settings.arguments as Map<String, dynamic>?;
+
+    if (pendingAction != null &&
+        pendingAction['action'] == 'mark_favorite' &&
+        pendingAction['favoriteType'] == widget.type &&
+        pendingAction['favoriteId'] == widget.id) {
+
+      await _executeToggle();
+    }
+  }
+
+
+  Future<void> _executeToggle() async {
     if (_isLoading) return;
     setState(() {
       _isLoading = true;
@@ -145,7 +164,55 @@ class _FavouriteButtonState extends State<_FavouriteButton> {
         });
       }
     }
+  }*/
+
+
+  Future<void> _toggle() async {
+
+    final isLoggedIn = await AuthHelper.checkAuthAndPromptLogin(
+        context,
+        attemptedAction: 'mark_favorite', favoriteType: widget.type, favoriteId: widget.id
+    );
+
+    if (!isLoggedIn) {
+      return; // User cancelled login or not logged in
+    }
+
+    if (_isLoading) return;
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      final next = !_isFavourite;
+      setState(() {
+        _isFavourite = next;
+      });
+      final repo = FavouritesRepository();
+      final success = await repo.toggleFavourite(type: widget.type, id: widget.id);
+      if (!success) {
+        setState(() {
+          _isFavourite = !next;
+
+        });
+      }
+
+    } catch (e) {
+      setState(() {
+        _isFavourite = !_isFavourite;
+      });
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.showSnackBar(
+        SnackBar(content: Text('Failed to update favourite')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -193,6 +260,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
   bool _isSearching = false;
   int _unreadNotificationCount = 0;
   bool _hasViewedNotifications = false;
+
 
 /*  Future<void> _loadAllRecipesForSearch() async {
     try {
@@ -376,7 +444,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
         context.read<SearchProvider>().clearSearch();
         return false; // Prevent default back navigation
       }
-      // If not searching, allow normal back navigation
+
       return true;
     },
     child: _isSearching
@@ -421,6 +489,17 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
                   children: <Widget>[
                     GestureDetector(
                       onTap: () async {
+
+                        final isAuthenticated = await AuthHelper.checkAuthAndPromptLogin(
+                          context,
+                          attemptedAction: 'cart',
+                        );
+                        if (!isAuthenticated) {
+                          return; // User cancelled login, don't navigate
+                        }
+
+
+
                         context.read<CartProvider>().loadCart();
                         Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen()));
                       },
@@ -453,7 +532,22 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
                     const SizedBox(width: 19),
 
                     GestureDetector(
-                      onTap: () {
+                      onTap: ()  async {
+
+
+                        final isAuthenticated = await AuthHelper.checkAuthAndPromptLogin(
+                          context,
+                          attemptedAction: 'view notifications',
+                        );
+                        if (!isAuthenticated) {
+                          return; // User cancelled login, don't navigate
+                        }
+
+
+
+
+
+
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (_) => const NotificationsScreen()),
@@ -1724,6 +1818,7 @@ class _SearchResultCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final unescape = HtmlUnescape();
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -1761,7 +1856,7 @@ class _SearchResultCard extends StatelessWidget {
           ),
         ),
         title: Text(
-          searchItem.title,
+          unescape.convert(searchItem.title),
           style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -1785,7 +1880,7 @@ class _SearchResultCard extends StatelessWidget {
             ),
             if (searchItem is SearchProductItem)
               Text(
-                '\$${(searchItem as SearchProductItem).price}',
+                '\$${double.tryParse((searchItem as SearchProductItem).price)?.toStringAsFixed(2) ?? (searchItem as SearchProductItem).price}',
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -1839,7 +1934,8 @@ class _SearchResultCard extends StatelessWidget {
                 builder: (context) => RecipeDetailScreen(recipe: recipeItem),
               ),
             );
-          } else if (searchItem.type == 'product') {
+          }
+          else if (searchItem.type == 'product') {
             final product = Product(
               id: searchItem.id,
               name: searchItem.title,
@@ -1884,6 +1980,7 @@ class _SearchResultCard extends StatelessWidget {
                   alt: searchItem.title,
                 ),
               ],
+
               tags: [],
               priceHtml: '',
               variation: false,
@@ -1901,6 +1998,7 @@ class _SearchResultCard extends StatelessWidget {
             );
           }
         },
+
       ),
     );
   }

@@ -8,10 +8,12 @@ class AuthHelper {
   static Future<bool> checkAuthAndPromptLogin(
       BuildContext context, {
         bool showDialog = true,
-
         int? productId,
         int? quantity,
         int? variationId,
+        String? attemptedAction,
+        String? favoriteType,
+        int? favoriteId,
 
 
 
@@ -25,10 +27,10 @@ class AuthHelper {
 
 
     if (showDialog) {
-      final shouldLogin = await _showLoginPromptDialog(context);
+      final shouldLogin = await _showLoginPromptDialog(context, attemptedAction: attemptedAction);
 
       if (shouldLogin == true) {
-        // ✅ Create pending action map if product details are provided
+
         Map<String, dynamic>? pendingAction;
         if (productId != null && quantity != null) {
           pendingAction = {
@@ -36,9 +38,25 @@ class AuthHelper {
             'productId': productId,
             'quantity': quantity,
             if (variationId != null) 'variationId': variationId,
+
           };
         }
 
+
+        else if (attemptedAction == 'mark_favorite' && favoriteType != null && favoriteId != null) {
+          pendingAction = {
+            'action': 'mark_favorite',
+            'favoriteType': favoriteType,
+            'favoriteId': favoriteId,
+          };
+        }
+
+
+        else if (attemptedAction != null) {
+          pendingAction = {
+            'action': attemptedAction,
+          };
+        }
 
 
 
@@ -47,7 +65,7 @@ class AuthHelper {
           context,
           MaterialPageRoute(
             builder: (context) => const LoginScreen(),
-            settings: RouteSettings(arguments: pendingAction),  // ✅ Add this
+            settings: RouteSettings(arguments: pendingAction),
           ),
         );
 
@@ -61,7 +79,7 @@ class AuthHelper {
   }
 
 
-  static Future<bool?> _showLoginPromptDialog(BuildContext context) {
+  static Future<bool?> _showLoginPromptDialog(BuildContext context,{String? attemptedAction}) {
     return showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
@@ -74,8 +92,8 @@ class AuthHelper {
               color: Color(0xFF4A3D4D),
             ),
           ),
-          content: const Text(
-            'Please login to add items to your cart.',
+          content: Text(
+            _getLoginMessage(attemptedAction),
             style: TextStyle(
               fontSize: 16,
               color: Colors.black87,
@@ -119,5 +137,20 @@ class AuthHelper {
   static bool isLoggedIn(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     return authProvider.isLoggedIn;
+  }
+  static String _getLoginMessage(String? attemptedAction) {
+    switch (attemptedAction) {
+      case 'favorites':
+        return 'Please login to view your favorites recipes & products.';
+      case 'profile':
+        return 'Please login to view your profile.';
+      case 'view notifications':
+        return 'Please login to view your notifications.';
+      case 'cart':
+        return 'Please login to view your cart.';
+      case 'add_to_cart':
+      default:
+        return 'Please login to add items to your cart.';
+    }
   }
 }

@@ -5,6 +5,7 @@ import 'package:sutterbuttes_recipe/screens/favorites_screen.dart';
 import 'package:sutterbuttes_recipe/screens/recipedetailscreen.dart';
 import 'package:sutterbuttes_recipe/screens/shop_screen.dart';
 import 'package:sutterbuttes_recipe/screens/state/cart_provider.dart';
+import '../utils/auth_helper.dart';
 import 'home_screen.dart';
 import 'recipes_screen.dart';
 import 'profile_screen.dart';
@@ -79,7 +80,34 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
             _currentIndex = index;
           });
         },*/
-        onTap: (int index) {
+        onTap: (int index)  async {
+          if (index == 3) {
+            final isAuthenticated = await AuthHelper.checkAuthAndPromptLogin(
+                context,
+                attemptedAction: 'favorites', );
+            if (!isAuthenticated) {
+              return;
+            }
+          }
+
+
+          // ADD: Check auth for Profile tab (index 4)
+          if (index == 4) {
+            final isAuthenticated = await AuthHelper.checkAuthAndPromptLogin(context,
+            attemptedAction: 'profile', );
+            if (!isAuthenticated) {
+              return;
+            }
+          }
+
+
+
+
+
+
+
+
+
           setState(() {
             _currentIndex = index;
           });

@@ -7,6 +7,7 @@ import '../repositories/recipe_list_repository.dart';
 import '../modal/recipe_model.dart';
 import '../repositories/favourites_repository.dart';
 import '../repositories/search_repository.dart';
+import '../utils/auth_helper.dart';
 import 'recipedetailscreen.dart';
 
 import '../modal/search_model.dart';
@@ -496,6 +497,16 @@ class _FavouriteButtonState extends State<_FavouriteButton> {
   }
 
   Future<void> _toggle() async {
+
+    final isLoggedIn = await AuthHelper.checkAuthAndPromptLogin(
+      context,
+      attemptedAction: 'mark_favorite', favoriteType: widget.type, favoriteId: widget.id
+    );
+
+    if (!isLoggedIn) {
+      return;
+    }
+
     if (_isLoading) return;
     setState(() {
       _isLoading = true;
@@ -510,8 +521,12 @@ class _FavouriteButtonState extends State<_FavouriteButton> {
       if (!success) {
         setState(() {
           _isFavourite = !next;
+
         });
       }
+
+
+
     } catch (e) {
       setState(() {
         _isFavourite = !_isFavourite;

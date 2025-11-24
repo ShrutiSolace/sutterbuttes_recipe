@@ -7,6 +7,7 @@ import '../modal/product_model.dart';
 import '../repositories/favourites_repository.dart';
 import 'package:provider/provider.dart';
 import '../services/notification_service.dart';
+import '../utils/auth_helper.dart';
 import 'notifications_screen.dart';
 import 'state/cart_provider.dart';
 import 'cart_screen.dart';
@@ -261,7 +262,16 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
                   children: <Widget>[
                     GestureDetector(
                       onTap: () async {
-                        context.read<CartProvider>().loadCart();
+                        // ✅ ADD: Check authentication first
+                        final isAuthenticated = await AuthHelper.checkAuthAndPromptLogin(
+                          context,
+                          attemptedAction: 'cart',
+                        );
+                        if (!isAuthenticated) {
+                          return; // User cancelled login, don't navigate
+                        }
+
+                       context.read<CartProvider>().loadCart();
                         Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen()));
                       },
                       child: Stack(
@@ -295,7 +305,16 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
                     const SizedBox(width: 19),
 
                     GestureDetector(
-                      onTap: () {
+                      onTap: () async {
+                        // Check if user is authenticated before showing notifications
+                        final isAuthenticated = await AuthHelper.checkAuthAndPromptLogin(
+                          context,
+                          attemptedAction: 'view notifications',
+                        );
+                        if (!isAuthenticated) {
+                          return; // User cancelled login, don't navigate
+                        }
+
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (_) =>  NotificationsScreen()),
@@ -678,6 +697,20 @@ class _ProductFavouriteButtonState extends State<_ProductFavouriteButton> {
   }
 
   Future<void> _toggle() async {
+    final isLoggedIn = await AuthHelper.checkAuthAndPromptLogin(
+      context,
+      attemptedAction: 'mark_favorite',  // ✅ ADD THIS
+        favoriteId: widget.productId,
+    );
+
+    if (!isLoggedIn) {
+      return; // User cancelled login or not logged in
+    }
+
+
+
+
+
     if (_isLoading) return;
     setState(() {
       _isLoading = true;

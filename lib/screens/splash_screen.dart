@@ -39,10 +39,10 @@ class _SplashScreenState extends State<SplashScreen> {
       if (authProvider.isLoggedIn) {
         // Register device for notifications
         await NotificationService.registerDeviceWithBackend();
-        Navigator.of(context).pushReplacementNamed('/home');
-      } else {
-        Navigator.of(context).pushReplacementNamed('/login');
+       // Navigator.of(context).pushReplacementNamed('/home');
       }
+        Navigator.of(context).pushReplacementNamed('/home');
+
     });
   }
 

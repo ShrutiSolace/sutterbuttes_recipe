@@ -82,6 +82,7 @@ class _EmptyCart extends StatelessWidget {
       ),
     );
   }
+
 }
 
 class _CartContent extends StatelessWidget {
@@ -181,7 +182,6 @@ class _CartContent extends StatelessWidget {
                             _QtyButton(
                                 icon: Icons.remove,
                                 onTap: () async {
-
                                   final current = item.quantity ?? 1;
                                   final newQuantity = (current - 1) >= 0 ? (current - 1) : 0;
                                   await context.read<CartProvider>().updateQuantityOptimistic(
@@ -189,14 +189,15 @@ class _CartContent extends StatelessWidget {
                                   variationId: item.variationId ?? 0,
                                      quantity: newQuantity,
                                    );
-
                                   }
+
                                   ),
 
                             Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 12),
                               child: Text('${item.quantity ?? 0}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                             ),
+
                             _QtyButton(
                                 icon: Icons.add,
                                 onTap: () async {
@@ -206,7 +207,6 @@ class _CartContent extends StatelessWidget {
                                         variationId: item.variationId ?? 0,
                                         quantity: current + 1,
                                       );
-
                                 }
                                 ),
                           ],
@@ -226,13 +226,13 @@ class _CartContent extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Total ($totalItems items):', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                  Text('Total ($totalItems ${totalItems == 1 ? 'item' : 'items'}):',style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                  // Text('\$$subtotal', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFFD4B25C))),
                   Text('\$${double.tryParse(subtotal.toString())?.toStringAsFixed(2) ?? subtotal.toString()}', style: const TextStyle(fontSize: 20,fontWeight: FontWeight.bold, color: Color(0xFFD4B25C))),
                 ],
               ),
               const SizedBox(height: 12),
-              // AFTER:
+
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
