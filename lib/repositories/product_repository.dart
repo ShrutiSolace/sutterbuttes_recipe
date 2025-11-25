@@ -66,7 +66,7 @@ class ProductRepository {
 
     try {
       // Build URI for single product
-      Uri uri = Uri.parse("${ApiConstants.productdetailUrl}/$id").replace(
+      Uri uri = Uri.parse("${ApiConstants.productdetailUrl}$id").replace(
         queryParameters: {
           'consumer_key': ApiConstants.consumerKey,
           'consumer_secret': ApiConstants.consumerSecret,

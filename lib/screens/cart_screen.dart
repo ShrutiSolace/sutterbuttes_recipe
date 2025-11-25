@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sutterbuttes_recipe/screens/product_detailscreen.dart';
+import '../repositories/product_repository.dart';
 import 'bottom_navigation.dart';
 import 'state/cart_provider.dart';
 import 'checkout_screen.dart';
@@ -112,11 +114,50 @@ class _CartContent extends StatelessWidget {
                 padding: const EdgeInsets.all(12),
                 child: Row(
                   children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: (item.image != null && item.image!.isNotEmpty)
-                          ? Image.network(item.image!, width: 72, height: 72, fit: BoxFit.cover)
-                          : Image.asset('assets/images/homescreen logo.png', width: 72, height: 72, fit: BoxFit.cover),
+                    GestureDetector(
+                      onTap: () async {
+                        if (item.productId != null) {
+
+                          showDialog(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (context) => const Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          );
+
+                          try {
+                            final productRepository = ProductRepository();
+                            final product = await productRepository.getProductDetail(item.productId!);
+
+                            if (context.mounted) {
+                              Navigator.pop(context); // Close loading dialog
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ProductDetailScreen(product: product),
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              Navigator.pop(context); // Close loading dialog
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Failed to load product details: $e'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          }
+                        }
+                      },
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: (item.image != null && item.image!.isNotEmpty)
+                            ? Image.network(item.image!, width: 72, height: 72, fit: BoxFit.cover)
+                            : Image.asset('assets/images/homescreen logo.png', width: 72, height: 72, fit: BoxFit.cover),
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -181,9 +222,10 @@ class _CartContent extends StatelessWidget {
                           children: [
                             _QtyButton(
                                 icon: Icons.remove,
+                                isDisabled: (item.quantity ?? 1) <= 1,
                                 onTap: () async {
                                   final current = item.quantity ?? 1;
-                                  final newQuantity = (current - 1) >= 0 ? (current - 1) : 0;
+                                  final newQuantity = (current - 1) >= 1 ? (current - 1) : 1;
                                   await context.read<CartProvider>().updateQuantityOptimistic(
                                   productId: item.productId ?? 0,
                                   variationId: item.variationId ?? 0,
@@ -195,13 +237,15 @@ class _CartContent extends StatelessWidget {
 
                             Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 12),
-                              child: Text('${item.quantity ?? 0}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                              child: Text('${item.quantity ?? 1}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                             ),
+
+
 
                             _QtyButton(
                                 icon: Icons.add,
                                 onTap: () async {
-                                  final current = item.quantity ?? 0;
+                                  final current = item.quantity ?? 1;
                                   await context.read<CartProvider>().updateQuantityOptimistic(
                                         productId: item.productId ?? 0,
                                         variationId: item.variationId ?? 0,
@@ -236,8 +280,11 @@ class _CartContent extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: (cart.items?.any((item) => (item.quantity ?? 0) <= 0) ?? false)
+                  /*onPressed: (cart.items?.any((item) => (item.quantity ?? 0) <= 0) ?? false)
                       ? null  // Disable if any item has quantity 0 or less
+                      : () {*/
+                  onPressed: (cart.items?.isEmpty ?? true)
+                      ? null  // Disable if cart is empty
                       : () {
                     Navigator.push(
                       context,
@@ -262,11 +309,14 @@ class _CartContent extends StatelessWidget {
 class _QtyButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
-  const _QtyButton({required this.icon, required this.onTap});
+  final bool isDisabled;
+  const _QtyButton({required this.icon, required this.onTap, this.isDisabled = false});
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return Opacity(
+      opacity: isDisabled ? 0.25 : 1.0,
+    child:  GestureDetector(
       onTap: onTap,
       child: Container(
         width: 36,
@@ -277,8 +327,9 @@ class _QtyButton extends StatelessWidget {
           border: Border.all(color: const Color(0xFFE0E0E0)),
           color: Colors.white,
         ),
-        child: Icon(icon, size: 18, color: Colors.black54),
+        child: Icon(icon, size: 18, color: isDisabled ? Colors.grey : Colors.black54),
       ),
+    ),
     );
   }
 }

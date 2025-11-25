@@ -7,6 +7,8 @@ import '../repositories/favourites_repository.dart';
 import '../modal/favourites_model.dart';
 import 'package:html/parser.dart' as html_parser;
 
+import '../repositories/product_repository.dart';
+
 
 class FavoritesScreen extends StatelessWidget {
   const FavoritesScreen({super.key});
@@ -49,6 +51,24 @@ class _HomeHeaderAndContent extends StatefulWidget {
 
 class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
   int _selectedChip = 0;
+  Future<FavouritesModel>? _favouritesFuture;
+  @override
+  void initState() {
+    super.initState();
+    _favouritesFuture = FavouritesRepository().getFavourites();
+  }
+  void _refreshFavourites() {
+    setState(() {
+      _favouritesFuture = FavouritesRepository().getFavourites();
+    });
+  }
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (ModalRoute.of(context)?.isCurrent == true) {
+      _refreshFavourites();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +76,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
     final TextTheme textTheme = Theme.of(context).textTheme;
 
     return FutureBuilder<FavouritesModel>(
-      future: FavouritesRepository().getFavourites(),
+      future: _favouritesFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -210,7 +230,7 @@ class _FavoriteCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
+      onTap: ()  async {
         if (recipe != null) {
           final recipeItem = RecipeItem(
             id: recipe!.id ?? 0,
@@ -233,63 +253,15 @@ class _FavoriteCard extends StatelessWidget {
 
 
 
-        else if (product != null) {
-          final productItem = Product(
-            id: product!.id ?? 0,
-            name: product!.title ?? '',
-            slug: '',
-            permalink: product!.link ?? '',
-            type: 'simple',
-            status: 'publish',
-            featured: false,
-            description: product!.description ?? '',
-            shortDescription: '',
-            sku: '',
-            price: product!.price ?? '',
-            regularPrice: product!.price ?? '',
-            salePrice: '',
-            onSale: false,
-            purchasable: true,
-            totalSales: 0,
-            virtual: false,
-            downloadable: false,
-            taxStatus: 'taxable',
-            manageStock: false,
-            stockQuantity: null,
-            stockStatus: 'instock',
-            soldIndividually: false,
-            weight: '',
-            dimensions: Dimensions(length: '', width: '', height: ''),
-            shippingRequired: true,
-            shippingTaxable: true,
-            reviewsAllowed: true,
-            averageRating: '0.00',
-            ratingCount: 0,
-            categories: [],
-            images: [
-              ProductImage(
-                id: 0,
-                dateCreated: '',
-                dateCreatedGmt: '',
-                dateModified: '',
-                dateModifiedGmt: '',
-                src: product!.image ?? '',
-                name: product!.title ?? '',
-                alt: product!.title ?? '',
-              ),
-            ],
-            tags: [],
-            priceHtml: '',
-            variation: false,
-            options: [],
-            variations: [],
+        else if (product != null)   {
+          final productId = product!.id ?? 0;
 
-          );
+          final productDetail = await ProductRepository().getProductDetail(productId);
 
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => ProductDetailScreen(product: productItem),
+              builder: (_) => ProductDetailScreen(product: productDetail),
             ),
           );
         }

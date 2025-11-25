@@ -16,6 +16,7 @@ import '../modal/product_model.dart';
 import '../modal/rating_model.dart';
 import '../modal/search_model.dart';
 import '../repositories/notifications_repository.dart';
+import '../repositories/product_repository.dart';
 import '../repositories/rating_repository.dart';
 import '../services/notification_service.dart';
 import '../utils/auth_helper.dart';
@@ -1915,8 +1916,10 @@ class _SearchResultCard extends StatelessWidget {
           }
         },*/
 
-        onTap: () {
+        onTap: () async {
           if (searchItem.type == 'recipe') {
+
+
             final recipeItem = RecipeItem(
               id: searchItem.id,
               slug: '',
@@ -1928,6 +1931,7 @@ class _SearchResultCard extends StatelessWidget {
               imageUrl: searchItem.image,
             );
 
+
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -1936,66 +1940,27 @@ class _SearchResultCard extends StatelessWidget {
             );
           }
           else if (searchItem.type == 'product') {
-            final product = Product(
-              id: searchItem.id,
-              name: searchItem.title,
-              slug: '',
-              permalink: searchItem.link,
-              type: 'simple',
-              status: 'publish',
-              featured: false,
-              description: (searchItem as SearchProductItem).description ?? '',
-              shortDescription: '',
-              sku: '',
-              price: (searchItem as SearchProductItem).price,
-              regularPrice: (searchItem as SearchProductItem).price,
-              salePrice: '',
-              onSale: false,
-              purchasable: true,
-              totalSales: 0,
-              virtual: false,
-              downloadable: false,
-              taxStatus: 'taxable',
-              manageStock: false,
-              stockQuantity: null,
-              stockStatus: 'instock',
-              soldIndividually: false,
-              weight: '',
-              dimensions: Dimensions(length: '', width: '', height: ''),
-              shippingRequired: true,
-              shippingTaxable: true,
-              reviewsAllowed: true,
-              averageRating: '0.00',
-              ratingCount: 0,
-              categories: [],
-              images: [
-                ProductImage(
-                  id: 0,
-                  dateCreated: '',
-                  dateCreatedGmt: '',
-                  dateModified: '',
-                  dateModifiedGmt: '',
-                  src: searchItem.image, // Use search result image
-                  name: searchItem.title,
-                  alt: searchItem.title,
-                ),
-              ],
-
-              tags: [],
-              priceHtml: '',
-              variation: false,
-              options: [],
-              variations: [],
-
-
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (_) => const Center(child: CircularProgressIndicator()),
             );
 
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ProductDetailScreen(product: product),
-              ),
-            );
+            try {
+              final productRepo = ProductRepository();
+              final product = await productRepo.getProductDetail(searchItem.id);
+
+              Navigator.pop(context); // closes the dialog
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => ProductDetailScreen(product: product)),
+              );
+            } catch (e) {
+              Navigator.pop(context); // closes the dialog
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Failed to load product details: $e')),
+              );
+            }
           }
         },
 

@@ -462,8 +462,8 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,      // 2 per row (same as recipes)
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
+            crossAxisSpacing: 9,
+            mainAxisSpacing: 9,
             childAspectRatio: 0.65, // adjust height vs width
           ),
           padding: const EdgeInsets.all(8),

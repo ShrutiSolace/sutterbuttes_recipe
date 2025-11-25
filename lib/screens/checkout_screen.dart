@@ -472,8 +472,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 if (cart?.items != null) {
                   _savedCartItems = cart!.items!.map((item) => {
                     'product_id': item.productId ?? 0,
-                    'variation_id': item.variationId ?? 0,
-                    'quantity': item.quantity ?? 0,
+                    'variation_id': item.variationId ,
+                    'quantity': item.quantity ?? 1,
                   }).toList();
                 }
 
@@ -784,7 +784,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Payment failed: $e')),
         );
-
         await _restoreCartItems();
        /* if (mounted) {
           Navigator.pop(context);
@@ -795,7 +794,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Payment initialization failed: $e')),
       );
-
       await _restoreCartItems();
       /*if (mounted) {
         Navigator.pop(context); // Go back to cart screen
@@ -813,14 +811,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       for (var item in _savedCartItems!) {
         await cartRepo.addToCart(
           productId: item['product_id'] as int,
-
+          variationId: (item['variation_id'] is int && (item['variation_id'] as int) > 0)
+              ? item['variation_id'] as int
+              : null,
           quantity: item['quantity'] as int,
         );
       }
       // Reload cart to update UI
       await context.read<CartProvider>().loadCart();
       // Clear saved items
-      _savedCartItems = null;
+     // _savedCartItems = null;
     } catch (e) {
       print('Error restoring cart items: $e');
     }
@@ -885,7 +885,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         },
         paymentMethod: paymentMethod,
       );
-
+      if (resp.containsKey('code') && resp['code'] == 'empty_cart') {
+        print('Cart is empty on backend, restoring cart items...');
+        await _restoreCartItems();
+        setState(() {
+          _submitting = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Restoring your cart items...'),
+            backgroundColor: Colors.orange,
+            duration: Duration(seconds: 2),
+          ),
+        );
+        return null;  // Stop checkout
+      }
       // Check if API returned an error
       // Check if API returned an error
       if (resp['success'] == false) {

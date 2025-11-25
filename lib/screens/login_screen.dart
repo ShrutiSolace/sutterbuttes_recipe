@@ -351,7 +351,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(
                                           content: Text(
-                                              authProvider.errorMessage ?? 'Invalid credentials. Please try again.'
+                                              'Invalid credentials. Please try again.'
                                           ),
                                           backgroundColor: Colors.red,
                                           duration: const Duration(seconds: 3),

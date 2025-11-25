@@ -117,11 +117,6 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
             context.read<CartProvider>().loadCart();
           }
 
-
-
-
-
-
           if (widget.customScreen != null) {
             switch (index) {
               case 0:

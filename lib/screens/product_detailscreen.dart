@@ -5,6 +5,7 @@ import '../repositories/cart_repository.dart';
 import 'package:provider/provider.dart';
 import '../repositories/favourites_repository.dart';
 import '../utils/auth_helper.dart';
+import 'cart_screen.dart';
 import 'state/cart_provider.dart';
 import 'package:html/parser.dart' as html_parser;
 
@@ -83,8 +84,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     }
   }
 
-  // ✅ Extract add to cart logic into reusable method
-  Future<void> _executeAddToCart() async {
+
+ /* Future<void> _executeAddToCart() async {
     FocusScope.of(context).unfocus();
     setState(() { _isAdding = true; });
 
@@ -121,6 +122,127 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       if (mounted) setState(() { _isAdding = false; });
     }
   }
+*/
+
+  Future<void> _executeAddToCart() async {
+    FocusScope.of(context).unfocus();
+    setState(() { _isAdding = true; });
+
+    if (widget.product.variation == true && _selectedVariationId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select an option before adding to cart'))
+      );
+      setState(() { _isAdding = false; });
+      return;
+    }
+
+    try {
+      final repo = CartRepository();
+      final result = await repo.addToCart(
+          productId: widget.product.id,
+          quantity: _quantity,
+          variationId: _selectedVariationId
+      );
+
+      // Refresh cart
+      try {
+        await context.read<CartProvider>().loadCart();
+      } catch (_) {}
+
+      if (mounted) setState(() { _isAdding = false; });
+
+      // Show success dialog with both buttons (no loading dialog - button already shows loader)
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            backgroundColor: Colors.white,
+            title: const Text(
+              'Success!',
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            content: Text(
+              '${widget.product.name} added to cart successfully!',
+              style: const TextStyle(
+                color: Colors.black,
+                fontSize: 16,
+              ),
+            ),
+            actions: [
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        Navigator.pop(context); // Go back to previous screen (shop/products)
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF7B8B57),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        'Continue Shopping',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const CartScreen()),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF7B8B57),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        'View Cart',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) setState(() { _isAdding = false; });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to add to cart: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -154,6 +276,16 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         backgroundColor: const Color(0xFF4A3D4D),
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () {
+              Navigator.pop(context); // returns to the previous screen, i.e. the search list
+            },
+          ),
+
+
+
+
         title: Text(
           widget.product.name,
           style: const TextStyle(
@@ -454,7 +586,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 return;
                               }
 
-                              //  Use extracted method for add to cart
                               await _executeAddToCart();
 
                             },

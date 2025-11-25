@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:sutterbuttes_recipe/screens/product_detailscreen.dart';
 import '../modal/order_list_model.dart';
 import '../modal/single_order_detail_model.dart';
 import '../repositories/order_repository.dart';
 import '../modal/order_model.dart';
+import '../repositories/product_repository.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -395,30 +397,71 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             margin: const EdgeInsets.only(bottom: 8),
             child: Row(
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: item.image != null && item.image!.isNotEmpty
-                      ? Image.network(
-                    item.image!,
-                    width: 56,
-                    height: 56,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Image.asset(
-                          'assets/images/homescreen logo.png',
-                          width: 56,
-                          height: 56,
-                          fit: BoxFit.cover
+
+                GestureDetector(
+                  onTap: () async {
+                    if (item.id != null) {
+                      // Show loading indicator
+                      showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (context) => const Center(
+                          child: CircularProgressIndicator(),
+                        ),
                       );
-                    },
-                  )
-                      : Image.asset(
-                      'assets/images/homescreen logo.png',
+
+                      try {
+                        final productRepository = ProductRepository();
+                        final product = await productRepository.getProductDetail(item.id!);
+
+                        if (context.mounted) {
+                          Navigator.pop(context); // Close loading dialog
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ProductDetailScreen(product: product),
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          Navigator.pop(context); // Close loading dialog
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Failed to load product details: $e'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      }
+                    }
+                  },
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: item.image != null && item.image!.isNotEmpty
+                        ? Image.network(
+                      item.image!,
                       width: 56,
                       height: 56,
-                      fit: BoxFit.cover
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Image.asset(
+                            'assets/images/homescreen logo.png',
+                            width: 56,
+                            height: 56,
+                            fit: BoxFit.cover
+                        );
+                      },
+                    )
+                        : Image.asset(
+                        'assets/images/homescreen logo.png',
+                        width: 56,
+                        height: 56,
+                        fit: BoxFit.cover
+                    ),
                   ),
                 ),
+
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(

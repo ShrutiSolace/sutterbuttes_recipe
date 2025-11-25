@@ -26,8 +26,8 @@ android {
         applicationId "com.sutterbuttes.recipes"
         minSdkVersion 24
         targetSdkVersion 35
-        versionCode 20
-        versionName '1.0.19'
+        versionCode 22
+        versionName '1.0.21'
 
     }
 
