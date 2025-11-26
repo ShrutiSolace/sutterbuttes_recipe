@@ -36,7 +36,12 @@ class _CartScreenState extends State<CartScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
-            Navigator.pop(context);
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const BottomNavigationScreen(initialIndex: 2), // Shop screen
+              ),
+            );
           },
         ),
         title: const Text(

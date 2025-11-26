@@ -7,6 +7,7 @@ import 'package:sutterbuttes_recipe/api_constant.dart';
 import '../repositories/cart_repository.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import '../repositories/payment_repository.dart';
+import 'cart_screen.dart';
 import 'state/cart_provider.dart';
 import 'order_success_screen.dart';
 import '../modal/check_out_model.dart';
@@ -450,18 +451,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
             const SizedBox(height: 8),
 
-
-
-
-
-
-
-
-
-
-
-
-            const SizedBox(height: 8),
             ElevatedButton(
               onPressed: _submitting
                   ? null
@@ -772,12 +761,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       } on StripeException catch (e) {
         print("====== StripeException: ${e.error.localizedMessage}");
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Payment cancelled: ${e.error.localizedMessage}')),
+          SnackBar(content: Text('Payment cancelled: ${e.error.localizedMessage}'),duration: const Duration(seconds: 2),),
         );
         await _restoreCartItems();
-       /* if (mounted) {
-          Navigator.pop(context);
-        }*/
+        if (mounted) {
+          if (mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const CartScreen()),
+            );
+          }
+        }
 
       } catch (e) {
         print("====== Unexpected payment error: $e");

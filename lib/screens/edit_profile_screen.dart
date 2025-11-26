@@ -368,6 +368,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       final repo = UserRepository();
       final result = await repo.updateUserProfile(userData: userData, profileImagePath: _pickedImageFile?.path,);
 
+      // Handle null success case (when no changes made)
+      if (result.success == null) {
+        messenger.showSnackBar(
+          const SnackBar(content: Text('No changes made to update')),
+        );
+        setState(() {
+          _isSaving = false;
+        });
+        return;
+      }
+
 
       if (result.success == true) {
         messenger.showSnackBar(

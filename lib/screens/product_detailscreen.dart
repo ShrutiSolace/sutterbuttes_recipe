@@ -26,7 +26,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   String? _selectedOptions;
   int? _selectedVariationId;
 
-
+  final PageController _pageController = PageController();
 
   @override
   void initState() {
@@ -37,7 +37,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     });
   }
 
-
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
 
 
@@ -53,6 +57,45 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     return cleanText.replaceAll(htmlTagRegex, '').trim();
   }
 
+  List<String> extractImagesFromDescription(String htmlDescription) {
+    final List<String> imageUrls = [];
+
+    try {
+      final document = html_parser.parse(htmlDescription);
+      final imgTags = document.querySelectorAll('img');
+
+      for (var img in imgTags) {
+        final src = img.attributes['src'];
+        if (src != null && src.isNotEmpty) {
+          imageUrls.add(src);
+        }
+      }
+    } catch (e) {
+      // If error, return empty list
+    }
+
+    return imageUrls;
+  }
+
+  List<String> getAllProductImages() {
+    final List<String> allImages = [];
+
+    // Add images from product.images list
+    if (widget.product.images.isNotEmpty) {
+      for (var image in widget.product.images) {
+        if (image.src.isNotEmpty) {
+          allImages.add(image.src);
+        }
+      }
+    }
+
+    // Extract images from description HTML
+    final descriptionImages = extractImagesFromDescription(widget.product.description);
+    allImages.addAll(descriptionImages);
+
+    // Remove duplicates
+    return allImages.toSet().toList();
+  }
 
 
 
@@ -248,6 +291,98 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   Widget build(BuildContext context) {
     const Color brandGreen = Color(0xFF7B8B57);
 
+    Widget _buildPageIndicator(int index, int total) {
+      return AnimatedBuilder(
+        animation: _pageController,
+        builder: (context, child) {
+          if (!_pageController.hasClients) {
+            return Container(
+              width: 8,
+              height: 8,
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.grey[300],
+              ),
+            );
+          }
+
+          final currentPage = _pageController.page?.round() ?? 0;
+          return Container(
+            width: 8,
+            height: 8,
+            margin: const EdgeInsets.symmetric(horizontal: 4),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: currentPage == index
+                  ? const Color(0xFF7B8B57)
+                  : Colors.grey[300],
+            ),
+          );
+        },
+      );
+    }
+
+
+    Widget _getProductImageSlider() {
+      final allImages = getAllProductImages();
+
+      if (allImages.isEmpty) {
+        // Fallback if no images
+        return AspectRatio(
+          aspectRatio: 1,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.asset(
+              "assets/images/homescreen logo.png",
+              fit: BoxFit.cover,
+            ),
+          ),
+        );
+      }
+
+      return Column(
+        children: [
+          AspectRatio(
+            aspectRatio: 1,
+            child: PageView.builder(
+              controller: _pageController,
+              itemCount: allImages.length,
+              itemBuilder: (context, index) {
+                return ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.network(
+                    allImages[index],
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Image.asset(
+                        "assets/images/homescreen logo.png",
+                        fit: BoxFit.cover,
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
+          ),
+          // Page indicator dots
+          if (allImages.length > 1)
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(
+                  allImages.length,
+                      (index) => _buildPageIndicator(index, allImages.length),
+                ),
+              ),
+            ),
+        ],
+      );
+    }
+
+
+
     // ADD DEBUG PRINTS HERE (between line 39 and 41):
     print("=== PRODUCT VARIATION DEBUG ===");
     print("Product ID: ${widget.product.id}");
@@ -312,7 +447,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           children: [
 
             // Product Image
-            AspectRatio(
+            /*AspectRatio(
               aspectRatio: 1,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
@@ -326,7 +461,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   fit: BoxFit.cover,
                 ),
               ),
-            ),
+            ),*/
+            // Product Image Slider
+            _getProductImageSlider(),
 
             const SizedBox(height: 16),
             Text(

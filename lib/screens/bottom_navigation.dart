@@ -49,20 +49,24 @@ class BottomNavigationScreen extends StatefulWidget {
 
 class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
   late int _currentIndex;
+  final GlobalKey<HomeHeaderAndContentState> _favoritesKey = GlobalKey();
+
 
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
+    _pages = <Widget>[
+      HomeScreen(),
+      RecipesScreen(),
+      ShopScreen(),
+      FavoritesScreen(favoritesKey: _favoritesKey),
+      ProfileScreen(),
+    ];
   }
 
-  final List<Widget> _pages = <Widget>[
-    HomeScreen(),
-    RecipesScreen(),
-    ShopScreen(),
-    FavoritesScreen(),
-    ProfileScreen(),
-  ];
+  late List<Widget> _pages ;
+
 
   @override
   Widget build(BuildContext context) {
@@ -88,6 +92,8 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
             if (!isAuthenticated) {
               return;
             }
+            _favoritesKey.currentState?.refreshFavourites();
+
           }
 
 

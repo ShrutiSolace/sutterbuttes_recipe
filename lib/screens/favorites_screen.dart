@@ -11,7 +11,8 @@ import '../repositories/product_repository.dart';
 
 
 class FavoritesScreen extends StatelessWidget {
-  const FavoritesScreen({super.key});
+  final GlobalKey<HomeHeaderAndContentState>? favoritesKey;
+  const FavoritesScreen({super.key,this .favoritesKey});
 
 
   String cleanHtmlText(String text) {
@@ -37,19 +38,19 @@ class FavoritesScreen extends StatelessWidget {
           style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
         ),
       ),
-      body: const _HomeHeaderAndContent(),
+      body: _HomeHeaderAndContent(key: favoritesKey),
     );
   }
 }
 
 class _HomeHeaderAndContent extends StatefulWidget {
-  const _HomeHeaderAndContent();
+  const _HomeHeaderAndContent({super.key});
 
   @override
-  State<_HomeHeaderAndContent> createState() => _HomeHeaderAndContentState();
+  State<_HomeHeaderAndContent> createState() => HomeHeaderAndContentState();
 }
 
-class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
+class HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
   int _selectedChip = 0;
   Future<FavouritesModel>? _favouritesFuture;
   @override
@@ -57,7 +58,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
     super.initState();
     _favouritesFuture = FavouritesRepository().getFavourites();
   }
-  void _refreshFavourites() {
+  void refreshFavourites() {
     setState(() {
       _favouritesFuture = FavouritesRepository().getFavourites();
     });
@@ -66,7 +67,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (ModalRoute.of(context)?.isCurrent == true) {
-      _refreshFavourites();
+      refreshFavourites();
     }
   }
 
