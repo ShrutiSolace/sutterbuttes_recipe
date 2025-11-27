@@ -1104,6 +1104,7 @@ class TrendingProductSection extends StatelessWidget {
   }
 }
 
+
 class TrendingProductCard extends StatelessWidget {
   final TrendingProduct product;
 
@@ -1565,8 +1566,8 @@ class _TrendingThisWeekSection extends StatelessWidget {
                   final r = items[index];
               return _TrendingRecipeCard(
                     title: r.title ?? '',
-                    description: r.excerpt ?? '',
-                    rating: (r.rating != null && r.rating!.isNotEmpty)
+                description: r.description ?? r.excerpt ?? '',
+                rating: (r.rating != null && r.rating!.isNotEmpty)
                         ? double.tryParse(r.rating!) ?? 0.0
                         : 0.0,
                     imageUrl: r.image ?? '',

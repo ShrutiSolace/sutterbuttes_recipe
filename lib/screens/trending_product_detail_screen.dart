@@ -553,8 +553,8 @@ class _TrendingProductDetailScreenState extends State<TrendingProductDetailScree
                       } : null,*/
 
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: _quantity > 0 ? Color(0xFF7B8B57) : Colors.grey,// ✅ Light green background
-                        foregroundColor: Colors.white,      // ✅ White text & icon
+                        backgroundColor: _quantity > 0 ? Color(0xFF7B8B57) : Colors.grey,
+                        foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -562,7 +562,7 @@ class _TrendingProductDetailScreenState extends State<TrendingProductDetailScree
                       child: const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.shopping_cart, size: 20),
+                          Icon(Icons.shopping_cart, size: 20,color: Colors.white,),
                           SizedBox(width: 8),
                           Text(
                             ' Add to Cart',

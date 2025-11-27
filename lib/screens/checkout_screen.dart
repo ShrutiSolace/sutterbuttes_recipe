@@ -85,6 +85,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   double? _finalTotal;
   static const double _defaultShippingCost = 10.95;
   bool _isLoadingInitialData = true;
+  bool _isRestoringCart = false;
 
   void _syncShippingWithBilling() {
     if (_sameAsBilling) {
@@ -452,7 +453,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             const SizedBox(height: 8),
 
             ElevatedButton(
-              onPressed: _submitting
+              onPressed: (_submitting || _isRestoringCart)  // ← Add _isRestoringCart
                   ? null
                   : () async {
                 // Save cart items before checkout (in case payment fails)
@@ -763,6 +764,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Payment cancelled: ${e.error.localizedMessage}'),duration: const Duration(seconds: 2),),
         );
+
+
+        setState(() {
+          _isRestoringCart = true;  // ← ADD THIS
+        });
+
+
+
+
         await _restoreCartItems();
         if (mounted) {
           if (mounted) {
@@ -773,7 +783,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           }
         }
 
-      } catch (e) {
+      }
+
+
+      catch (e) {
         print("====== Unexpected payment error: $e");
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Payment failed: $e')),
@@ -835,6 +848,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
 
   Future<Map<String, dynamic>?> _placeOrder({required String paymentMethod}) async {
+    if (_isRestoringCart) return null;
     FocusScope.of(context).unfocus();
     if (!_formKey.currentState!.validate()) return null;
     setState(() {

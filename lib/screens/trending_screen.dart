@@ -47,7 +47,7 @@ class AllTrendingRecipesScreen extends StatelessWidget {
               final r = items[index];
               return _TrendingRecipeListItem(
                 title: r.title ?? '',
-                description: r.excerpt ?? '',
+                  description: r.description ?? r.excerpt ?? '',
                 rating: (r.rating != null && r.rating!.isNotEmpty)
                     ? double.tryParse(r.rating!) ?? 0.0
                     : 0.0,

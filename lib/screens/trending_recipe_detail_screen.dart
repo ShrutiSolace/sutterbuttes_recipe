@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:html_unescape/html_unescape.dart';
-
+import 'package:flutter_html/flutter_html.dart';
 import '../modal/rating_model.dart';
 import '../repositories/rating_repository.dart';
+
+
 class TrendingRecipeDetailsScreen extends StatelessWidget {
   final String title;
   final String description;
   final double rating;
   final String imageUrl;
-  final int? recipeId; // Add this line
+  final int? recipeId;
 
   const TrendingRecipeDetailsScreen({
     super.key,
@@ -94,6 +96,7 @@ class TrendingRecipeDetailsScreen extends StatelessWidget {
                       );
                     },
                   )
+
                       : Row(
                     children: [
                       const Icon(Icons.star, color: Colors.amber),
@@ -109,47 +112,96 @@ class TrendingRecipeDetailsScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
 
+                  // Shop Ingredients Button
+                  ElevatedButton.icon(
+                    onPressed: () {},
+                    icon: const Icon(
+                      Icons.shopping_cart,
+                      color: Colors.white,
+                      size: 16,
+                    ),
+                    label: const Text(
+                      'Shop Ingredients',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF7B8B57),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    ),
+                  ),
+
+                  const SizedBox(height: 10),
                   // --- Description ---
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: description.isNotEmpty
-                        ? description
-                        .split('.')
-                        .where((point) => point.trim().isNotEmpty)
-                        .map((point) => Padding(
-                      padding: const EdgeInsets.only(bottom: 6),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            "• ",
-                            style: TextStyle(fontSize: 15, color: Colors.black87),
-                          ),
-                          Expanded(
-                            child: Text(
-                              point.trim(),
-                              style: const TextStyle(
-                                fontSize: 15,
-                                color: Colors.black87,
-                                height: 1.5,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ))
-                        .toList()
-                        : [
-                      const Text(
-                        "No description available.",
-                        style: TextStyle(
-                          fontSize: 15,
-                          color: Colors.black87,
-                          height: 1.5,
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Html(
+                      data: description.isNotEmpty
+                          ? description
+                          : "No description available",
+                      style: {
+                        "img": Style(display: Display.none),
+                        "h1": Style(
+                          fontSize: FontSize(20),
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey[800],
+                          margin: Margins.only(top: 24, bottom: 16),
                         ),
-                      ),
-                    ],
-                  )
+                        "h2": Style(
+                          fontSize: FontSize(18),
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey[800],
+                          margin: Margins.only(top: 20, bottom: 12),
+                        ),
+                        "h3": Style(
+                          fontSize: FontSize(16),
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey[800],
+                          margin: Margins.only(top: 16, bottom: 12),
+                        ),
+                        "h4": Style(
+                          fontSize: FontSize(16),
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey[800],
+                          margin: Margins.only(top: 16, bottom: 12),
+                        ),
+                        "p": Style(
+                          fontSize: FontSize(16),
+                          color: Colors.grey[800],
+                          margin: Margins.only(top: 8, bottom: 12),
+                          padding: HtmlPaddings.zero,
+                        ),
+                        "ul": Style(
+                          padding: HtmlPaddings.only(left: 20),
+                          margin: Margins.only(top: 8, bottom: 16),
+                        ),
+                        "ol": Style(
+                          padding: HtmlPaddings.only(left: 20),
+                          margin: Margins.only(top: 8, bottom: 16),
+                        ),
+                        "li": Style(
+                          padding: HtmlPaddings.only(left: 8, bottom: 8),
+                          margin: Margins.zero,
+                          fontSize: FontSize(16),
+                          color: Colors.grey[800],
+                          listStyleType: ListStyleType.disc,
+                          display: Display.listItem,
+                        ),
+                        "body": Style(
+                          padding: HtmlPaddings.all(0),
+                          margin: Margins.zero,
+                          fontSize: FontSize(16),
+                          color: Colors.grey[800],
+                        ),
+                      },
+                    ),
+                  ),
 
                 ],
               ),

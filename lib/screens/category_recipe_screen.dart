@@ -106,7 +106,8 @@ class _CategoryRecipesScreenState extends State<CategoryRecipesScreen> {
                             builder: (context) => CategoryRecipeDetailScreen(
                               title: recipe.title,
                               imageUrl: recipe.image,
-                              subtitle: recipe.excerpt ?? '',
+                              subtitle: recipe.description ?? '',
+                              recipeId: recipe.id,
                             ),
                           ),
                         );

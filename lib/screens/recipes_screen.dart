@@ -162,7 +162,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
             title: searchRecipe.title,
             link: searchRecipe.link,
             date: '',
-            contentHtml: searchRecipe.excerpt,
+            contentHtml: searchRecipe.description ?? searchRecipe.excerpt,
             featuredMediaId: 0,
             imageUrl: searchRecipe.image,
           );

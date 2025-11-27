@@ -34,8 +34,9 @@ class Recipes {
   Recipes({
       this.id, 
       this.title, 
-      this.excerpt, 
-      this.image, 
+      this.excerpt,
+    this.description,
+    this.image,
       this.rating, 
       this.link,});
 
@@ -43,6 +44,7 @@ class Recipes {
     id = json['id'];
     title = json['title'];
     excerpt = json['excerpt'];
+    description = json['description'];
     image = json['image'];
     rating = json['rating'];
     link = json['link'];
@@ -51,6 +53,7 @@ class Recipes {
   String? title;
   String? excerpt;
   String? image;
+  String?description;
   String? rating;
   String? link;
 
@@ -60,6 +63,7 @@ class Recipes {
     map['title'] = title;
     map['excerpt'] = excerpt;
     map['image'] = image;
+    map['description'] = description;
     map['rating'] = rating;
     map['link'] = link;
     return map;
