@@ -76,7 +76,17 @@ class HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
     const Color brandGreen = Color(0xFF7B8B57);
     final TextTheme textTheme = Theme.of(context).textTheme;
 
-    return FutureBuilder<FavouritesModel>(
+    return RefreshIndicator(
+        onRefresh: () async {
+          setState(() {
+            _favouritesFuture = FavouritesRepository().getFavourites();
+          });
+          await _favouritesFuture;
+        },
+
+
+
+    child:  FutureBuilder<FavouritesModel>(
       future: _favouritesFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -94,7 +104,7 @@ class HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Please try again.',
+                    'Please try again',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 16,
@@ -123,7 +133,8 @@ class HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
         final recipeItems = favourites?.favorites?.recipes ?? <Recipes>[];
         final productItems = favourites?.favorites?.products ?? <Products>[];
 
-        return SingleChildScrollView(
+        return  SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -207,6 +218,7 @@ class HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
           ),
         );
       },
+    )
     );
   }
 }
@@ -232,7 +244,7 @@ class _FavoriteCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: ()  async {
-        if (recipe != null) {
+        /*if (recipe != null) {
           final recipeItem = RecipeItem(
             id: recipe!.id ?? 0,
             slug: '',
@@ -250,6 +262,37 @@ class _FavoriteCard extends StatelessWidget {
               builder: (context) => RecipeDetailScreen(recipe: recipeItem),
             ),
           );
+        }*/
+        if (recipe != null) {
+          // Show loader
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => const Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+
+          final recipeItem = RecipeItem(
+            id: recipe!.id ?? 0,
+            slug: '',
+            title: recipe!.title ?? '',
+            link: recipe!.link ?? '',
+            date: '',
+            contentHtml: recipe!.description ?? '<p>${cleanHtmlText(recipe!.title ?? '')}</p>',
+            featuredMediaId: 0,
+            imageUrl: recipe!.image ?? '',
+          );
+
+          if (context.mounted) {
+            Navigator.pop(context); // Close loader
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => RecipeDetailScreen(recipe: recipeItem),
+              ),
+            );
+          }
         }
 
 
@@ -257,14 +300,30 @@ class _FavoriteCard extends StatelessWidget {
         else if (product != null)   {
           final productId = product!.id ?? 0;
 
-          final productDetail = await ProductRepository().getProductDetail(productId);
-
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => ProductDetailScreen(product: productDetail),
+          // Show loader
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => const Center(
+              child: CircularProgressIndicator(),
             ),
           );
+
+
+          // Small delay to ensure loader is visible
+          await Future.delayed(const Duration(milliseconds: 500));
+
+          final productDetail = await ProductRepository().getProductDetail(productId);
+
+          if (context.mounted) {
+            Navigator.pop(context); // Close loader
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ProductDetailScreen(product: productDetail),
+              ),
+            );
+          }
         }
       },
       child: Container(

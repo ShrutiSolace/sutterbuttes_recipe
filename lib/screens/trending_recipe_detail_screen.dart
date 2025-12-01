@@ -11,6 +11,7 @@ class TrendingRecipeDetailsScreen extends StatelessWidget {
   final double rating;
   final String imageUrl;
   final int? recipeId;
+  final String excerpt;
 
   const TrendingRecipeDetailsScreen({
     super.key,
@@ -18,7 +19,8 @@ class TrendingRecipeDetailsScreen extends StatelessWidget {
     required this.description,
     required this.rating,
     required this.imageUrl,
-    this.recipeId, // Add this line (optional)
+    this.recipeId,
+    required this.excerpt,
   });
 
   @override

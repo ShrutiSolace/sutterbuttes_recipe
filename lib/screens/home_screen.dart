@@ -29,6 +29,7 @@ import '../modal/recipe_model.dart';
 import '../repositories/recipe_list_repository.dart';
 import '../modal/trending_recipes_model.dart';
 import 'package:html_unescape/html_unescape.dart';
+import 'package:html/parser.dart' as html_parser;
 import 'dart:math' as math;
 import 'state/product_provider.dart';
 import '../modal/trending_product_model.dart';
@@ -212,6 +213,17 @@ class _FavouriteButtonState extends State<_FavouriteButton> {
         });
       }
     }
+  }
+
+
+  String _cleanHtmlText(String text) {
+    // Parse the HTML and extract text content
+    final document = html_parser.parse(text);
+    final cleanText = document.body?.text ?? text;
+
+    // Remove any remaining HTML tags
+    final RegExp htmlTagRegex = RegExp(r'<[^>]*>', multiLine: true, caseSensitive: true);
+    return cleanText.replaceAll(htmlTagRegex, '').trim();
   }
 
 
@@ -757,7 +769,7 @@ class FeaturedRecipesSection extends StatelessWidget {
         }*/
 
         if (provider.errorMessage != null) {
-          String message = 'Please try again.';
+          String message = 'Please try again';
           if (provider.errorMessage!.contains('503')) {
             message = '';
           } else if (provider.errorMessage!.contains('507')) {
@@ -980,7 +992,7 @@ class TrendingProductSection extends StatelessWidget {
 
 
         if (provider.trendingErrorMessage != null) {
-          String message = 'Please try again.';
+          String message = 'Please try again';
           if (provider.trendingErrorMessage!.contains('503')) {
             message = '';
           } else if (provider.trendingErrorMessage!.contains('507')) {
@@ -1121,6 +1133,7 @@ class TrendingProductCard extends StatelessWidget {
           ),
         );
       },
+
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -1261,7 +1274,7 @@ class _RecipeCategoriesSection extends StatelessWidget {
 
 
         if (provider.errorMessage.isNotEmpty) {
-          String message = 'Please try again.';
+          String message = 'Please try again';
           if (provider.errorMessage.contains('503')) {
             message = '';
           } else if (provider.errorMessage.contains('507')) {
@@ -1452,7 +1465,16 @@ class _CategoryCard extends StatelessWidget {
 
 class _TrendingThisWeekSection extends StatelessWidget {
   const _TrendingThisWeekSection();
+  String _cleanHtmlText(String text) {
+    if (text.isEmpty) return '';
+    // Parse the HTML and extract text content
+    final document = html_parser.parse(text);
+    final cleanText = document.body?.text ?? text;
 
+    // Remove any remaining HTML tags
+    final RegExp htmlTagRegex = RegExp(r'<[^>]*>', multiLine: true, caseSensitive: true);
+    return cleanText.replaceAll(htmlTagRegex, '').trim();
+  }
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -1511,7 +1533,7 @@ class _TrendingThisWeekSection extends StatelessWidget {
 
             if (snapshot.hasError) {
               String errorMsg = snapshot.error.toString();
-              String message = 'Please try again.';
+              String message = 'Please try again';
               if (errorMsg.contains('503')) {
                 message = '';
               } else if (errorMsg.contains('507')) {
@@ -1564,9 +1586,11 @@ class _TrendingThisWeekSection extends StatelessWidget {
                 itemCount: items.length,
             itemBuilder: (context, index) {
                   final r = items[index];
+
               return _TrendingRecipeCard(
                     title: r.title ?? '',
-                description: r.description ?? r.excerpt ?? '',
+                excerpt: r.excerpt ?? '',
+               description: r.description ?? r.excerpt ?? '',
                 rating: (r.rating != null && r.rating!.isNotEmpty)
                         ? double.tryParse(r.rating!) ?? 0.0
                         : 0.0,
@@ -1588,6 +1612,7 @@ class _TrendingRecipeCard extends StatelessWidget {
   final String title;
   final String description;
   final double rating;
+  final String excerpt;
   final String imageUrl;
   final int? recipeId;
 
@@ -1596,9 +1621,20 @@ class _TrendingRecipeCard extends StatelessWidget {
     required this.description,
     required this.rating,
     required this.imageUrl,
+    required this.excerpt,
     this.recipeId,
   });
 
+  String _cleanHtmlText(String text) {
+    if (text.isEmpty) return '';
+    // Parse the HTML and extract text content
+    final document = html_parser.parse(text);
+    final cleanText = document.body?.text ?? text;
+
+    // Remove any remaining HTML tags
+    final RegExp htmlTagRegex = RegExp(r'<[^>]*>', multiLine: true, caseSensitive: true);
+    return cleanText.replaceAll(htmlTagRegex, '').trim();
+  }
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -1609,6 +1645,7 @@ class _TrendingRecipeCard extends StatelessWidget {
             MaterialPageRoute(
               builder: (_) => TrendingRecipeDetailsScreen(
                 title: title,
+                excerpt: excerpt,
                 description: description,
                 rating: rating,
                 imageUrl: imageUrl,
@@ -1672,10 +1709,11 @@ class _TrendingRecipeCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 8),
-                
+
                 // Recipe Description
-                Text(
-                  description,
+                // Recipe Description
+              /*  Text(
+                  _cleanHtmlText(description),
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey[600],
@@ -1683,7 +1721,7 @@ class _TrendingRecipeCard extends StatelessWidget {
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                ),
+                ),*/
                 const SizedBox(height: 12),
                 
                 // Rating

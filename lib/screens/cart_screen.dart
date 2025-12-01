@@ -191,6 +191,8 @@ class _CartContent extends StatelessWidget {
                             // 🔄 Immediate refresh to make sure totals update visually right away
                             await context.read<CartProvider>().loadCart(silent: true);
                           },*/
+
+
                           onPressed: () async {
                             final confirm = await showDialog<bool>(
                               context: context,
@@ -215,6 +217,7 @@ class _CartContent extends StatelessWidget {
                               await context.read<CartProvider>().removeItemOptimistic(
                                 productId: item.productId ?? 0,
                                 variationId: item.variationId ?? 0,
+
                               );
 
                               //await context.read<CartProvider>().loadCart(silent: true);

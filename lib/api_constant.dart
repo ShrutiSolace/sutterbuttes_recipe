@@ -19,16 +19,16 @@ class ApiConstants
 
 
   ///--Listing recipes--///
- static String recipesListUrl = '$baseUrl/wp/v2/recipes';
- static String recipesCategoryListUrl = '$baseUrl/sbo/v1/recipe-categories';
- static String trendingRecipesUrl = '$baseUrl/sbo/v1/trending-recipes';
- static String recipesByCategoryUrl = '$baseUrl/sbo/v1/recipes-by-category';
+  static String recipesListUrl = '$baseUrl/wp/v2/recipes';
+  static String recipesCategoryListUrl = '$baseUrl/sbo/v1/recipe-categories';
+  static String trendingRecipesUrl = '$baseUrl/sbo/v1/trending-recipes';
+  static String recipesByCategoryUrl = '$baseUrl/sbo/v1/recipes-by-category';
 
 
  ///Product List ///
- static String productListUrl = '$baseUrl/wc/v3/products';
- static String productdetailUrl = '$baseUrl/wc/v3/products/';
- static String trendingProductsUrl =  '$baseUrl/sbo/v1/trending-products';
+  static String productListUrl = '$baseUrl/wc/v3/products';
+  static String productdetailUrl = '$baseUrl/wc/v3/products/';
+  static String trendingProductsUrl =  '$baseUrl/sbo/v1/trending-products';
 
 
 

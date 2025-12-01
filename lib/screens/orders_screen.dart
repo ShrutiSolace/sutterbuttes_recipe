@@ -6,11 +6,14 @@ import '../repositories/order_repository.dart';
 import '../modal/order_model.dart';
 import '../repositories/product_repository.dart';
 
+
+
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
 
   @override
   State<OrdersScreen> createState() => _OrdersScreenState();
+
 }
 
 class _OrdersScreenState extends State<OrdersScreen> {
@@ -134,7 +137,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                'Please try again.',
+                'Please try again',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
@@ -186,6 +189,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 ),
               );
             },
+
             child: Container(
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -204,6 +208,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       _statusChip(order.status ?? '')
                     ],
                   ),
+
                   if (created.isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Text(created, style: const TextStyle(color: Colors.black54)),
@@ -279,6 +284,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -300,6 +306,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       body: _buildBody(),
     );
   }
+
 
   Widget _buildBody() {
     if (isLoading) {
@@ -343,6 +350,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     );
   }
 
+
+
   Widget _buildOrderInfoCard() {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -367,6 +376,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       ),
     );
   }
+
+
 
   Widget _buildItemsCard() {
     return Container(

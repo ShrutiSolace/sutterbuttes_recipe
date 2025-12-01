@@ -141,7 +141,7 @@ class AuthService {
       } else {
         final Map<String, dynamic> errorData = json.decode(response.body);
         throw ApiError(
-          message: errorData['message'] ?? 'Sign up failed. Please try again.',
+          message: errorData['message'] ?? 'Sign up failed. Please try again',
           statusCode: response.statusCode,
         );
       }

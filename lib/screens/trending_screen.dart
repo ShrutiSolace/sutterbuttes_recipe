@@ -46,6 +46,7 @@ class AllTrendingRecipesScreen extends StatelessWidget {
             itemBuilder: (context, index) {
               final r = items[index];
               return _TrendingRecipeListItem(
+                excerpt: r.excerpt ?? '',
                 title: r.title ?? '',
                   description: r.description ?? r.excerpt ?? '',
                 rating: (r.rating != null && r.rating!.isNotEmpty)
@@ -69,6 +70,7 @@ class _TrendingRecipeListItem extends StatelessWidget {
   final double rating;
   final String imageUrl;
   final int? recipeId;
+  final String excerpt;
 
   const _TrendingRecipeListItem({
     required this.title,
@@ -76,18 +78,20 @@ class _TrendingRecipeListItem extends StatelessWidget {
     required this.rating,
     required this.imageUrl,
     this.recipeId,
+    required this.excerpt
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        // ✅ Navigate to your details screen here
+
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (_) => TrendingRecipeDetailsScreen(
               title: title,
+              excerpt: excerpt,
               description: description,
               rating: rating,
               imageUrl: imageUrl,

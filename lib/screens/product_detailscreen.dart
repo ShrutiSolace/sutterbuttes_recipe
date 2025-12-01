@@ -19,6 +19,7 @@ class ProductDetailScreen extends StatefulWidget {
   State<ProductDetailScreen> createState() => _ProductDetailScreenState();
 }
 
+
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
   int _quantity = 1;
   bool _isAdding = false;
@@ -87,9 +88,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           allImages.add(image.src);
         }
       }
-    }
 
-    // Extract images from description HTML
+    }
+    // Add images extracted from product.description
     final descriptionImages = extractImagesFromDescription(widget.product.description);
     allImages.addAll(descriptionImages);
 
@@ -209,7 +210,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ),
             ),
             content: Text(
-              '${widget.product.name} added to cart successfully!',
+              widget.product.variation == true && _selectedOptions != null
+                  ? '${widget.product.name} (${_selectedOptions}) added to cart successfully!'
+                  : '${widget.product.name} added to cart successfully!',
               style: const TextStyle(
                 color: Colors.black,
                 fontSize: 16,
@@ -335,7 +338,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             borderRadius: BorderRadius.circular(12),
             child: Image.asset(
               "assets/images/homescreen logo.png",
-              fit: BoxFit.cover,
+              fit: BoxFit.contain,
             ),
           ),
         );
@@ -351,15 +354,18 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               itemBuilder: (context, index) {
                 return ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    allImages[index],
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Image.asset(
-                        "assets/images/homescreen logo.png",
-                        fit: BoxFit.cover,
-                      );
-                    },
+                  child: Container(
+                    color: Colors.white,
+                    child: Image.network(
+                      allImages[index],
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Image.asset(
+                          "assets/images/homescreen logo.png",
+                          fit: BoxFit.contain,
+                        );
+                      },
+                    ),
                   ),
                 );
               },
@@ -583,6 +589,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   },
                                 )
                               : Text(
+
                             "\$${double.tryParse(widget.product.price)?.toStringAsFixed(2) ?? widget.product.price}",
                                   style: const TextStyle(
                                     fontSize: 20,

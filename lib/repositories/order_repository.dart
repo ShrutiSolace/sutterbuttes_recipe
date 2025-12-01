@@ -58,7 +58,6 @@ class OrderRepository {
       return 0;
     }
 
-
     try {
       final profileRepo = UserRepository();
       final profile = await profileRepo.getCurrentUser();
@@ -96,12 +95,13 @@ class OrderRepository {
       }
     } catch (e) {
       print("Error getting order count: $e");
-      return 0; // Return 0 if any error occurs
+      return 0;
     }
   }
 
 
   Future<List<OrderSummary>> getOrdersList({int page = 1, int perPage = 10}) async {
+    print("=======Fetching orders list: page=$page, perPage=$perPage");
     String? token = await SecureStorage.getLoginToken();
 
     if (token == null) {
@@ -118,7 +118,8 @@ class OrderRepository {
         'Content-Type': 'application/json',
       },
     );
-   print("=======");
+
+    print("=======");
     print("Orders List URL: $uri");
     print("Orders List Response: ${response.statusCode} :: ${response.body}");
 
@@ -168,6 +169,7 @@ class OrderRepository {
     }
   }
 
+
   Future<int> getCount() async {
     String? token = await SecureStorage.getLoginToken();
     if (token == null) return 0;
@@ -181,6 +183,8 @@ class OrderRepository {
   }
 
 }
+
+
 /*
 import 'dart:convert';
 import 'package:http/http.dart' as http;

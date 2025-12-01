@@ -11,6 +11,9 @@ import '../utils/auth_helper.dart';
 import 'notifications_screen.dart';
 import 'state/cart_provider.dart';
 import 'cart_screen.dart';
+import 'dart:async';
+import '../repositories/search_repository.dart';
+import '../modal/search_model.dart';
 
 
 class ShopScreen extends StatelessWidget {
@@ -64,7 +67,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
 
 
   int _currentPage = 1;
-  final int _perPage = 30;
+  final int _perPage = 40;
   bool _isLoadingMore = false;
   bool _hasMoreData = true;
   final ScrollController _scrollController = ScrollController();
@@ -419,7 +422,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                'Please try again.',
+                'Please try again',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,

@@ -107,7 +107,7 @@ class CartProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> removeItemOptimistic({
+  /*Future<void> removeItemOptimistic({
     required int productId,
     required int variationId,
   }) async {
@@ -122,5 +122,30 @@ class CartProvider extends ChangeNotifier {
     await loadCart(silent: true);
   }
 }
+*/
 
+  Future<void> removeItemOptimistic({
+    required int productId,
+    required int variationId,
+  }) async {
+    // Optimistically remove locally
+    if (_cart?.items != null) {
+      _cart!.items!.removeWhere((it) => (it.productId ?? 0) == productId && (it.variationId ?? 0) == variationId);
+
+      // Recalculate totals immediately
+      final localSubtotal = _calculateLocalSubtotal();
+      if (_cart!.totals == null) {
+        _cart!.totals = Totals(subtotal: localSubtotal);
+      } else {
+        _cart!.totals!.subtotal = localSubtotal;
+      }
+
+      notifyListeners();
+    }
+    try {
+      await _repo.removeFromCart(productId: productId, variationId: variationId);
+    } catch (_) {}
+    await loadCart(silent: true);
+  }
+}
 

@@ -211,7 +211,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                'Please try again.',
+                'Please try again',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,

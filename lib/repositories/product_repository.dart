@@ -9,7 +9,7 @@ import '../services/secure_storage.dart';
 class ProductRepository {
 
 
-  Future<List<Product>> getProducts({int page = 1, int perPage = 30}) async {
+  Future<List<Product>> getProducts({int page = 1, int perPage = 40}) async {
     print("Fetching products from API...");
 
     try {

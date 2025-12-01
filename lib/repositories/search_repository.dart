@@ -10,7 +10,7 @@ class SearchRepository {
 
 
     try {
-      // URL encode the query to handle special characters
+
       final encodedQuery = Uri.encodeComponent(query);
       final uri = Uri.parse('${ApiConstants.searchUrl}?query=$encodedQuery');
 
@@ -27,6 +27,19 @@ class SearchRepository {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
+        // ADD THIS HERE:
+        final resultsData = data['results'] ?? {};
+        final recipesList = resultsData['recipes'] as List?;
+        final productsList = resultsData['products'] as List?;
+
+        print("==========================================");
+        print("🔍 SEARCH API EXACT COUNT");
+        print("Query: $query");
+        print("Recipes: ${recipesList?.length ?? 0}");
+        print("Products: ${productsList?.length ?? 0}");
+        print("Total: ${(recipesList?.length ?? 0) + (productsList?.length ?? 0)}");
+        print("==========================================");
+
         return SearchResultModel.fromJson(data);
       } else {
         throw Exception("Failed to search: ${response.statusCode}");

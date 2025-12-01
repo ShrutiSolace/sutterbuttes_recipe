@@ -41,6 +41,12 @@ class SearchProvider extends ChangeNotifier {
 
       try {
         final result = await _searchRepository.searchItems(query);
+        // ADD THESE PRINT STATEMENTS:
+        print("===  SEARCH API ===");
+        print("API returned ${result.results.recipes.length} recipes");
+        print("API returned ${result.results.products.length} products");
+        print("Total showing: ${result.results.recipes.length + result.results.products.length}");
+        print("========================");
 
         _searchResults = [];
 
