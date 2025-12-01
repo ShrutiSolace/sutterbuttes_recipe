@@ -209,6 +209,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                 }
                                 return null;
                               },*/
+/*
 
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
@@ -234,11 +235,47 @@ class _SignupScreenState extends State<SignupScreen> {
 
                                 return null;
                               },
+*/
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Username or email is required';
+                                }
 
+                                // If input contains '@', treat as email
+                                if (value.contains('@')) {
+                                  // Regex to validate email
+                                  final emailRegex = RegExp(
+                                      r'^[a-zA-Z0-9]+([._-]?[a-zA-Z0-9]+)*@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.[a-zA-Z]{2,}$'
+                                  );
 
+                                  if (!emailRegex.hasMatch(value)) {
+                                    return 'Please enter a valid email address';
+                                  }
 
+                                  // Disallow double dots
+                                  if (value.contains('..')) {
+                                    return 'Please enter a valid email address';
+                                  }
 
+                                  // Split domain and check parts
+                                  final parts = value.split('@');
+                                  if (parts.length != 2) return 'Please enter a valid email address';
+                                  final domain = parts[1];
+                                  final domainParts = domain.split('.');
+                                  for (var part in domainParts) {
+                                    if (part.startsWith('-') || part.endsWith('-')) {
+                                      return 'Please enter a valid email domain';
+                                    }
+                                  }
+                                } else {
+                                  // Username validation
+                                  if (value.trim().length < 3) {
+                                    return 'Username must be at least 3 characters';
+                                  }
+                                }
 
+                                return null; // valid
+                              },
                             ),
 
                             const SizedBox(height: 12),

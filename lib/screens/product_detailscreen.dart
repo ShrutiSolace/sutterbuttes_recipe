@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:html_unescape/html_unescape.dart';
 import '../modal/product_model.dart';
 import 'package:flutter_html/flutter_html.dart';
 import '../repositories/cart_repository.dart';
@@ -292,6 +293,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final unescape = HtmlUnescape();
     const Color brandGreen = Color(0xFF7B8B57);
 
     Widget _buildPageIndicator(int index, int total) {
@@ -406,12 +408,21 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
 
 
+    return WillPopScope(
+        onWillPop: () async {
+      if (_isAdding) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please wait, add to cart is processing'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+        return false; // Prevent back navigation
+      }
+      return true; // Allow back navigation
+    },
 
-
-
-
-
-    return Scaffold(
+    child: Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: const Color(0xFF4A3D4D),
@@ -428,7 +439,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
 
         title: Text(
-          widget.product.name,
+          unescape.convert(widget.product.name),
           style: const TextStyle(
             color: Colors.white,
             fontSize: 16,
@@ -951,6 +962,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           ],
         ),
       ),
+    ),
     );
   }
 }

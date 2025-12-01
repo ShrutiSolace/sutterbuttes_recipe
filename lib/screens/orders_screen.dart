@@ -314,19 +314,42 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     }
 
     if (error != null) {
+      String message = 'Please try again';
+      if (error!.contains('503')) {
+        message = '';
+      } else if (error!.contains('507')) {
+        message = '';
+      } else if (error!.contains('timeout') || error!.contains('network')) {
+        message = 'No internet connection. Please check your network.';
+      }
+
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error, size: 64, color: Colors.red),
-            const SizedBox(height: 16),
-            Text('Error: $error'),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _loadOrderDetail,
-              child: const Text('Retry'),
-            ),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey[700],
+                ),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: _loadOrderDetail,
+                child: const Text('Retry'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF7B8B57),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -483,13 +506,53 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
-                            child: Text(
-                              '${item.name ?? ''}',
-                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
+                            child: GestureDetector(
+                              onTap: () async {
+                                if (item.id != null) {
+                                  // Show loading indicator
+                                  showDialog(
+                                    context: context,
+                                    barrierDismissible: false,
+                                    builder: (context) => const Center(
+                                      child: CircularProgressIndicator(),
+                                    ),
+                                  );
+
+                                  try {
+                                    final productRepository = ProductRepository();
+                                    final product = await productRepository.getProductDetail(item.id!);
+
+                                    if (context.mounted) {
+                                      Navigator.pop(context); // Close loading dialog
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => ProductDetailScreen(product: product),
+                                        ),
+                                      );
+                                    }
+                                  } catch (e) {
+                                    if (context.mounted) {
+                                      Navigator.pop(context);
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text('Failed to load product details: $e'),
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      );
+                                    }
+                                  }
+                                }
+                              },
+                              child: Text(
+                                '${item.name ?? ''}',
+                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
                           ),
+
                           const SizedBox(width: 8),
                           Text(
                             '\$${(double.tryParse(item.total ?? '0') ?? 0.0).toStringAsFixed(2)}',

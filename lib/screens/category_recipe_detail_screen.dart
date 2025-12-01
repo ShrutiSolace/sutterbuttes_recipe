@@ -3,7 +3,9 @@ import 'package:html_unescape/html_unescape.dart';
 
 import 'package:flutter_html/flutter_html.dart';
 import '../modal/rating_model.dart';  // ← ADD THIS
+import '../repositories/favourites_repository.dart';
 import '../repositories/rating_repository.dart';
+import '../utils/auth_helper.dart';
 
 class CategoryRecipeDetailScreen extends StatelessWidget {
   final String title;
@@ -27,22 +29,28 @@ class CategoryRecipeDetailScreen extends StatelessWidget {
     return Scaffold(
 
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF4A3D4D),
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
-        centerTitle: true,
-        title: Text(
-          title,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
+        appBar: AppBar(
+          backgroundColor: const Color(0xFF4A3D4D),
+          elevation: 0,
+          iconTheme: const IconThemeData(color: Colors.white),
+          centerTitle: true,
+          title: Text(
+            title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
           ),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: _FavouriteButton(type: 'recipe', id: recipeId),
+            ),
+          ],
         ),
-      ),
 
       body: SingleChildScrollView(
         child: Column(
@@ -213,6 +221,111 @@ class CategoryRecipeDetailScreen extends StatelessWidget {
             ),
 
           ],
+        ),
+      ),
+    );
+  }
+}
+class _FavouriteButton extends StatefulWidget {
+  final String type;
+  final int id;
+  const _FavouriteButton({required this.type, required this.id});
+
+  @override
+  State<_FavouriteButton> createState() => _FavouriteButtonState();
+}
+
+class _FavouriteButtonState extends State<_FavouriteButton> {
+  bool _isFavourite = false;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkFavoriteStatus();
+  }
+
+  Future<void> _checkFavoriteStatus() async {
+    try {
+      final repo = FavouritesRepository();
+      final favorites = await repo.getFavourites();
+
+      if (widget.type == 'recipe') {
+        final recipeIds = favorites.favorites?.recipes?.map((r) => r.id).toList() ?? [];
+        setState(() {
+          _isFavourite = recipeIds.contains(widget.id);
+        });
+      }
+    } catch (e) {
+      print('Error checking favorite status: $e');
+    }
+  }
+
+  Future<void> _toggle() async {
+    final isLoggedIn = await AuthHelper.checkAuthAndPromptLogin(
+      context,
+      attemptedAction: 'mark_favorite',
+      favoriteType: widget.type,
+      favoriteId: widget.id,
+    );
+
+    if (!isLoggedIn) {
+      return;
+    }
+
+    if (_isLoading) return;
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      final next = !_isFavourite;
+      setState(() {
+        _isFavourite = next;
+      });
+      final repo = FavouritesRepository();
+      final success = await repo.toggleFavourite(type: widget.type, id: widget.id);
+      if (!success) {
+        setState(() {
+          _isFavourite = !next;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isFavourite = !_isFavourite;
+      });
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.showSnackBar(
+        SnackBar(content: Text('Failed to update favourite')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: _toggle,
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.9),
+          shape: BoxShape.circle,
+        ),
+        child: _isLoading
+            ? const SizedBox(
+          height: 20,
+          width: 20,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        )
+            : Icon(
+          _isFavourite ? Icons.favorite : Icons.favorite_border,
+          size: 20,
+          color: _isFavourite ? Colors.red : const Color(0xFF4A3D4D),
         ),
       ),
     );

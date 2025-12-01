@@ -169,7 +169,51 @@ class _CartContent extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(item.name ?? '', style: const TextStyle(fontWeight: FontWeight.w600)),
+                         // Text(item.name ?? '', style: const TextStyle(fontWeight: FontWeight.w600)),
+                          GestureDetector(
+                            onTap: () async {
+                              if (item.name != null) {
+                                // Show loading indicator
+                                showDialog(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (context) => const Center(
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                );
+
+                                try {
+                                  final productRepository = ProductRepository();
+                                  final product = await productRepository.getProductDetail(item.productId!);
+
+                                  if (context.mounted) {
+                                    Navigator.pop(context); // Close loading dialog
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => ProductDetailScreen(product: product),
+                                      ),
+                                    );
+                                  }
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    Navigator.pop(context);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Failed to load product details: $e'),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
+                                }
+                              }
+                            },
+                            child: Text(
+                              item.name ?? '',
+                              style: const TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                          ),
+
                           const SizedBox(height: 4),
                           Text(
                             '\$${(item.price is num ? (item.price as num).toDouble() : double.tryParse(item.price.toString()) ?? 0).toStringAsFixed(2)}',

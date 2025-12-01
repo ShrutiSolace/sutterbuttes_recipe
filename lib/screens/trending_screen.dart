@@ -5,10 +5,19 @@ import '../modal/rating_model.dart';
 import '../modal/trending_recipes_model.dart';
 import '../repositories/rating_repository.dart';
 import '../repositories/recipe_list_repository.dart';
-
+import 'package:html/parser.dart' as html_parser;
 
 class AllTrendingRecipesScreen extends StatelessWidget {
   const AllTrendingRecipesScreen({super.key});
+  String cleanHtmlText(String text) {
+    // Parse the HTML and extract text content (this handles all HTML entities)
+    final document = html_parser.parse(text);
+    final cleanText = document.body?.text ?? text;
+
+    // Remove any remaining HTML tags
+    final RegExp htmlTagRegex = RegExp(r'<[^>]*>', multiLine: true, caseSensitive: true);
+    return cleanText.replaceAll(htmlTagRegex, '').trim();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,8 +90,17 @@ class _TrendingRecipeListItem extends StatelessWidget {
     required this.excerpt
   });
 
+  String _cleanHtmlText(String text) {
+    final document = html_parser.parse(text);
+    final cleanText = document.body?.text ?? text;
+
+    final RegExp htmlTagRegex = RegExp(r'<[^>]*>', multiLine: true, caseSensitive: true);
+    return cleanText.replaceAll(htmlTagRegex, '').trim();
+  }
+
   @override
   Widget build(BuildContext context) {
+
     return GestureDetector(
       onTap: () {
 
@@ -148,17 +166,17 @@ class _TrendingRecipeListItem extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      description,
+                      _cleanHtmlText(description),
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey[600],
-                        height: 1.4,
+                        height: 1.2,
                       ),
-                      maxLines: 2,
+                      maxLines: 4,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 8),
-                    const SizedBox(height: 8),
+
+                    const SizedBox(height: 5),
                     // Rating - Dynamic from API if recipeId is available
                     recipeId != null
                         ? FutureBuilder<RatingsModel>(

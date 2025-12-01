@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:html_unescape/html_unescape.dart';
 import 'package:sutterbuttes_recipe/screens/product_detailscreen.dart';
 import 'package:sutterbuttes_recipe/screens/recipedetailscreen.dart';
 import '../modal/product_model.dart';
@@ -8,6 +9,7 @@ import '../modal/favourites_model.dart';
 import 'package:html/parser.dart' as html_parser;
 
 import '../repositories/product_repository.dart';
+import '../utils/auth_helper.dart';
 
 
 class FavoritesScreen extends StatelessWidget {
@@ -232,11 +234,15 @@ class _FavoriteCard extends StatelessWidget {
 
   const _FavoriteCard({required this.title, required this.imageUrl, this.subtitle, this.recipe, this.product});
 
-   String cleanHtmlText(String text) {
-     final document = html_parser.parse(text);
-    final cleanText = document.body?.text ?? text;
+  String cleanHtmlText(String text) {
+
+    final unescape = HtmlUnescape();
+    final decodedText = unescape.convert(text);
+    final document = html_parser.parse(decodedText);
+    final cleanText = document.body?.text ?? decodedText;
     final RegExp htmlTagRegex = RegExp(r'<[^>]*>', multiLine: true, caseSensitive: true);
     return cleanText.replaceAll(htmlTagRegex, '').trim();
+
   }
 
 
@@ -291,7 +297,15 @@ class _FavoriteCard extends StatelessWidget {
               MaterialPageRoute(
                 builder: (context) => RecipeDetailScreen(recipe: recipeItem),
               ),
-            );
+            ).then((_) {
+              // Refresh favorites list when returning from detail screen
+              if (context.mounted) {
+                final state = context.findAncestorStateOfType<HomeHeaderAndContentState>();
+                if (state != null) {
+                  state.refreshFavourites();
+                }
+              }
+            });
           }
         }
 
@@ -322,7 +336,15 @@ class _FavoriteCard extends StatelessWidget {
               MaterialPageRoute(
                 builder: (_) => ProductDetailScreen(product: productDetail),
               ),
-            );
+            ).then((_) {
+              // Refresh favorites list when returning from detail screen
+              if (context.mounted) {
+                final state = context.findAncestorStateOfType<HomeHeaderAndContentState>();
+                if (state != null) {
+                  state.refreshFavourites();
+                }
+              }
+            });
           }
         }
       },
@@ -341,13 +363,32 @@ class _FavoriteCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Expanded(  // Use Expanded instead of AspectRatio
+            Expanded(
               child: ClipRRect(
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                child: imageUrl.isNotEmpty
-                    ? Image.network(imageUrl, fit: BoxFit.cover,
-                )
-                    : Container(color: const Color(0xFFF0F1F2)),
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: imageUrl.isNotEmpty
+                          ? Image.network(imageUrl, fit: BoxFit.cover)
+                          : Container(color: const Color(0xFFF0F1F2)),
+                    ),
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: _FavouriteButton(
+                        type: recipe != null ? 'recipe' : 'product',
+                        id: recipe?.id ?? product?.id ?? 0,
+                        onToggle: () {
+                          // Refresh favorites list after toggle
+                          if (context.findAncestorStateOfType<HomeHeaderAndContentState>() != null) {
+                            context.findAncestorStateOfType<HomeHeaderAndContentState>()!.refreshFavourites();
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
             // --- Product Name & Price ---
@@ -394,6 +435,106 @@ class _FavoriteCard extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+class _FavouriteButton extends StatefulWidget {
+  final String type;
+  final int id;
+  final VoidCallback? onToggle;
+  const _FavouriteButton({
+    required this.type,
+    required this.id,
+    this.onToggle,
+  });
+
+  @override
+  State<_FavouriteButton> createState() => _FavouriteButtonState();
+}
+
+class _FavouriteButtonState extends State<_FavouriteButton> {
+  bool _isFavourite = true; // Start as true since items in favorites screen are already favorited
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Items in favorites screen are already favorited
+    _isFavourite = true;
+  }
+
+  Future<void> _toggle() async {
+    final isLoggedIn = await AuthHelper.checkAuthAndPromptLogin(
+      context,
+      attemptedAction: 'mark_favorite',
+      favoriteType: widget.type,
+      favoriteId: widget.id,
+    );
+
+    if (!isLoggedIn) {
+      return;
+    }
+
+    if (_isLoading) return;
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      final next = !_isFavourite;
+      setState(() {
+        _isFavourite = next;
+      });
+      final repo = FavouritesRepository();
+      final success = await repo.toggleFavourite(type: widget.type, id: widget.id);
+      if (!success) {
+        setState(() {
+          _isFavourite = !next;
+        });
+      } else {
+        // Call the callback to refresh favorites list
+        if (widget.onToggle != null) {
+          widget.onToggle!();
+        }
+      }
+    } catch (e) {
+      setState(() {
+        _isFavourite = !_isFavourite;
+      });
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.showSnackBar(
+        SnackBar(content: Text('Failed to update favourite')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: _toggle,
+      child: Container(
+        padding: const EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.9),
+          shape: BoxShape.circle,
+        ),
+        child: _isLoading
+            ? const SizedBox(
+          height: 18,
+          width: 18,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        )
+            : Icon(
+          _isFavourite ? Icons.favorite : Icons.favorite_border,
+          size: 18,
+          color: _isFavourite ? Colors.red : const Color(0xFF4A3D4D),
         ),
       ),
     );

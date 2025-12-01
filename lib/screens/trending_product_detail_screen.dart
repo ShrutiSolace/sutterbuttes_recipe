@@ -25,6 +25,7 @@ class TrendingProductDetailScreen extends StatefulWidget {
 
 class _TrendingProductDetailScreenState extends State<TrendingProductDetailScreen> {
   int _quantity = 1;
+  bool _isAdding = false;
 
   @override
   void initState() {
@@ -204,7 +205,21 @@ class _TrendingProductDetailScreenState extends State<TrendingProductDetailScree
   @override
   Widget build(BuildContext context) {
 
-    return Scaffold(
+    return WillPopScope(
+        onWillPop: () async {
+      if (_isAdding) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please wait, add to cart is processing'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+        return false; // Prevent back navigation
+      }
+      return true; // Allow back navigation
+    },
+
+    child: Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: const Color(0xFF4A3D4D),
@@ -581,6 +596,7 @@ class _TrendingProductDetailScreenState extends State<TrendingProductDetailScree
           ],
         ),
       ),
+    ),
     );
   }
 }

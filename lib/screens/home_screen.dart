@@ -405,6 +405,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      _loadUnreadNotificationCount();
       final recipeProvider = context.read<RecipeProvider>();
       final categoryProvider = context.read<RecipeCategoryProvider>();
       final productProvider = context.read<ProductProvider>();
@@ -419,7 +420,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
       await Future.delayed(const Duration(milliseconds: 300));
 
       await productProvider.fetchTrendingProducts();
-      _loadUnreadNotificationCount();
+     // _loadUnreadNotificationCount();
 
       context.read<CartProvider>().loadCart();
 
@@ -1589,9 +1590,9 @@ class _TrendingThisWeekSection extends StatelessWidget {
 
               return _TrendingRecipeCard(
                     title: r.title ?? '',
-                excerpt: r.excerpt ?? '',
-               description: r.description ?? r.excerpt ?? '',
-                rating: (r.rating != null && r.rating!.isNotEmpty)
+                    excerpt: r.excerpt ?? '',
+                      description: r.description ?? r.excerpt ?? '',
+                    rating: (r.rating != null && r.rating!.isNotEmpty)
                         ? double.tryParse(r.rating!) ?? 0.0
                         : 0.0,
                     imageUrl: r.image ?? '',
@@ -1645,8 +1646,8 @@ class _TrendingRecipeCard extends StatelessWidget {
             MaterialPageRoute(
               builder: (_) => TrendingRecipeDetailsScreen(
                 title: title,
-                excerpt: excerpt,
-                description: description,
+                excerpt: _cleanHtmlText(excerpt),
+                description: _cleanHtmlText(description),
                 rating: rating,
                 imageUrl: imageUrl,
                 recipeId: recipeId,
@@ -1712,7 +1713,7 @@ class _TrendingRecipeCard extends StatelessWidget {
 
                 // Recipe Description
                 // Recipe Description
-              /*  Text(
+                /*Text(
                   _cleanHtmlText(description),
                   style: TextStyle(
                     fontSize: 12,
@@ -1962,7 +1963,7 @@ class _SearchResultCard extends StatelessWidget {
             final recipeItem = RecipeItem(
               id: searchItem.id,
               slug: '',
-              title: searchItem.title,
+              title: unescape.convert(searchItem.title),
               link: searchItem.link,
               date: '',
               contentHtml: (searchItem as SearchRecipeItem).description ?? '',

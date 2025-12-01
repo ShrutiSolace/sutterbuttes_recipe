@@ -159,6 +159,7 @@ class UserRepository {
     String? token = await SecureStorage.getLoginToken();
     print("Uploading profile image with token: $token");
 
+
     final uri = Uri.parse(ApiConstants.uploadProfileImageUrl);
     final request = http.MultipartRequest('POST', uri)
       ..headers['Authorization'] = 'Bearer $token'

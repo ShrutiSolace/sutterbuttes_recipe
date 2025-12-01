@@ -98,11 +98,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       appBar: AppBar(
         title: const Text(
           "Personal Information",
-          style: TextStyle(color: Colors.white), // ✅ white title text
+          style: TextStyle(color: Colors.white),
+
         ),
         backgroundColor: const Color(0xFF4A3D4D),
         centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.white), // ✅ makes back arrow white
+        automaticallyImplyLeading: false,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -382,7 +384,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       if (result.success == true) {
         messenger.showSnackBar(
-          SnackBar(content: Text(result.message ?? 'Profile updated successfully')),
+          SnackBar(content: Text(result.message ?? 'Profile updated successfully',),
+
+         backgroundColor:const Color(0xFF7B8B57),
+            duration: const Duration(seconds: 2),
+
+          ),
         );
         await context.read<AuthProvider>().fetchCurrentUser();
 
@@ -458,7 +465,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         );
       }*/
 
-    } catch (e) {
+    } catch (e,s) {
+      print("====SSS====: $s");
       messenger.showSnackBar(
         SnackBar(content: Text('Failed to update profile: $e')),
       );
@@ -549,7 +557,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           messenger.showSnackBar(
             SnackBar(
               content: Text(uploadResult.message ?? 'Profile image uploaded successfully'),
-              backgroundColor: Colors.green,
+              backgroundColor:const Color(0xFF7B8B57),
             ),
           );
         } else {
