@@ -140,6 +140,7 @@ class ProfileScreen extends StatelessWidget {
                           final totalFavorites = recipeCount + productCount;
 
                           return _StatCard(
+
                             icon: Icons.favorite_border,
                             title: 'Favorites',
                             value: totalFavorites.toString(),
@@ -539,7 +540,7 @@ class _StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFF9F4F7), // soft tinted background
+        color: Colors.white, // soft tinted background
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFFEAD7E2)),
       ),

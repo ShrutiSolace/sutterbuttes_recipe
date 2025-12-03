@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:html_unescape/html_unescape.dart';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:sutterbuttes_recipe/screens/product_detailscreen.dart';
 import '../modal/rating_model.dart';
+import '../repositories/product_repository.dart';
 import '../repositories/rating_repository.dart';
-
+import 'package:url_launcher/url_launcher.dart';
 
 class TrendingRecipeDetailsScreen extends StatelessWidget {
   final String title;
@@ -22,6 +24,54 @@ class TrendingRecipeDetailsScreen extends StatelessWidget {
     this.recipeId,
     required this.excerpt,
   });
+
+
+
+  String? _extractProductSlug(String url) {
+    print('🔗 LINK TAPPED: $url');
+
+    try {
+      final uri = Uri.parse(url);
+      final pathSegments = uri.pathSegments;
+
+
+      if (pathSegments.contains('product') && pathSegments.length > 1) {
+        final productIndex = pathSegments.indexOf('product');
+        if (productIndex < pathSegments.length - 1) {
+
+          String slug = pathSegments[productIndex + 1];
+
+          slug = slug.replaceAll('/', '');
+          return slug;
+        }
+      }
+
+
+      final productMatch = RegExp(r'/product/([^/]+)').firstMatch(url);
+      if (productMatch != null) {
+        return productMatch.group(1);
+      }
+
+      return null;
+    } catch (e) {
+      print('Error extracting product slug: $e');
+      return null;
+    }
+  }
+
+  bool _isProductLink(String url) {
+    return url.contains('/product/') &&
+        (url.contains('sutterbuttesoliveoil.com') ||
+            url.contains('staging.sutterbuttesoliveoil.com'));
+  }
+
+
+
+
+
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -112,9 +162,9 @@ class TrendingRecipeDetailsScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                 // const SizedBox(height: 16),
 
-                  // Shop Ingredients Button
+                 /* // Shop Ingredients Button
                   ElevatedButton.icon(
                     onPressed: () {},
                     icon: const Icon(
@@ -138,7 +188,7 @@ class TrendingRecipeDetailsScreen extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     ),
                   ),
-
+*/
                   const SizedBox(height: 10),
                   // --- Description ---
                   Padding(
@@ -147,6 +197,74 @@ class TrendingRecipeDetailsScreen extends StatelessWidget {
                       data: description.isNotEmpty
                           ? description
                           : "No description available",
+                      onLinkTap: (url, attributes, element) async {
+                        print('+++++Link Slug+++++: $url');
+                        print('Attributes: $attributes');
+                        if (url == null) return;
+
+                        if (_isProductLink(url)) {
+                          print("Detected product link.");
+                          final slug = _extractProductSlug(url);
+
+                          if (slug != null) {
+                            // Show loading indicator
+                            showDialog(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (_) => const Center(child: CircularProgressIndicator()),
+                            );
+
+                            try {
+
+                              print("Fetching product with slug: $slug");
+                              final productRepo = ProductRepository();
+                              final product = await productRepo.getProductBySlug(slug);
+
+                              if (context.mounted) {
+                                Navigator.pop(context);
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => ProductDetailScreen(product: product),
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+
+                              if (context.mounted) {
+                                Navigator.pop(context);
+
+
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Failed to load product: $e'),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+
+
+                                final uri = Uri.parse(url);
+                                if (await canLaunchUrl(uri)) {
+                                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                                }
+                              }
+                            }
+                          } else {
+
+                            final uri = Uri.parse(url);
+                            if (await canLaunchUrl(uri)) {
+                              await launchUrl(uri, mode: LaunchMode.externalApplication);
+                            }
+                          }
+                        } else {
+
+                          final uri = Uri.parse(url);
+                          if (await canLaunchUrl(uri)) {
+                            await launchUrl(uri, mode: LaunchMode.externalApplication);
+                          }
+                        }
+                      },
+
                       style: {
                         "img": Style(display: Display.none),
                         "h1": Style(

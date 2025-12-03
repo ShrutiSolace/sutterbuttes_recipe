@@ -6,11 +6,129 @@ import '../modal/recipe_model.dart';
 import '../repositories/favourites_repository.dart';
 import '../repositories/rating_repository.dart';
 import '../utils/auth_helper.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../repositories/product_repository.dart';
+import 'product_detailscreen.dart';
+import 'package:printing/printing.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:http/http.dart' as http;
+
+
+
 
 class RecipeDetailScreen extends StatelessWidget {
   final RecipeItem recipe;
 
   const RecipeDetailScreen({Key? key, required this.recipe}) : super(key: key);
+
+
+  // Extracts the product slug from a given URL.
+  String? _extractProductSlug(String url) {
+    print('🔗 LINK TAPPED: $url');
+
+    try {
+      final uri = Uri.parse(url);
+      final pathSegments = uri.pathSegments;
+
+
+      if (pathSegments.contains('product') && pathSegments.length > 1) {
+        final productIndex = pathSegments.indexOf('product');
+        if (productIndex < pathSegments.length - 1) {
+
+          String slug = pathSegments[productIndex + 1];
+
+          slug = slug.replaceAll('/', '');
+          return slug;
+        }
+      }
+      final productMatch = RegExp(r'/product/([^/]+)').firstMatch(url);
+      if (productMatch != null) {
+        return productMatch.group(1);
+      }
+
+      return null;
+    } catch (e) {
+      print('Error extracting product slug: $e');
+      return null;
+    }
+  }
+
+  bool _isProductLink(String url) {
+    return url.contains('/product/') &&
+        (url.contains('sutterbuttesoliveoil.com') ||
+            url.contains('staging.sutterbuttesoliveoil.com'));
+  }
+
+
+  //pdf
+  String _stripHtmlTags(String htmlString) {
+    final RegExp exp = RegExp(r'<[^>]*>', multiLine: true, caseSensitive: true);
+    return htmlString.replaceAll(exp, '').trim();
+  }
+
+
+  Future<void> _printRecipe(BuildContext context) async {
+    print("print PDF called");
+    print("Preparing to print recipe: ${recipe.title}");
+    try {
+      final pdf = pw.Document();
+
+      pw.ImageProvider? imageProvider;
+      if (recipe.imageUrl != null && recipe.imageUrl.isNotEmpty) {
+        try {
+          final response = await http.get(Uri.parse(recipe.imageUrl));
+          if (response.statusCode == 200) {
+            imageProvider = pw.MemoryImage(response.bodyBytes);
+          }
+        } catch (e) {
+          print('Error loading image: $e');
+        }
+      }
+
+      pdf.addPage(
+        pw.Page(
+          pageFormat: PdfPageFormat.a4,
+          margin: const pw.EdgeInsets.all(32),
+          build: (pw.Context context) {
+            return pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+
+                pw.Text(
+                  recipe.title,
+                  style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
+                ),
+                pw.SizedBox(height: 16),
+                if (imageProvider != null)
+                  pw.Image(imageProvider!, width: 300, height: 200),
+
+                pw.SizedBox(height: 16),
+
+                pw.Expanded(
+                  child: pw.Text(
+                    _stripHtmlTags(recipe.contentHtml ?? 'No description available'),
+                    style: const pw.TextStyle(fontSize: 12),
+                    textAlign: pw.TextAlign.left,
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      );
+      await Printing.layoutPdf(
+        onLayout: (PdfPageFormat format) async => pdf.save(),
+      );
+    } catch (e) {
+      print('Print error: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to print: $e')),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,6 +154,7 @@ class RecipeDetailScreen extends StatelessWidget {
             child: _FavouriteButton(type: 'recipe', id: recipe.id),
           ),
         ],
+
       ),
 
       body: SingleChildScrollView(
@@ -43,17 +162,41 @@ class RecipeDetailScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Recipe Image
-            Container(
-              height: 300,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  fit: BoxFit.cover,
-                  image: (recipe.imageUrl != null && recipe.imageUrl.isNotEmpty)
-                      ? NetworkImage(recipe.imageUrl)
-                      : const AssetImage("assets/images/homescreen logo.png") as ImageProvider,
+            // Recipe Image
+            Stack(
+              children: [
+                Container(
+                  height: 300,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      fit: BoxFit.cover,
+                      image: (recipe.imageUrl != null && recipe.imageUrl.isNotEmpty)
+                          ? NetworkImage(recipe.imageUrl)
+                          : const AssetImage("assets/images/homescreen logo.png") as ImageProvider,
+                    ),
+                  ),
                 ),
-              ),
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: GestureDetector(
+                    onTap: () => _printRecipe(context),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.9),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.print,
+                        size: 20,
+                        color: Color(0xFF4A3D4D),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
 
             Padding(
@@ -101,10 +244,10 @@ class RecipeDetailScreen extends StatelessWidget {
                       );
                     },
                   ),
-                  const SizedBox(height: 24),
+                  //const SizedBox(height: 24),
 
                   // Shop Ingredients Button
-                  ElevatedButton.icon(
+                 /* ElevatedButton.icon(
                     onPressed: () {
 
                     },
@@ -128,11 +271,11 @@ class RecipeDetailScreen extends StatelessWidget {
                       ),
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     ),
-                  ),
+                  ),*/
                   const SizedBox(height: 24),
 
                   // Recipe Details (Ingredients and Directions)
-                  Html(
+                  /*Html(
                     data: (recipe.contentHtml != null && recipe.contentHtml.trim().isNotEmpty)
                         ? recipe.contentHtml
                         : "No description available",
@@ -187,7 +330,141 @@ class RecipeDetailScreen extends StatelessWidget {
                         color: Colors.grey[800],
                       ),
                     },
+                  ),*/
+
+
+                  // Recipe Details (Ingredients and Directions)
+                  Html(
+                    data: (recipe.contentHtml != null && recipe.contentHtml.trim().isNotEmpty)
+                        ? recipe.contentHtml
+                        : "No description available",
+
+                    onLinkTap: (url, attributes, element) async {
+                      print('LINK TAPPED: $url');
+                      print('Attributes: $attributes');
+                      if (url == null) return;
+
+                      if (_isProductLink(url)) {
+                        print("Detected product link.");
+                        final slug = _extractProductSlug(url);
+
+                        if (slug != null) {
+                          // Show loading indicator
+                          showDialog(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (_) => const Center(child: CircularProgressIndicator()),
+                          );
+
+                          try {
+                            // Fetch product by slug
+                            print("Fetching product with slug: $slug");
+                            final productRepo = ProductRepository();
+                            final product = await productRepo.getProductBySlug(slug);
+
+
+                            if (context.mounted) {
+                              Navigator.pop(context);
+
+
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => ProductDetailScreen(product: product),
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            // Close loading dialog
+                            if (context.mounted) {
+                              Navigator.pop(context);
+
+                              // Show error message
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Failed to load product: $e'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+
+                              // Fallback: Open in external browser
+                              final uri = Uri.parse(url);
+                              if (await canLaunchUrl(uri)) {
+                                await launchUrl(uri, mode: LaunchMode.externalApplication);
+                              }
+                            }
+                          }
+                        } else {
+                          // Could not extract slug, open in browser
+                          final uri = Uri.parse(url);
+                          if (await canLaunchUrl(uri)) {
+                            await launchUrl(uri, mode: LaunchMode.externalApplication);
+                          }
+                        }
+                      } else {
+                        // Not a product link, open in external browser
+                        final uri = Uri.parse(url);
+                        if (await canLaunchUrl(uri)) {
+                          await launchUrl(uri, mode: LaunchMode.externalApplication);
+                        }
+                      }
+                    },
+                    style: {
+                      "img": Style(
+                        display: Display.none, // Hide all images
+                      ),
+                      "h1": Style(
+                        fontSize: FontSize(20),
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[800],
+                        margin: Margins.only(top: 24, bottom: 16),
+                      ),
+                      "h2": Style(
+                        fontSize: FontSize(18),
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[800],
+                        margin: Margins.only(top: 20, bottom: 12),
+                      ),
+                      "h3": Style(
+                        fontSize: FontSize(16),
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[800],
+                        margin: Margins.only(top: 16, bottom: 12),
+                      ),
+                      "p": Style(
+                        fontSize: FontSize(16),
+                        color: Colors.grey[800],
+                        margin: Margins.only(top: 8, bottom: 12),
+                        padding: HtmlPaddings.zero,
+                      ),
+                      "ul": Style(
+                        padding: HtmlPaddings.only(left: 20), // Add left padding for bullets
+                        margin: Margins.only(top: 8, bottom: 16), // Add top and bottom margin
+                      ),
+                      "ol": Style(
+                        padding: HtmlPaddings.only(left: 20), // Add left padding for bullets (same as ul)
+                        margin: Margins.only(top: 8, bottom: 16), // Add top and bottom margin
+                      ),
+                      "li": Style(
+                        padding: HtmlPaddings.only(left: 8, bottom: 8), // Spacing for list items
+                        margin: Margins.zero,
+                        fontSize: FontSize(16),
+                        color: Colors.grey[800],
+                        listStyleType: ListStyleType.disc, // Force bullet points on ALL list items (ul and ol)
+                        display: Display.listItem, // Proper list item display
+                      ),
+                      "body": Style(
+                        padding: HtmlPaddings.all(0),
+                        margin: Margins.zero,
+                        fontSize: FontSize(16),
+                        color: Colors.grey[800],
+                      ),
+                    },
                   ),
+
+
+
+
                 ],
               ),
             ),

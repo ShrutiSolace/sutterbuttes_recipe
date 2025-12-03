@@ -168,7 +168,6 @@ class _FavouriteButtonState extends State<_FavouriteButton> {
     }
   }*/
 
-
   Future<void> _toggle() async {
 
     final isLoggedIn = await AuthHelper.checkAuthAndPromptLogin(
@@ -217,11 +216,9 @@ class _FavouriteButtonState extends State<_FavouriteButton> {
 
 
   String _cleanHtmlText(String text) {
-    // Parse the HTML and extract text content
+
     final document = html_parser.parse(text);
     final cleanText = document.body?.text ?? text;
-
-    // Remove any remaining HTML tags
     final RegExp htmlTagRegex = RegExp(r'<[^>]*>', multiLine: true, caseSensitive: true);
     return cleanText.replaceAll(htmlTagRegex, '').trim();
   }
@@ -556,11 +553,6 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
                         if (!isAuthenticated) {
                           return; // User cancelled login, don't navigate
                         }
-
-
-
-
-
 
                         Navigator.push(
                           context,
@@ -1647,13 +1639,10 @@ class _TrendingRecipeCard extends StatelessWidget {
               builder: (_) => TrendingRecipeDetailsScreen(
                 title: title,
                 excerpt: _cleanHtmlText(excerpt),
-                description: _cleanHtmlText(description),
+                description: (description),
                 rating: rating,
                 imageUrl: imageUrl,
                 recipeId: recipeId,
-
-
-
               ),
             ),
           );

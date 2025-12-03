@@ -77,6 +77,7 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
       backgroundColor: Colors.white,
       body: widget.customScreen ?? _pages[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: Colors.white,
         type: BottomNavigationBarType.fixed,
         currentIndex: _currentIndex,
        /* onTap: (int index) {
