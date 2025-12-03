@@ -6,6 +6,17 @@ import '../modal/rating_model.dart';
 import '../repositories/product_repository.dart';
 import '../repositories/rating_repository.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:printing/printing.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:http/http.dart' as http;
+
+
+
+
+
+
+
 
 class TrendingRecipeDetailsScreen extends StatelessWidget {
   final String title;
@@ -28,7 +39,7 @@ class TrendingRecipeDetailsScreen extends StatelessWidget {
 
 
   String? _extractProductSlug(String url) {
-    print('🔗 LINK TAPPED: $url');
+    print('LINK TAPPED: $url');
 
     try {
       final uri = Uri.parse(url);
@@ -65,8 +76,73 @@ class TrendingRecipeDetailsScreen extends StatelessWidget {
             url.contains('staging.sutterbuttesoliveoil.com'));
   }
 
+  String _stripHtmlTags(String htmlString) {
+    final RegExp exp = RegExp(r'<[^>]*>', multiLine: true, caseSensitive: true);
+    return htmlString.replaceAll(exp, '').trim();
+  }
 
 
+
+  Future<void> _printRecipe(BuildContext context) async {
+    try {
+      final pdf = pw.Document();
+
+      pw.ImageProvider? imageProvider;
+      try {
+        final response = await http.get(Uri.parse(imageUrl))
+            .timeout(const Duration(seconds: 5));
+        if (response.statusCode == 200) {
+          imageProvider = pw.MemoryImage(response.bodyBytes);
+        }
+      } catch (e) {
+        print('Error loading image: $e');
+      }
+
+      final unescape = HtmlUnescape();
+      final cleanTitle = unescape.convert(title);
+      final cleanDescription = unescape.convert(description);
+
+      pdf.addPage(
+        pw.Page(
+          pageFormat: PdfPageFormat.a4,
+          margin: const pw.EdgeInsets.all(32),
+          build: (pw.Context context) {
+            return pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text(
+                  cleanTitle,
+                  style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
+                ),
+                pw.SizedBox(height: 16),
+                if (imageProvider != null)
+                  pw.Image(imageProvider!, width: 300, height: 200),
+                pw.SizedBox(height: 16),
+                pw.Expanded(
+                  child: pw.Text(
+                    _stripHtmlTags(cleanDescription.isNotEmpty ? cleanDescription : 'No description available'),
+                    style: const pw.TextStyle(fontSize: 12),
+                    textAlign: pw.TextAlign.left,
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      );
+
+      await Printing.layoutPdf(
+        onLayout: (PdfPageFormat format) async => pdf.save(),
+      );
+    } catch (e) {
+      print('Print error: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to print: $e')),
+        );
+      }
+    }
+  }
 
 
 
@@ -92,7 +168,7 @@ class TrendingRecipeDetailsScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // --- Image ---
-            Container(
+           /* Container(
               width: double.infinity,
               height: 250,
               decoration: BoxDecoration(
@@ -101,6 +177,40 @@ class TrendingRecipeDetailsScreen extends StatelessWidget {
                   fit: BoxFit.cover,
                 ),
               ),
+            ),*/
+            // --- Image ---
+            Stack(
+              children: [
+                Container(
+                  width: double.infinity,
+                  height: 250,
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: NetworkImage(imageUrl),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: GestureDetector(
+                    onTap: () => _printRecipe(context),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.9),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.print,
+                        size: 20,
+                        color: Color(0xFF4A3D4D),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
 
             const SizedBox(height: 16),
