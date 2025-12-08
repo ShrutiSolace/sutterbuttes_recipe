@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../modal/cart_model.dart';
 import '../../repositories/cart_repository.dart';
 
+
 class CartProvider extends ChangeNotifier {
   final CartRepository _repo;
   CartProvider(this._repo);
@@ -103,7 +104,7 @@ class CartProvider extends ChangeNotifier {
     required int variationId,
   }) async {
     await _repo.removeFromCart(productId: productId, variationId: variationId);
-    await loadCart(silent: true);
+    //await loadCart(silent: true);
     notifyListeners();
   }
 
@@ -143,9 +144,20 @@ class CartProvider extends ChangeNotifier {
       notifyListeners();
     }
     try {
-      await _repo.removeFromCart(productId: productId, variationId: variationId);
+      final updatedCart = await _repo.removeFromCart(productId: productId, variationId: variationId);
+      final itemStillExists = updatedCart.items?.any((it) =>
+      (it.productId ?? 0) == productId &&
+          (it.variationId ?? 0) == variationId
+      ) ?? false;
+
+      if (!itemStillExists) {
+        _cart = updatedCart;
+        notifyListeners();
+      }
+
     } catch (_) {}
-    await loadCart(silent: true);
+    /*await loadCart(silent: true);*/
+
   }
 }
 

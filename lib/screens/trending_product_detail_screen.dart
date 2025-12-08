@@ -282,7 +282,7 @@ class _TrendingProductDetailScreenState extends State<TrendingProductDetailScree
                 children: [
                   // Product Name
                   Text(
-                    widget.product.name ?? 'Product Name',
+                    removeHtmlTags(widget.product.name ?? 'Product Name'),
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,

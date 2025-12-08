@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:html_unescape/html_unescape.dart';
 import 'package:provider/provider.dart';
 import 'package:sutterbuttes_recipe/screens/profile_screen.dart';
 import 'package:sutterbuttes_recipe/screens/recipes_screen.dart';
@@ -291,6 +292,7 @@ class _ProductGridCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final unescape = HtmlUnescape();
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -366,7 +368,7 @@ class _ProductGridCard extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 6),
                     child: Center(
                       child: Text(
-                        product.name ?? '',
+                        unescape.convert(product.name ?? ''),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         textAlign: TextAlign.center,

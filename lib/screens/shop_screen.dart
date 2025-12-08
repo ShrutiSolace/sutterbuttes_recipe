@@ -14,7 +14,7 @@ import 'cart_screen.dart';
 import 'dart:async';
 import '../repositories/search_repository.dart';
 import '../modal/search_model.dart';
-
+import 'package:html_unescape/html_unescape.dart';
 
 class ShopScreen extends StatelessWidget {
   const ShopScreen({super.key});
@@ -29,13 +29,14 @@ class ShopScreen extends StatelessWidget {
         elevation: 0,
         automaticallyImplyLeading: false,
         title: const Text(
-          'Natural and Artisan Foods',
+          'Shop , Cook & Savor Artisan Foods',
           style: TextStyle(
             color: Colors.white,
-            fontSize: 18,
+            fontSize: 15,
             fontWeight: FontWeight.w500,
             letterSpacing: 0.5,
             fontFamily: 'Roboto',
+            fontStyle: FontStyle.italic,
           ),
         ),
       ),
@@ -238,6 +239,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
 
   @override
   Widget build(BuildContext context) {
+    final unescape = HtmlUnescape();
     const Color brandGreen = Color(0xFF7B8B57);
     final TextTheme textTheme = Theme.of(context).textTheme;
 
@@ -532,6 +534,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
   }
 
   Widget _buildProductCard(Product product) {
+    final unescape = HtmlUnescape();
     return GestureDetector(
       onTap: () {Navigator.push (
         context,
@@ -604,7 +607,7 @@ class _HomeHeaderAndContentState extends State<_HomeHeaderAndContent> {
                 children: [
                   // Product Name
                   Text(
-                    product.name,
+                    unescape.convert(product.name),
                     textAlign: TextAlign.center, // Center the text
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

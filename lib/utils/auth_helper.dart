@@ -138,7 +138,7 @@ class AuthHelper {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     return authProvider.isLoggedIn;
   }
-  static String _getLoginMessage(String? attemptedAction) {
+  /*static String _getLoginMessage(String? attemptedAction) {
     switch (attemptedAction) {
       case 'favorites':
         return 'Please login to view your favorites recipes & products.';
@@ -152,5 +152,10 @@ class AuthHelper {
       default:
         return 'Please login to add items to your cart.';
     }
+  }*/
+
+
+  static String _getLoginMessage(String? attemptedAction) {
+    return 'Please login to browse recipes and products,create favorites, be informed about new promotions and more.';
   }
 }

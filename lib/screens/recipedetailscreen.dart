@@ -1,6 +1,7 @@
 // lib/screens/recipe_detail_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:html_unescape/html_unescape.dart';
 import '../modal/rating_model.dart';
 import '../modal/recipe_model.dart';
 import '../repositories/favourites_repository.dart';
@@ -13,6 +14,7 @@ import 'package:printing/printing.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:http/http.dart' as http;
+import 'package:share_plus/share_plus.dart';
 
 
 
@@ -23,9 +25,10 @@ class RecipeDetailScreen extends StatelessWidget {
   const RecipeDetailScreen({Key? key, required this.recipe}) : super(key: key);
 
 
-  // Extracts the product slug from a given URL.
+
   String? _extractProductSlug(String url) {
-    print('🔗 LINK TAPPED: $url');
+    print('LINK TAPPED: $url');
+    print("Extracting product slug from URL.");
 
     try {
       final uri = Uri.parse(url);
@@ -54,10 +57,21 @@ class RecipeDetailScreen extends StatelessWidget {
     }
   }
 
-  bool _isProductLink(String url) {
+  /*bool _isProductLink(String url) {
     return url.contains('/product/') &&
         (url.contains('sutterbuttesoliveoil.com') ||
             url.contains('staging.sutterbuttesoliveoil.com'));
+  }*/
+  bool _isProductLink(String url) {
+    // Check for absolute URLs with domain
+    bool isAbsolute = url.contains('/product/') &&
+        (url.contains('sutterbuttesoliveoil.com') ||
+            url.contains('staging.sutterbuttesoliveoil.com'));
+
+    // Check for relative paths starting with /product/
+    bool isRelative = url.startsWith('/product/');
+
+    return isAbsolute || isRelative;
   }
 
 
@@ -69,6 +83,7 @@ class RecipeDetailScreen extends StatelessWidget {
 
 
   Future<void> _printRecipe(BuildContext context) async {
+    final unescape = HtmlUnescape();
     print("print PDF called");
     print("Preparing to print recipe: ${recipe.title}");
     try {
@@ -96,7 +111,7 @@ class RecipeDetailScreen extends StatelessWidget {
               children: [
 
                 pw.Text(
-                  recipe.title,
+                unescape.convert(recipe.title),
                   style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
                 ),
                 pw.SizedBox(height: 16),
@@ -130,8 +145,41 @@ class RecipeDetailScreen extends StatelessWidget {
     }
   }
 
+  Future<void> _shareRecipe(BuildContext context) async {
+    print("Share link tapped");
+    print("Share called for recipe: ${recipe.title}");
+
+    try {
+
+      String shareText = recipe.title + "\n\n";
+      String description = _stripHtmlTags(recipe.contentHtml ?? 'No description available');
+      shareText += description;
+
+
+      if (recipe.link != null && recipe.link.isNotEmpty) {
+        shareText += "\n\n${recipe.link}";
+      }
+
+      await Share.share(shareText);
+
+    } catch (e) {
+      print('Share error: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to share: $e')),
+        );
+      }
+    }
+  }
+
+
+
+
+
+
   @override
   Widget build(BuildContext context) {
+    final unescape = HtmlUnescape();
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -139,7 +187,7 @@ class RecipeDetailScreen extends StatelessWidget {
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
         title: Text(
-          recipe.title,
+          unescape.convert(recipe.title),
           style: const TextStyle(
             color: Colors.white,
             fontSize: 18,
@@ -154,7 +202,6 @@ class RecipeDetailScreen extends StatelessWidget {
             child: _FavouriteButton(type: 'recipe', id: recipe.id),
           ),
         ],
-
       ),
 
       body: SingleChildScrollView(
@@ -194,8 +241,30 @@ class RecipeDetailScreen extends StatelessWidget {
                         color: Color(0xFF4A3D4D),
                       ),
                     ),
+
                   ),
                 ),
+
+                Positioned(
+                  top: 8,
+                  right: 56,
+                  child: GestureDetector(
+                    onTap: () => _shareRecipe(context),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.9),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.share,
+                        size: 20,
+                        color: Color(0xFF4A3D4D),
+                      ),
+                    ),
+                  ),
+                ),
+
               ],
             ),
 
@@ -206,7 +275,7 @@ class RecipeDetailScreen extends StatelessWidget {
                 children: [
                   // Recipe Title
                   Text(
-                    recipe.title,
+                    unescape.convert(recipe.title),
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,

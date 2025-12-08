@@ -3,9 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:html_unescape/html_unescape.dart';
 
 import 'package:flutter_html/flutter_html.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:sutterbuttes_recipe/screens/product_detailscreen.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../modal/rating_model.dart';  // ← ADD THIS
+import '../modal/rating_model.dart';
 import '../repositories/favourites_repository.dart';
 import '../repositories/product_repository.dart';
 import '../repositories/rating_repository.dart';
@@ -24,6 +25,7 @@ class CategoryRecipeDetailScreen extends StatelessWidget {
   final String imageUrl;
   final String subtitle;
   final int recipeId;
+  final String link;
 
   const  CategoryRecipeDetailScreen ({
     super.key,
@@ -31,16 +33,16 @@ class CategoryRecipeDetailScreen extends StatelessWidget {
     required this.imageUrl,
     required this.subtitle,
     required this.recipeId,
+    required this.link,
   });
 
 
   String? _extractProductSlug(String url) {
-    print(' LINK TAPPED: $url');
+    print('LINK TAPPED: $url');
 
     try {
       final uri = Uri.parse(url);
       final pathSegments = uri.pathSegments;
-
 
       if (pathSegments.contains('product') && pathSegments.length > 1) {
         final productIndex = pathSegments.indexOf('product');
@@ -65,13 +67,25 @@ class CategoryRecipeDetailScreen extends StatelessWidget {
       return null;
     }
   }
+/*
 
   bool _isProductLink(String url) {
     return url.contains('/product/') &&
         (url.contains('sutterbuttesoliveoil.com') ||
             url.contains('staging.sutterbuttesoliveoil.com'));
   }
+*/
+  bool _isProductLink(String url) {
+    // Check for absolute URLs with domain
+    bool isAbsolute = url.contains('/product/') &&
+        (url.contains('sutterbuttesoliveoil.com') ||
+            url.contains('staging.sutterbuttesoliveoil.com'));
 
+    // Check for relative paths starting with /product/
+    bool isRelative = url.startsWith('/product/');
+
+    return isAbsolute || isRelative;
+  }
   String _stripHtmlTags(String htmlString) {
     final RegExp exp = RegExp(r'<[^>]*>', multiLine: true, caseSensitive: true);
     return htmlString.replaceAll(exp, '').trim();
@@ -139,7 +153,28 @@ class CategoryRecipeDetailScreen extends StatelessWidget {
   }
 
 
+  Future<void> _shareRecipe(BuildContext context) async {
+    try {
+      String shareText = title + "\n\n";
+      String description = _stripHtmlTags(subtitle.isNotEmpty ? subtitle : 'No description available');
+      shareText += description;
 
+
+      if (link != null && link.isNotEmpty) {
+        shareText += "\n\n${link}";
+      }
+
+      await Share.share(shareText);
+
+    } catch (e) {
+      print('Share error: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to share: $e')),
+        );
+      }
+    }
+  }
 
 
 
@@ -198,7 +233,6 @@ class CategoryRecipeDetailScreen extends StatelessWidget {
                       );
                     },
                   )
-
                 else
                   Container(
                     height: 250,
@@ -224,7 +258,33 @@ class CategoryRecipeDetailScreen extends StatelessWidget {
                       ),
                     ),
                   ),
+
                 ),
+
+                Positioned(
+                  top: 8,
+                  right: 56,
+                  child: GestureDetector(
+                    onTap: () => _shareRecipe(context),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.9),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.share,
+                        size: 20,
+                        color: Color(0xFF4A3D4D),
+                      ),
+                    ),
+                  ),
+                ),
+
+
+
+
+
               ],
             ),
 

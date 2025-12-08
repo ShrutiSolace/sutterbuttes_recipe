@@ -26,8 +26,8 @@ android {
         applicationId "com.sutterbuttes.recipes"
         minSdkVersion 24
         targetSdkVersion 35
-        versionCode 27
-        versionName '1.0.26'
+        versionCode 29
+        versionName '1.0.28'
 
     }
 
@@ -54,5 +54,5 @@ dependencies {
     implementation("com.google.firebase:firebase-auth")
     coreLibraryDesugaring('com.android.tools:desugar_jdk_libs:2.0.4')
     // Facebook steup plugin
-    implementation 'com.facebook.android:facebook-android-sdk:latest.release'
+    //implementation 'com.facebook.android:facebook-android-sdk:latest.release'
 }

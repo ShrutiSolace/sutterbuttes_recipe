@@ -63,6 +63,7 @@ class AllTrendingRecipesScreen extends StatelessWidget {
                     : 0.0,
                 imageUrl: r.image ?? '',
                 recipeId: r.id,
+                link: r.link ?? '',  // PASS THE LINK HERE
               );
             },
           );
@@ -80,6 +81,7 @@ class _TrendingRecipeListItem extends StatelessWidget {
   final String imageUrl;
   final int? recipeId;
   final String excerpt;
+  final String link ;
 
   const _TrendingRecipeListItem({
     required this.title,
@@ -87,7 +89,8 @@ class _TrendingRecipeListItem extends StatelessWidget {
     required this.rating,
     required this.imageUrl,
     this.recipeId,
-    required this.excerpt
+    required this.excerpt,
+    required this.link,  // ADD THIS
   });
 
   String _cleanHtmlText(String text) {
@@ -114,6 +117,7 @@ class _TrendingRecipeListItem extends StatelessWidget {
               rating: rating,
               imageUrl: imageUrl,
               recipeId: recipeId,
+              link: link,
             ),
           ),
         );
@@ -155,7 +159,7 @@ class _TrendingRecipeListItem extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      title,
+                      _cleanHtmlText(title),
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,

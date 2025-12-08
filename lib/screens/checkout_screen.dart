@@ -101,9 +101,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
-  // Calculate and update default shipping if subtotal < 100
+
   void _updateDefaultShipping(double subtotalValue) {
-    // Only set default shipping if subtotal < 100 and shipping hasn't been set from order placement
+
     if (subtotalValue > 0 && subtotalValue < 100 && _shippingTotal == null) {
       setState(() {
         _shippingTotal = _defaultShippingCost;
@@ -221,6 +221,73 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
 
 
+    if (_isRestoringCart) {
+      return WillPopScope(
+        onWillPop: () async {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Please wait while we restore your cart items'),
+              backgroundColor: Color(0xFF7B8B57),
+              duration: Duration(seconds: 2),
+            ),
+          );
+          return false; // Prevent back navigation
+        },
+        child: Scaffold(
+          backgroundColor: Colors.white,
+          appBar: AppBar(
+            backgroundColor: const Color(0xFF4A3D4D),
+            elevation: 0,
+            iconTheme: const IconThemeData(color: Colors.white),
+            title: const Text(
+              "Checkout",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            centerTitle: true,
+          ),
+          body: const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text(
+                  'Restoring cart items...',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Color(0xFF4A3D4D),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     final cart = context.watch<CartProvider>().cart;
     final subtotal = cart?.totals?.subtotal ?? 0;
 
@@ -238,13 +305,26 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     return WillPopScope(
         onWillPop: () async {
-          // Only prevent back navigation if payment is processing
+
           if (_submitting) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('Please wait until your payment is processing.\n''Do not exit or close this screen'),
                 backgroundColor: Color(0xFF7B8B57),
                 duration: Duration(seconds: 3),
+                behavior: SnackBarBehavior.fixed,
+              ),
+            );
+            return false; // Prevent back navigation
+          }
+
+
+          if (_isRestoringCart) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Please wait while we restore your cart items'),
+                backgroundColor: Color(0xFF7B8B57),
+                duration: Duration(seconds: 2),
                 behavior: SnackBarBehavior.fixed,
               ),
             );
@@ -575,7 +655,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           }
         }
 
-        // Email validation
+
         if (label.contains('Email')) {
           final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
           if (!emailRegex.hasMatch(v.trim())) {
@@ -591,7 +671,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           }
         }
 
-        // ZIP code validation
+
         if (label.contains('ZIP')) {
           String digitsOnly = v.replaceAll(RegExp(r'[^\d]'), '');
           if (digitsOnly.length != 5 && digitsOnly.length != 9) {
@@ -599,7 +679,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           }
         }
 
-        // State validation
+
         // State validation
         if (label.contains('State')) {
           final stateValue = v.trim();
@@ -647,7 +727,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   void _onSameAsBillingChanged(bool? value) {
     setState(() {
 
-      // After setState completes, re-validate to clear errors for disabled fields
+
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _formKey.currentState?.validate();
       });
@@ -739,9 +819,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           );
         }
 */
+
         if (value) {
           setState(() {
-            _paymentSuccessful = true;  // Add this line
+            _paymentSuccessful = true;
           });
           await context.read<CartProvider>().loadCart();
           ScaffoldMessenger.of(context).showSnackBar(
@@ -754,8 +835,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             MaterialPageRoute(builder: (_) => const OrderSuccessScreen()),
           );
         }
-
-
         else {
           throw Exception('Payment confirmation failed on backend');
         }
@@ -764,28 +843,22 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Payment cancelled: ${e.error.localizedMessage}'),duration: const Duration(seconds: 2),),
         );
-
-
         setState(() {
-          _isRestoringCart = true;  // ← ADD THIS
+          _isRestoringCart = true;
         });
-
-
-
 
         await _restoreCartItems();
         if (mounted) {
-          if (mounted) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => const CartScreen()),
-            );
-          }
-        }
+              setState(() {
+                _isRestoringCart = false;
+              });
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const CartScreen()),
+              );
+            }
 
       }
-
-
       catch (e) {
         print("====== Unexpected payment error: $e");
         ScaffoldMessenger.of(context).showSnackBar(
@@ -814,7 +887,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     try {
       final cartRepo = CartRepository();
-      // Restore each item using updateCart API
+
       for (var item in _savedCartItems!) {
         await cartRepo.addToCart(
           productId: item['product_id'] as int,
@@ -832,18 +905,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       print('Error restoring cart items: $e');
     }
   }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:html_unescape/html_unescape.dart';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:sutterbuttes_recipe/screens/product_detailscreen.dart';
 import '../modal/rating_model.dart';
 import '../repositories/product_repository.dart';
@@ -14,10 +15,6 @@ import 'package:http/http.dart' as http;
 
 
 
-
-
-
-
 class TrendingRecipeDetailsScreen extends StatelessWidget {
   final String title;
   final String description;
@@ -25,6 +22,7 @@ class TrendingRecipeDetailsScreen extends StatelessWidget {
   final String imageUrl;
   final int? recipeId;
   final String excerpt;
+  final String link;
 
   const TrendingRecipeDetailsScreen({
     super.key,
@@ -34,6 +32,7 @@ class TrendingRecipeDetailsScreen extends StatelessWidget {
     required this.imageUrl,
     this.recipeId,
     required this.excerpt,
+    required this.link,
   });
 
 
@@ -70,10 +69,21 @@ class TrendingRecipeDetailsScreen extends StatelessWidget {
     }
   }
 
-  bool _isProductLink(String url) {
+ /* bool _isProductLink(String url) {
     return url.contains('/product/') &&
         (url.contains('sutterbuttesoliveoil.com') ||
             url.contains('staging.sutterbuttesoliveoil.com'));
+  }*/
+  bool _isProductLink(String url) {
+    // Check for absolute URLs with domain
+    bool isAbsolute = url.contains('/product/') &&
+        (url.contains('sutterbuttesoliveoil.com') ||
+            url.contains('staging.sutterbuttesoliveoil.com'));
+
+    // Check for relative paths starting with /product/
+    bool isRelative = url.startsWith('/product/');
+
+    return isAbsolute || isRelative;
   }
 
   String _stripHtmlTags(String htmlString) {
@@ -144,7 +154,33 @@ class TrendingRecipeDetailsScreen extends StatelessWidget {
     }
   }
 
+  Future<void> _shareRecipe(BuildContext context) async {
+    try {
+      final unescape = HtmlUnescape();
+      final cleanTitle = unescape.convert(title);
+      final cleanDescription = unescape.convert(description);
 
+      String shareText = cleanTitle + "\n\n";
+      String descriptionText = _stripHtmlTags(cleanDescription.isNotEmpty ? cleanDescription : 'No description available');
+      shareText += descriptionText;
+
+
+
+      // ADD THIS PART (same as recipe detail screen)
+      if (link != null && link.isNotEmpty) {
+        shareText += "\n\n${link}";
+      }
+      await Share.share(shareText);
+
+    } catch (e) {
+      print('Share error: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to share: $e')),
+        );
+      }
+    }
+  }
 
 
 
@@ -204,6 +240,26 @@ class TrendingRecipeDetailsScreen extends StatelessWidget {
                       ),
                       child: const Icon(
                         Icons.print,
+                        size: 20,
+                        color: Color(0xFF4A3D4D),
+                      ),
+                    ),
+                  ),
+                ),
+
+                Positioned(
+                  top: 8,
+                  right: 56,
+                  child: GestureDetector(
+                    onTap: () => _shareRecipe(context),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.9),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.share,
                         size: 20,
                         color: Color(0xFF4A3D4D),
                       ),

@@ -42,7 +42,7 @@ class NewsletterConfirmationScreen extends StatelessWidget {
           children: [
             //_buildBrandHeader(),
             const SizedBox(height: 40),
-            _buildConfirmationCard(context), // ✅ Pass context here
+            _buildConfirmationCard(context),
           ],
         ),
       ),
@@ -70,12 +70,13 @@ class NewsletterConfirmationScreen extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         const Text(
-          'NATURAL AND ARTISAN FOODS',
+          'Shop , Cook & Savor Artisan Foods',
           style: TextStyle(
-            fontSize: 14,
+            fontSize: 15,
             fontWeight: FontWeight.w500,
             color: _darkGrey,
             letterSpacing: 0.5,
+            fontStyle: FontStyle.italic,
           ),
         ),
         const SizedBox(height: 16),

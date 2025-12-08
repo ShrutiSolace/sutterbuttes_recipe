@@ -20,11 +20,9 @@ class _CategoryRecipesScreenState extends State<CategoryRecipesScreen> {
   final ScrollController _scrollController = ScrollController();
 
   String cleanHtmlText(String text) {
-    // Parse the HTML and extract text content (this handles all HTML entities)
+
     final document = html_parser.parse(text);
     final cleanText = document.body?.text ?? text;
-
-    // Remove any remaining HTML tags
     final RegExp htmlTagRegex = RegExp(r'<[^>]*>', multiLine: true, caseSensitive: true);
     return cleanText.replaceAll(htmlTagRegex, '').trim();
   }
@@ -116,6 +114,7 @@ class _CategoryRecipesScreenState extends State<CategoryRecipesScreen> {
               ),
             );
           }
+
           if (provider.recipes.isEmpty) {
             return const Center(child: Text("No recipes found"));
           }
@@ -143,10 +142,11 @@ class _CategoryRecipesScreenState extends State<CategoryRecipesScreen> {
                           context,
                           MaterialPageRoute(
                             builder: (context) => CategoryRecipeDetailScreen(
-                              title: recipe.title,
+                              title: cleanHtmlText(recipe.title),
                               imageUrl: recipe.image,
                               subtitle: recipe.description ?? '',
                               recipeId: recipe.id,
+                              link: recipe.link,
                             ),
                           ),
                         );
@@ -257,6 +257,7 @@ class _CategoryRecipesScreenState extends State<CategoryRecipesScreen> {
     );
   }
 }
+
 class _RecipeFavouriteButton extends StatefulWidget {
   final int recipeId;
   const _RecipeFavouriteButton({required this.recipeId});
@@ -334,6 +335,7 @@ class _RecipeFavouriteButtonState extends State<_RecipeFavouriteButton> {
       }
     }
   }
+
 
   @override
   Widget build(BuildContext context) {

@@ -50,11 +50,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
 
   String cleanHtmlText(String text) {
-    // Parse the HTML and extract text content (this handles all HTML entities)
+
     final document = html_parser.parse(text);
     final cleanText = document.body?.text ?? text;
-
-    // Remove any remaining HTML tags
     final RegExp htmlTagRegex = RegExp(r'<[^>]*>', multiLine: true, caseSensitive: true);
     return cleanText.replaceAll(htmlTagRegex, '').trim();
   }
@@ -91,17 +89,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       }
 
     }
-    // Add images extracted from product.description
+
     final descriptionImages = extractImagesFromDescription(widget.product.description);
     allImages.addAll(descriptionImages);
 
-    // Remove duplicates
+
     return allImages.toSet().toList();
   }
 
 
 
-  //  Check and execute pending add to cart action
+
   Future<void> _checkAndExecutePendingAction() async {
     final pendingAction = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
 
@@ -484,7 +482,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
             const SizedBox(height: 16),
             Text(
-              widget.product.name,
+              unescape.convert(widget.product.name),
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -569,7 +567,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     ),
                     const SizedBox(height: 16), // Add spacing after dropdown
                   ],
-
 
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -660,11 +657,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               ),
                             ),
                           ),
-
-
-
-
-
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 12),
                             child: Text(

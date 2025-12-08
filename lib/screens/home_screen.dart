@@ -44,7 +44,6 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -53,13 +52,14 @@ class HomeScreen extends StatelessWidget {
         elevation: 0,
         automaticallyImplyLeading: false,
         title: const Text(
-          'Natural and Artisan Foods',
+          'Shop , Cook & Savor Artisan Foods',
           style: TextStyle(
             color: Colors.white,
-            fontSize: 18,
+            fontSize: 15,
             fontWeight: FontWeight.w500,
             letterSpacing: 0.5,
             fontFamily: 'Roboto',
+            fontStyle: FontStyle.italic
           ),
         ),
       ),
@@ -108,7 +108,6 @@ class _FavouriteButtonState extends State<_FavouriteButton> {
         });
       }
     } catch (e) {
-      // If there's an error, keep _isFavourite as false
       print('Error checking favorite status: $e');
     }
   }
@@ -882,6 +881,7 @@ class FeaturedRecipeGridCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final unescape = HtmlUnescape();
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -947,7 +947,7 @@ class FeaturedRecipeGridCard extends StatelessWidget {
               padding: const EdgeInsets.all(8.0),
               child: Center(
                 child: Text(
-                  recipe.title,
+                  unescape.convert(recipe.title),
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
@@ -1117,6 +1117,7 @@ class TrendingProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final unescape = HtmlUnescape();
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -1196,7 +1197,7 @@ class TrendingProductCard extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 8),
                       child: Center(
                         child: Text(
-                          product.name ?? '',
+                         unescape.convert(product.name ?? ''),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           textAlign: TextAlign.center,
@@ -1589,6 +1590,7 @@ class _TrendingThisWeekSection extends StatelessWidget {
                         : 0.0,
                     imageUrl: r.image ?? '',
                     recipeId: r.id,
+                    link: r.link ?? '',
               );
             },
           ),
@@ -1608,6 +1610,7 @@ class _TrendingRecipeCard extends StatelessWidget {
   final String excerpt;
   final String imageUrl;
   final int? recipeId;
+  final String link;
 
   const _TrendingRecipeCard({
     required this.title,
@@ -1616,6 +1619,7 @@ class _TrendingRecipeCard extends StatelessWidget {
     required this.imageUrl,
     required this.excerpt,
     this.recipeId,
+    required this.link,
   });
 
   String _cleanHtmlText(String text) {
@@ -1630,6 +1634,7 @@ class _TrendingRecipeCard extends StatelessWidget {
   }
   @override
   Widget build(BuildContext context) {
+    final unescape = HtmlUnescape();
     return GestureDetector(
 
         onTap: () {
@@ -1643,6 +1648,7 @@ class _TrendingRecipeCard extends StatelessWidget {
                 rating: rating,
                 imageUrl: imageUrl,
                 recipeId: recipeId,
+                link: link,
               ),
             ),
           );
@@ -1689,7 +1695,7 @@ class _TrendingRecipeCard extends StatelessWidget {
               children: [
                 // Recipe Title
                 Text(
-                  title,
+                  unescape.convert(title),
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,

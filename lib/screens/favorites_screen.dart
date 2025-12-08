@@ -21,8 +21,6 @@ class FavoritesScreen extends StatelessWidget {
 
     final document = html_parser.parse(text);
     final cleanText = document.body?.text ?? text;
-
-
     final RegExp htmlTagRegex = RegExp(r'<[^>]*>', multiLine: true, caseSensitive: true);
     return cleanText.replaceAll(htmlTagRegex, '').trim();
   }
@@ -36,8 +34,13 @@ class FavoritesScreen extends StatelessWidget {
         centerTitle: true,
         elevation: 0,
         title: const Text(
-          'Natural and Artisan Foods',
-          style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
+          'Shop , Cook & Savor Artisan Foods',
+          style: TextStyle(
+              color: Colors.white,
+              fontSize: 15,
+              letterSpacing: 0.5,
+              fontWeight: FontWeight.w500,
+              fontStyle: FontStyle.italic),
         ),
       ),
       body: _HomeHeaderAndContent(key: favoritesKey),

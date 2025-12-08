@@ -9,6 +9,7 @@ import '../repositories/favourites_repository.dart';
 import '../repositories/search_repository.dart';
 import '../utils/auth_helper.dart';
 import 'recipedetailscreen.dart';
+import 'package:html_unescape/html_unescape.dart';
 
 import '../modal/search_model.dart';
 
@@ -375,6 +376,7 @@ class _RecipeGridCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final unescape = HtmlUnescape();
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -441,7 +443,7 @@ class _RecipeGridCard extends StatelessWidget {
               padding: const EdgeInsets.all(8.0),
               child: Center(
                 child: Text(
-                  recipe.title,
+                  unescape.convert(recipe.title),
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,

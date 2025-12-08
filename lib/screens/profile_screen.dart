@@ -30,11 +30,14 @@ class ProfileScreen extends StatelessWidget {
         elevation: 0,
         centerTitle: true,
         title: const Text(
-          "Natural and Artisan Foods",
+          'Shop , Cook & Savor Artisan Foods',
           style: TextStyle(
             fontWeight: FontWeight.w600,
-            fontSize: 16,
+            fontSize: 15,
             color: Colors.white,
+            letterSpacing: 0.5,
+            fontStyle: FontStyle.italic,
+
           ),
         ),
       ),
@@ -370,12 +373,14 @@ class ProfileScreen extends StatelessWidget {
                       ),
                     );
 
-                    // Delay slightly so the SnackBar is visible before navigating
-                    Future.delayed(const Duration(milliseconds: 600), () {
-                      Navigator.pushReplacement(
+
+                    Future.delayed(const Duration(milliseconds: 300), () {
+                      Navigator.pushReplacementNamed(context, '/home');
+                      /*Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(builder: (context) => const LoginScreen()),
-                      );
+                      );*/
+
                     });
                   },
                   icon: const Icon(Icons.logout, color: Colors.red),
