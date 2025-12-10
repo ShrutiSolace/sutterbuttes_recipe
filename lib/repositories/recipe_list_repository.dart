@@ -38,7 +38,9 @@ class RecipeListRepository {
   //     }
 
   Future<TrendingRecipesModel> getTrendingRecipes() async {
+
     print("Fetching trending recipes");
+    print("======================================");
     final uri = Uri.parse(ApiConstants.trendingRecipesUrl);
     final response = await http.get(
       uri,

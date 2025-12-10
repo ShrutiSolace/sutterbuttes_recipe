@@ -70,7 +70,7 @@ class NewsletterConfirmationScreen extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         const Text(
-          'Shop , Cook & Savor Artisan Foods',
+          'Shop , Cook & Savor',
           style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w500,

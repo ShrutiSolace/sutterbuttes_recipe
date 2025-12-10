@@ -50,16 +50,20 @@ class CartModel {
 class Totals {
   Totals({
     this.subtotal,
+
   });
 
   Totals.fromJson(dynamic json) {
     subtotal = (json['subtotal'] as num?)?.toDouble();
+
   }
   double? subtotal;
+
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
     map['subtotal'] = subtotal;
+
     return map;
   }
 }

@@ -52,7 +52,7 @@ class HomeScreen extends StatelessWidget {
         elevation: 0,
         automaticallyImplyLeading: false,
         title: const Text(
-          'Shop , Cook & Savor Artisan Foods',
+          'Shop , Cook & Savor',
           style: TextStyle(
             color: Colors.white,
             fontSize: 15,

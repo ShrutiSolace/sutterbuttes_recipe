@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../modal/cart_model.dart';
+import '../../modal/coupon_model.dart';
 import '../../repositories/cart_repository.dart';
 
 
@@ -15,9 +16,11 @@ class CartProvider extends ChangeNotifier {
   bool get isLoading => _loading;
   String? get error => _error;
   int get itemCount => _cart?.items?.fold<int>(0, (sum, it) => sum + (it.quantity ?? 0)) ?? 0;
+  CartTotals? get couponTotals => _couponTotals;
+  CartTotals? _couponTotals;
 
 
-  // Step 1: Calculate subtotal locally from items
+
   double _calculateLocalSubtotal() {
     if (_cart?.items == null || _cart!.items!.isEmpty) return 0.0;
 
@@ -154,10 +157,73 @@ class CartProvider extends ChangeNotifier {
         _cart = updatedCart;
         notifyListeners();
       }
-
     } catch (_) {}
     /*await loadCart(silent: true);*/
+  }
+
+
+/*
+
+    //coupon code
+    Future<bool> applyCoupon(String couponCode) async {
+      _loading = true;
+      _error = null;
+      notifyListeners();
+
+      try {
+        final couponResponse = await _repo.applyCoupon(coupon: couponCode);
+
+        if (couponResponse.success == true && couponResponse.cartTotals != null) {
+          _couponTotals = couponResponse.cartTotals;
+          await loadCart(silent: true);
+          _error = null;
+          return true;
+        } else {
+          _error = couponResponse.message ?? 'Failed to apply coupon';
+          return false;
+        }
+      } catch (e) {
+        _error = e.toString();
+        return false;
+      } finally {
+        _loading = false;
+        notifyListeners();
+      }
+    }
+
+
+
+  Future<bool> removeCoupon(String couponCode) async {
+    _loading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final couponResponse = await _repo.removeCoupon(coupon: couponCode);
+      if (couponResponse.success == true) {
+        _couponTotals = null; // Clear coupon totals
+        await loadCart(silent: true);
+        _error = null;
+        return true;
+      } else {
+        _error = couponResponse.message ?? 'Failed to remove coupon';
+        return false;
+      }
+    } catch (e) {
+      _error = e.toString();
+      return false;
+    } finally {
+      _loading = false;
+      notifyListeners();
+    }
+  }
+
+
+
+
+*/
 
   }
-}
+
+
 

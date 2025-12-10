@@ -34,7 +34,7 @@ class FavoritesScreen extends StatelessWidget {
         centerTitle: true,
         elevation: 0,
         title: const Text(
-          'Shop , Cook & Savor Artisan Foods',
+          'Shop , Cook & Savor',
           style: TextStyle(
               color: Colors.white,
               fontSize: 15,

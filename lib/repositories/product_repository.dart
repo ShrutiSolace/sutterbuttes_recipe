@@ -50,7 +50,6 @@ class ProductRepository {
         print("=== TOTAL PRODUCTS FROM API: ${products.length} ===");
         return products;
 
-
       } else {
         // Handle error response
         throw Exception('Failed to load products: ${response.statusCode}');

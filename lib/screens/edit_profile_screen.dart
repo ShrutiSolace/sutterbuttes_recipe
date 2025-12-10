@@ -220,7 +220,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               children: [
                 Expanded(child: _buildTextField(label: "City", hint: "", controller: _cityController, inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z ]'))])),
                 const SizedBox(width: 8),
-                Expanded(child: _buildTextField(label: "State", hint: " ", controller: _stateController,inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z ]'))])),
+               /* Expanded(child: _buildTextField(label: "State", hint: " ", controller: _stateController,inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z ]'))])),*/
+
+                Expanded(child: _buildTextField(
+                  label: "State",
+                  hint: " ",
+                  controller: _stateController,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[A-Z]')), // Only uppercase letters
+                    LengthLimitingTextInputFormatter(2), // Limit to 2 characters
+                    TextInputFormatter.withFunction((oldValue, newValue) {
+                      // Convert to uppercase
+                      return TextEditingValue(
+                        text: newValue.text.toUpperCase(),
+                        selection: newValue.selection,
+                      );
+                    }),
+                  ],
+                )),
                 const SizedBox(width: 8),
                 Expanded(child: Expanded(child: _buildTextField(label: "ZIP Code", hint: "", controller: _zipController, keyboardType: TextInputType.number, inputFormatters: [FilteringTextInputFormatter.digitsOnly])),),
               ],
@@ -329,7 +346,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           : null),
       _streetController.text.trim().isEmpty ? 'Street Address is required' : null,
       _cityController.text.trim().isEmpty ? 'City is required' : null,
-      _stateController.text.trim().isEmpty ? 'State is required' : null,
+      _stateController.text.trim().isEmpty
+          ? 'State is required'
+          : (!RegExp(r'^[A-Z]{2}$').hasMatch(_stateController.text.trim())
+          ? 'State must be 2 uppercase letters'
+          : null),
       _zipController.text.trim().isEmpty
           ? 'ZIP Code is required'
           : (!RegExp(r'^[0-9]{5}$').hasMatch(_zipController.text.trim())

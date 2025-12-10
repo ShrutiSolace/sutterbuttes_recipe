@@ -2,11 +2,26 @@ class ApiConstants
 
 {
   ///--Base URL --///
-  static  String baseUrl = 'https://staging.sutterbuttesoliveoil.com/wp-json';
+  static  String baseUrl = 'https://sutterbuttesoliveoil.com/wp-json';
+   ///-- base url  live - https://sutterbuttesoliveoil.com/wp-json
+   ///static  String baseUrl = 'https://staging.sutterbuttesoliveoil.com/wp-json';
+
 
  ///--WooCommerce CK,CS API Keys --///
-  static String consumerKey = 'ck_90684e6eb6fb54af4cb32db19d1ed0bf4052e8d9';
-  static String consumerSecret = 'cs_5c94e92e6481648776a3af56f0ce416d3f9a8a40';
+  static String consumerKey ='ck_9b956dccd298e57fceb91987f14be4d5b408afb5';
+  static String consumerSecret ='cs_f2075565989202b0ed4c090041c62efc04c24a0a';
+
+
+  ///live///
+  ///Consumer key - ck_9b956dccd298e57fceb91987f14be4d5b408afb5
+  /// Consumer secret - cs_f2075565989202b0ed4c090041c62efc04c24a0a
+
+  ///staging/// CK CS testing
+  ///static String consumerKey = 'ck_90684e6eb6fb54af4cb32db19d1ed0bf4052e8d9';
+  // static String consumerSecret = 'cs_5c94e92e6481648776a3af56f0ce416d3f9a8a40';
+
+
+
 
   ///--Authentication API --///
   static String loginUrl = '$baseUrl/jwt-auth/v1/token';
@@ -91,4 +106,8 @@ static String markAsReadUrl = '$baseUrl/sbo/v1/mark-notification-read';
 
   ///shipping///
   static String shippingUrl = '$baseUrl/sbo/v1/shipping-cost';
+
+  ///Coupon///
+ static String couponUrl = '$baseUrl/sbo/v1/cart/coupon';
+ static String removeCouponUrl = '$baseUrl/sbo/v1/cart/remove-coupon';
 }

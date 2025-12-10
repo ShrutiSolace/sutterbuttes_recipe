@@ -30,7 +30,7 @@ class ProfileScreen extends StatelessWidget {
         elevation: 0,
         centerTitle: true,
         title: const Text(
-          'Shop , Cook & Savor Artisan Foods',
+          'Shop , Cook & Savor',
           style: TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: 15,

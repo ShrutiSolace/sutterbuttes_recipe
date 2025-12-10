@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../api_constant.dart';
 import '../modal/cart_model.dart';
+import '../modal/coupon_model.dart';
 import '../modal/shipping_cost_model.dart';
 import '../services/secure_storage.dart';
 
@@ -226,6 +227,78 @@ class CartRepository {
 
 
 
+*/
+
+
+  /*Future<CouponResponse> applyCoupon({required String coupon}) async {
+    print("===APPLY COUPON");
+    final String? token = await SecureStorage.getLoginToken();
+    final uri = Uri.parse(ApiConstants.couponUrl);
+
+    final response = await http.post(
+      uri,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: json.encode({
+        'coupon': coupon,
+      }),
+    );
+    print("++++++=== APPLY COUPON API ========");
+    print("URL: $uri");
+    print("Status code: ${response.statusCode}");
+    print("url: $uri");
+    print("Response body: ${response.body}");
+
+    // Parse response body first (works for both success and error)
+    final Map<String, dynamic> data = json.decode(response.body);
+
+    if (response.statusCode == 200) {
+      return CouponResponse.fromJson(data);
+    } else if (response.statusCode == 401) {
+      throw Exception('Unauthorized (401). Token may be expired/invalid.');
+    } else {
+      // FIX: Return CouponResponse instead of throwing exception
+      // This allows the error message to be shown in UI
+      return CouponResponse.fromJson(data); // API returns success: false and message
+    }
+  }
+
+
+  Future<CouponResponse> removeCoupon({required String coupon}) async {
+    print("===REMOVE COUPON");
+    final String? token = await SecureStorage.getLoginToken();
+    final uri = Uri.parse(ApiConstants.couponUrl);
+
+    final response = await http.post(
+      uri,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: json.encode({
+        'coupon': coupon,
+        'action': 'remove',
+      }),
+    );
+    print("++++++=== REMOVE COUPON API ========");
+    print("URL: $uri");
+    print("Status code: ${response.statusCode}");
+    print("Response body: ${response.body}");
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = json.decode(response.body);
+      return CouponResponse.fromJson(data);
+    } else if (response.statusCode == 401) {
+      throw Exception('Unauthorized (401). Token may be expired/invalid.');
+    } else {
+      final errorData = json.decode(response.body);
+      throw Exception(errorData['message'] ?? 'Failed to remove coupon: ${response.statusCode}');
+    }
+  }
 */
 
 }

@@ -119,14 +119,6 @@ class _AboutScreenState extends State<AboutScreen> {
                 ),
 
 
-
-
-
-
-
-
-
-
                 // Section-wise dynamic rendering
                 ...contentMap.entries.map((entry) => _buildSectionContainer(entry.key, entry.value)),
 
@@ -170,11 +162,13 @@ class _AboutScreenState extends State<AboutScreen> {
           value != null
               ? Center(
 
-            child: Html(data: value.toString(),
+            child:
+
+            Html(data: value.toString(),
               style: {
                 "img": Style(
                   width: Width(300), // Set image width
-                  height: Height(150), // Set image height
+                  height: Height(230), // Set image height
                   margin: Margins.symmetric( vertical: 10),
                   alignment: Alignment.center, // Center the image
                 ),
