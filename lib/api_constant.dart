@@ -18,7 +18,7 @@ class ApiConstants
 
   ///staging/// CK CS testing
   ///static String consumerKey = 'ck_90684e6eb6fb54af4cb32db19d1ed0bf4052e8d9';
-  // static String consumerSecret = 'cs_5c94e92e6481648776a3af56f0ce416d3f9a8a40';
+  /// static String consumerSecret = 'cs_5c94e92e6481648776a3af56f0ce416d3f9a8a40';
 
 
 

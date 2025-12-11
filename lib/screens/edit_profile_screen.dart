@@ -392,7 +392,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       final result = await repo.updateUserProfile(userData: userData, profileImagePath: _pickedImageFile?.path,);
 
       // Handle null success case (when no changes made)
-      if (result.success == null) {
+     /* if (result.success == null) {
+        if(mounted){
         messenger.showSnackBar(
           const SnackBar(content: Text('No changes made to update')),
         );
@@ -401,27 +402,45 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         });
         return;
       }
+      }*/
+      if (result.success == null) {
+        if (mounted) {
+          messenger.showSnackBar(
+            const SnackBar(content: Text('No changes made to update')),
+          );
+          setState(() {
+            _isSaving = false;
+          });
+        }
+        return;  // ← Should be outside if(mounted)
+      }
 
 
       if (result.success == true) {
-        messenger.showSnackBar(
-          SnackBar(content: Text(result.message ?? 'Profile updated successfully',),
+        if (mounted) {
+          messenger.showSnackBar(
+            SnackBar(content: Text(result.message ?? 'Profile updated successfully',),
 
-         backgroundColor:const Color(0xFF7B8B57),
-            duration: const Duration(seconds: 2),
+              backgroundColor: const Color(0xFF7B8B57),
+              duration: const Duration(seconds: 2),
 
-          ),
-        );
-        await context.read<AuthProvider>().fetchCurrentUser();
+            ),
+          );
+          await context.read<AuthProvider>().fetchCurrentUser();
 
-        Navigator.pop(context);
-      } else {
+          Navigator.pop(context);
+        }
+      }
+
+        else {
+          if(mounted){
         messenger.showSnackBar(
           SnackBar(
             content: Text(result.message ?? 'Failed to update profile'),
             backgroundColor: Colors.red,
           ),
         );
+      }
       }
 
      /* // Change password flow if fields provided
@@ -488,10 +507,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     } catch (e,s) {
       print("====SSS====: $s");
-      messenger.showSnackBar(
-        SnackBar(content: Text('Failed to update profile: $e')),
-      );
-    } finally {
+      if (mounted) {
+        messenger.showSnackBar(
+          SnackBar(content: Text('Failed to update profile: $e')),
+        );
+      }
+    }finally {
       if (mounted) {
         setState(() {
           _isSaving = false;
