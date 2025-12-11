@@ -27,7 +27,7 @@ class ShopScreen extends StatelessWidget {
         backgroundColor: const Color(0xFF4A3D4D),
         centerTitle: true,
         elevation: 0,
-        automaticallyImplyLeading: false,
+        automaticallyImplyLeading: true,
         title: const Text(
           'Shop , Cook & Savor',
           style: TextStyle(

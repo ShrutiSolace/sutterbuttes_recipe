@@ -3,8 +3,10 @@ import 'package:provider/provider.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:sutterbuttes_recipe/screens/state/about_us_provider.dart';
 import '../modal/about_us_model.dart';
+import 'bottom_navigation.dart';
 import 'home_screen.dart';
 import 'shop_screen.dart';
+import 'package:html/parser.dart' as html_parser;
 
 
 
@@ -23,6 +25,35 @@ class _AboutScreenState extends State<AboutScreen> {
       Provider.of<AboutContentProvider>(context, listen: false).fetchAboutContent();
     });
   }
+
+  String _removeFirstImage(String htmlString) {
+    try {
+      final document = html_parser.parse(htmlString);
+      final imgTags = document.querySelectorAll('img');
+
+      if (imgTags.isNotEmpty) {
+        // Remove the first image
+        imgTags.first.remove();
+      }
+
+
+      // Remove "About Us" text from all elements
+      final allElements = document.querySelectorAll('h1, h2, h3, h4, h5, h6, p, div, span');
+      for (var element in allElements) {
+        final text = element.text.trim().toLowerCase();
+        if (text == 'about us' || text.contains('about us')) {
+          element.remove();
+        }
+      }
+
+
+      return document.body?.innerHtml ?? htmlString;
+    } catch (e) {
+      return htmlString; // Return original if parsing fails
+    }
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -162,20 +193,24 @@ class _AboutScreenState extends State<AboutScreen> {
           value != null
               ? Center(
 
-            child:
 
-            Html(data: value.toString(),
+
+            // inside _buildSectionContainer
+            child: Html(
+              data: title == 'Contact Us:' ? value.toString() : _removeFirstImage(value.toString()),
               style: {
                 "img": Style(
-                  width: Width(300), // Set image width
-                  height: Height(230), // Set image height
-                  margin: Margins.symmetric( vertical: 10),
-                  alignment: Alignment.center, // Center the image
+                  width: Width(320),
+                  height: Height(280),
+                  margin: Margins.symmetric(vertical: 10),
+                  alignment: Alignment.center,
                 ),
                 "body": Style(
                   margin: Margins.zero,
                   padding: HtmlPaddings.zero,
                 ),
+                // Hide links only for the main content (breadcrumbs), show links elsewhere
+                "a": Style(display: title == '' ? Display.none : Display.block),
               },
             ), // <-- Render HTML content
           )
@@ -257,6 +292,7 @@ class _AboutScreenState extends State<AboutScreen> {
                         context,
                         MaterialPageRoute(builder: (context) => const HomeScreen()),
                       );
+
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF7B8B57),
