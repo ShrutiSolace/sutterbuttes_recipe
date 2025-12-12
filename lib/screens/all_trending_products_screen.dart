@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:html_unescape/html_unescape.dart';
 import 'package:provider/provider.dart';
+import 'package:sutterbuttes_recipe/screens/product_detailscreen.dart';
 import 'package:sutterbuttes_recipe/screens/profile_screen.dart';
 import 'package:sutterbuttes_recipe/screens/recipes_screen.dart';
 import 'package:sutterbuttes_recipe/screens/trending_product_detail_screen.dart';
@@ -294,13 +295,43 @@ class _ProductGridCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final unescape = HtmlUnescape();
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => TrendingProductDetailScreen(product: product),
+      onTap: () async {
+        if (product.id == null) return;
+
+        // Show loading
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => Center(
+            child: CircularProgressIndicator(),
           ),
         );
+
+        try {
+          // Fetch full product details
+          final productRepo = ProductRepository();
+          final fullProduct = await productRepo.getProductDetail(product.id!);
+
+          if (context.mounted) {
+            Navigator.pop(context); // Close loading
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ProductDetailScreen(product: fullProduct),
+              ),
+            );
+          }
+        } catch (e) {
+          if (context.mounted) {
+            Navigator.pop(context); // Close loading
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Failed to load product: $e'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
       },
       child: Container(
         decoration: BoxDecoration(

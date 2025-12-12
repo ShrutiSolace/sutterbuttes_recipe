@@ -1119,13 +1119,53 @@ class TrendingProductCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final unescape = HtmlUnescape();
     return GestureDetector(
+      /*
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => TrendingProductDetailScreen(product: product),
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => TrendingProductDetailScreen(product: product),
+    ),
+  );
+},
+       */
+      onTap: () async {
+        if (product.id == null) return;
+
+        // Show loading
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => Center(
+            child: CircularProgressIndicator(),
           ),
         );
+
+        try {
+          // Fetch full product details
+          final productRepo = ProductRepository();
+          final fullProduct = await productRepo.getProductDetail(product.id!);
+
+          if (context.mounted) {
+            Navigator.pop(context); // Close loading
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ProductDetailScreen(product: fullProduct),
+              ),
+            );
+          }
+        } catch (e) {
+          if (context.mounted) {
+            Navigator.pop(context); // Close loading
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Failed to load product: $e'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
       },
 
       child: Container(
