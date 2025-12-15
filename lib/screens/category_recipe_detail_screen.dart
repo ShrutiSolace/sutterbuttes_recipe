@@ -94,6 +94,21 @@ class CategoryRecipeDetailScreen extends StatelessWidget {
   Future<void> _printRecipe(BuildContext context) async {
     print("Print button tapped");
     print('Title: $title');
+
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+
+
+
+
+
+
+
     try {
       final pdf = pw.Document();
 
@@ -140,8 +155,14 @@ class CategoryRecipeDetailScreen extends StatelessWidget {
       );
 
       await Printing.layoutPdf(
+        name: '$title.pdf',
         onLayout: (PdfPageFormat format) async => pdf.save(),
       );
+
+      // Dismiss loader when PDF interface opens
+      if (context.mounted) {
+        Navigator.pop(context);
+      }
     } catch (e) {
       print('Print error: $e');
       if (context.mounted) {
