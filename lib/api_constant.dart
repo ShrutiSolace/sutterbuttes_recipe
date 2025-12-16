@@ -4,7 +4,10 @@ class ApiConstants
   ///--Base URL --///
   static  String baseUrl = 'https://sutterbuttesoliveoil.com/wp-json';
    ///-- base url  live - https://sutterbuttesoliveoil.com/wp-json
-   ///static  String baseUrl = 'https://staging.sutterbuttesoliveoil.com/wp-json';
+
+
+   ///Staging
+  /// String baseUrl = 'https://staging.sutterbuttesoliveoil.com/wp-json';
 
 
  ///--WooCommerce CK,CS API Keys --///

@@ -34,10 +34,11 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   print('Starting Firebase initialization...');
-   //for production purpose
-  //Stripe.publishableKey = 'pk_live_LE9xpcAG1zRlgr2igIoA7C14';
+  //stripe live key = pk_live_LE9xpcAG1zRlgr2igIoA7C14
+  //stripe test key = pk_test_IVAM9eZVQcNrjEYVDgeEKNe5
+
   //for testing purpose
-  Stripe.publishableKey = 'pk_test_IVAM9eZVQcNrjEYVDgeEKNe5';
+  Stripe.publishableKey = 'pk_live_LE9xpcAG1zRlgr2igIoA7C14';
   print("=====Stripe Key in app: ${Stripe.publishableKey}");
 
 
